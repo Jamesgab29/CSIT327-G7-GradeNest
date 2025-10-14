@@ -115,7 +115,17 @@ def education_level(request):
 # ---------------- DASHBOARD ----------------
 @login_required
 def dashboard(request):
-    return render(request, "accounts/dashboard.html")
+    profile = Profile.objects.get(user=request.user)
+    
+    # Determine if JHS or SHS
+    isJHS = profile.grade_level in ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10']
+    isSHS = profile.grade_level in ['Grade 11', 'Grade 12']
+    
+    return render(request, "accounts/dashboard.html", {
+        'profile': profile,  # Pass the full profile
+        'isJHS': isJHS,      # Pass as a boolean
+        'isSHS': isSHS       # Pass as a boolean
+    })
 
 
 # ---------------- LANDING PAGE ----------------

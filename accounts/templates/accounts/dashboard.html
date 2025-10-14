@@ -1,13 +1,115 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard</title>
+  <title>Dashboard - GradeNest</title>
+  <link rel="stylesheet" href="{% static 'accounts/css/dashboard.css' %}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
+  <script src="{% static 'accounts/js/dashboard.js' %}" defer></script>
 </head>
 <body>
-  <h1>Welcome, {{ user.username }}!</h1>
-  <p>This is your dashboard. You can add your features here later.</p>
-  <a href="{% url 'accounts:logout' %}">Logout</a>
+
+<div class="topbar">
+  <div class="logo-section">
+    <img src="{% static 'accounts/img/gradenest-logo.png' %}" alt="GradeNest Logo" class="logo-img" />
+    <span class="logo-text">GradeNest</span>
+  </div>
+
+  <div class="profile-section">
+    <span class="profile-name" id="topbarProfileName">{{ user.full_name|default:"User" }}</span>
+    <div class="profile-icon-wrapper" id="profileDropdownToggle">
+      <img src="{% static 'accounts/img/profile-icon.png' %}" alt="Profile" class="profile-icon" />
+    </div>
+    
+    <div class="profile-dropdown" id="profileDropdown">
+      <a href="#" class="dropdown-item" id="settingsLink">Settings</a>
+      <a href="{% url 'accounts:logout' %}" class="dropdown-item logout-item">Logout</a>
+    </div>
+  </div>
+</div>
+
+<aside class="sidebar">
+  <nav class="nav-menu">
+    <a href="{% url 'accounts:dashboard' %}" class="nav-item active" data-page="dashboard">
+      <img src="{% static 'accounts/img/home-icon.png' %}" alt="Home" class="nav-icon" />
+      <span>Home</span>
+    </a>
+    <a href="#" class="nav-item" data-page="goals" id="goalsLink">
+      <img src="{% static 'accounts/img/goals-icon.png' %}" alt="Goals" class="nav-icon" />
+      <span>Goals</span>
+    </a>
+    <a href="#" class="nav-item" data-page="school-year" id="schoolYearLink">
+      <img src="{% static 'accounts/img/sy-icon.png' %}" alt="School Year" class="nav-icon" />
+      <span>S.Y. Added</span>
+    </a>
+    <a href="#" class="nav-item" data-page="settings" id="navSettingsLink">
+      <img src="{% static 'accounts/img/settings-icon.png' %}" alt="Settings" class="nav-icon" />
+      <span>Settings</span>
+    </a>
+  </nav>
+</aside>
+
+<main class="main-content">
+  <div class="content-wrapper">
+
+    <div class="page-header">
+      <div class="header-left">
+        <h1>Welcome, <span id="welcomeName">{{ user.full_name|default:"User" }}</span></h1>
+        <p class="date-text" id="currentDate"></p>
+      </div>
+      <div class="header-right">
+        <p class="school-year-badge"><strong>SCHOOL YEAR {{ profile.school_year|default:"Not set" }}</strong></p>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="quarters-container">
+      <div class="quarters-left" id="quartersContainer"></div>
+
+      <div class="quarters-right">
+        <div class="overall-gwa-card">
+          <div class="overall-title">Overall GWA in this<br>School Year</div>
+          <div class="overall-gwa-container">
+            <div class="gwa-circle-large">
+              <span style="font-size: 48px; font-weight: 700; color: #FFFFFF;" id="overallGwaValue">--</span>
+            </div>
+            <p class="overall-remark" id="overallRemark">you did great</p>
+          </div>
+          <button class="mark-done-btn" id="markDoneBtn">MARK AS DONE</button>
+          <span class="button-hint hidden" id="buttonHint">All quarters marked complete</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modalOverlay"></div>
+<div class="modal" id="quarterModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">Quarter Details</h3>
+      <button class="close-btn" id="closeModalBtn">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-ok" id="modalOkBtn">OK</button>
+    </div>
+  </div>
+</div>
+
 </body>
+<script>
+  window.userProfile = {
+    gradeLevel: "{{ profile.grade_level|default:'Grade 7' }}",
+    strand: "{{ profile.strand|default:'' }}",
+    schoolYear: "{{ profile.school_year|default:'Not set' }}",
+    isJHS: {{ isJHS|yesno:'true,false' }},
+    isSHS: {{ isSHS|yesno:'true,false' }}
+  };
+</script>
 </html>

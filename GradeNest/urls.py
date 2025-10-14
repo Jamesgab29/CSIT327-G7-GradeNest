@@ -19,7 +19,6 @@ from django.urls import path, include
 from django.shortcuts import redirect
 
 urlpatterns = [
-    # Root URL goes to accounts app (landing page will appear here)
     path("", include("accounts.urls")),
     path("admin/", admin.site.urls),
 ]

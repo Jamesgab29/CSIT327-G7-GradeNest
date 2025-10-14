@@ -45,9 +45,7 @@ Designed with accuracy and accessibility in mind, GradeNest streamlines grade mo
 
 4. **Set up environment variables**
    Create a .env file in the root directory and add:
-   SECRET_KEY=your_django_secret_key
-   DATABASE_URL=your_supabase_postgres_url
-   DEBUG=True
+   DATABASE_URL=postgresql://postgres.bbnisdbztrriaptaplgv:3fsqrPKWyLI25rpd@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require
    
 5. **Apply migrations**
    python manage.py migrate
