@@ -5,6 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from .models import CustomUser, Profile
+from django.core.mail import send_mail
+from django.http import HttpResponse
 import re
 
 
@@ -137,3 +139,15 @@ def landing_page(request):
 def user_logout(request):
     auth_logout(request)
     return redirect("accounts:landing-page")
+
+
+# ---------------- test-email ----------------
+def test_email(request):
+    send_mail(
+        subject="GradeNest Email Test",
+        message="This is a test email from your Django project!",
+        from_email=None,  # uses DEFAULT_FROM_EMAIL in settings.py
+        recipient_list=["jamesgabrielflorescotiangco@gmail.com"],  # 👈 your email here
+        fail_silently=False,
+    )
+    return HttpResponse("✅ Test email sent successfully! Check your Gmail inbox.")

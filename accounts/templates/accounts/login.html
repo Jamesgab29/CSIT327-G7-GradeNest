@@ -5,150 +5,218 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GradeNest - Login</title>
-  <link rel="stylesheet" href="{% static 'accounts/css/login.css' %}" />
+  <link rel="stylesheet" href="{% static 'accounts/css/login-modern.css' %}" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
-
-  <style>
-    .messages {
-      margin-bottom: 15px;
-      width: 100%;
-      text-align: center;
-    }
-    .alert {
-      display: inline-block;
-      padding: 10px 14px;
-      border-radius: 6px;
-      margin-bottom: 10px;
-      font-weight: 500;
-      font-size: 14px;
-      animation: fadeIn 0.3s ease-in-out;
-    }
-    .alert.error {
-      background-color: #ffeaea;
-      color: #c62828;
-      border: 1px solid #ef9a9a;
-    }
-    .alert.success {
-      background-color: #e8f5e9;
-      color: #2e7d32;
-      border: 1px solid #a5d6a7;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-5px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .fade-out {
-      opacity: 0;
-      transition: opacity 1s ease-out;
-    }
-
-    #loginBtn {
-      width: 260px;
-      max-width: 90%;
-      box-sizing: border-box;
-      display: block;
-      margin: 20px auto 0 auto;
-      border-radius: 8px;
-      font-weight: 500;
-      font-size: 16px;
-      text-align: center;
-      background: #28d47c;
-      color: #fff;
-      border: none;
-      padding: 11px 0;
-      cursor: pointer;
-      transition: background 0.13s;
-    }
-    #loginBtn:hover,
-    #loginBtn:focus {
-      background: #24be72;
-    }
-
-    @media (max-width: 420px) {
-      #loginBtn {
-        width: 92%;
-        height: 48px;
-        line-height: 48px;
-      }
-    }
-  </style>
 </head>
 <body>
 
-<header class="site-header">
-  <div class="logo">
-    <img src="{% static 'accounts/img/gradenest-logo.png' %}" alt="GradeNest Logo" class="logo-img" />
-    <span>GradeNest</span>
-  </div>
-  <nav>
-    <ul class="nav-links">
-      <li><a href="#">Home</a></li>
-      <li><a href="#">Features</a></li>
-      <li><a href="#">Contact</a></li>
-    </ul>
-  </nav>
-</header>
-
-<div class="container">
-  <form id="loginForm" class="form" method="POST" action="{% url 'accounts:login' %}">
-    {% csrf_token %}
-    <h2>Student Login</h2>
-
-    {% if messages %}
-      <div class="messages" id="alert-box">
-        {% for message in messages %}
-          <div class="alert {{ message.tags }}">{{ message }}</div>
-        {% endfor %}
+<div class="auth-container">
+  
+  <!-- Left Side: Brand Experience -->
+  <div class="auth-visual">
+    <div class="visual-content">
+      <!-- Animated Background Elements -->
+      <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
       </div>
-    {% endif %}
-
-    <label for="username">Email <span class="required">*</span></label>
-    <div class="input-wrapper">
-      <img src="{% static 'accounts/img/user-icon.png' %}" alt="User Icon" class="input-icon" />
-      <input 
-        type="email" 
-        id="username" 
-        name="username" 
-        placeholder="Enter your email"
-        value="{{ login_input|default:'' }}"
-        required 
-      />
+      
+      <!-- Logo and Brand -->
+      <div class="brand-section">
+        <img src="{% static 'accounts/img/gradenest-logo.png' %}" alt="GradeNest" class="logo-large" />
+        <h1 class="brand-name">GradeNest</h1>
+        <p class="brand-tagline">Your Academic Compass</p>
+      </div>
+      
+      <!-- Main Illustration -->
+      <div class="auth-main-image">
+        <img src="{% static 'accounts/img/education-level-img.png' %}" alt="Student Success" />
+      </div>
     </div>
-
-    <label for="password">Password <span class="required">*</span></label>
-    <div class="input-wrapper">
-      <img src="{% static 'accounts/img/lock-icon.png' %}" alt="Lock Icon" class="input-icon" />
-      <input 
-        type="password" 
-        id="password" 
-        name="password" 
-        placeholder="Enter your password" 
-        required 
-      />
+  </div>
+  
+  <!-- Right Side: Login Form -->
+  <div class="auth-form-section">
+    <div class="form-wrapper-modern">
+      <!-- Back to Home Link -->
+      <a href="{% url 'accounts:landing-page' %}" class="back-link">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Back to Home
+      </a>
+      
+      <div class="form-header">
+        <h2 class="form-title-modern">Welcome back! 👋</h2>
+        <p class="form-subtitle">Enter your credentials to continue your academic journey</p>
+      </div>
+      
+      <!-- Messages/Alerts -->
+      {% if messages %}
+        <div class="messages-modern" id="alertBox">
+          {% for message in messages %}
+            <div class="alert-modern {{ message.tags }}">
+              <div class="alert-icon">
+                {% if 'error' in message.tags %}
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M10 6V10M10 14H10.01M19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1C14.9706 1 19 5.02944 19 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                {% else %}
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M7 10L9 12L13 8M19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1C14.9706 1 19 5.02944 19 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                {% endif %}
+              </div>
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      
+      <!-- Login Form -->
+      <form id="loginForm" class="modern-form" method="POST" action="{% url 'accounts:login' %}">
+        {% csrf_token %}
+        
+        <!-- Email Input with Floating Label -->
+        <div class="input-group-modern">
+          <input 
+            type="email" 
+            id="email" 
+            name="username"
+            value="{{ login_input|default:'' }}"
+            required 
+            autocomplete="email"
+          />
+          <label for="email">Email Address</label>
+          <div class="input-icon-left">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M3 5C3 3.89543 3.89543 3 5 3H15C16.1046 3 17 3.89543 17 5V15C17 16.1046 16.1046 17 15 17H5C3.89543 17 3 16.1046 3 15V5Z" stroke="currentColor" stroke-width="2"/>
+              <path d="M3 5L10 10L17 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        
+        <!-- Password Input with Show/Hide Toggle -->
+        <div class="input-group-modern">
+          <input 
+            type="password" 
+            id="password" 
+            name="password"
+            required 
+            autocomplete="current-password"
+          />
+          <label for="password">Password</label>
+          <div class="input-icon-left">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="3" y="9" width="14" height="10" rx="2" stroke="currentColor" stroke-width="2"/>
+              <path d="M7 9V6C7 4.34315 8.34315 3 10 3C11.6569 3 13 4.34315 13 6V9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="10" cy="14" r="1" fill="currentColor"/>
+            </svg>
+          </div>
+          <button type="button" class="password-toggle" id="passwordToggle">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" class="eye-icon">
+              <path d="M1 10C1 10 4 4 10 4C16 4 19 10 19 10C19 10 16 16 10 16C4 16 1 10 1 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" class="eye-slash-icon" style="display:none;">
+              <path d="M14.12 14.12C12.8 15.24 11.18 16 10 16C4 16 1 10 1 10C1.58 8.86 2.52 7.51 3.88 6.12M8.24 5.24C8.82 5.08 9.4 5 10 5C16 5 19 11 19 11C18.68 11.62 18.24 12.26 17.76 12.88M1 1L19 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Remember Me & Forgot Password -->
+        <div class="form-options">
+          <label class="checkbox-modern">
+            <input type="checkbox" name="remember" />
+            <span class="checkbox-custom"></span>
+            <span class="checkbox-label">Remember me</span>
+          </label>
+          <a href="#" class="link-primary">Forgot password?</a>
+        </div>
+        
+        <!-- Submit Button -->
+        <button type="submit" class="btn-primary-full" id="loginBtn">
+          <span class="btn-text">Sign In</span>
+          <span class="btn-loading" style="display:none;">
+            <svg class="spinner" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="50" stroke-dashoffset="25">
+                <animateTransform attributeName="transform" type="rotate" from="0 10 10" to="360 10 10" dur="1s" repeatCount="indefinite"/>
+              </circle>
+            </svg>
+          </span>
+        </button>
+        
+        <!-- Sign Up Link -->
+        <p class="form-footer">
+          Don't have an account? 
+          <a href="{% url 'accounts:register' %}" class="link-primary-bold">Sign up free</a>
+        </p>
+      </form>
     </div>
-
-    <a href="#" class="forgot">Forgot password?</a>
-
-    <button type="submit" id="loginBtn">Log in</button>
-
-    <a href="{% url 'accounts:register' %}" style="display:block;text-align:center;margin-top:18px;color:#28d47c;text-decoration:none;font-weight:500;">
-      Create an Account
-    </a>
-  </form>
+  </div>
+  
 </div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
-    const alerts = document.querySelectorAll('.alert');
-    if (alerts.length > 0) {
+  // Password Toggle
+  const passwordToggle = document.getElementById('passwordToggle');
+  const passwordInput = document.getElementById('password');
+  const eyeIcon = passwordToggle.querySelector('.eye-icon');
+  const eyeSlashIcon = passwordToggle.querySelector('.eye-slash-icon');
+  
+  passwordToggle.addEventListener('click', () => {
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+    
+    if (type === 'text') {
+      eyeIcon.style.display = 'none';
+      eyeSlashIcon.style.display = 'block';
+    } else {
+      eyeIcon.style.display = 'block';
+      eyeSlashIcon.style.display = 'none';
+    }
+  });
+  
+  // Auto-dismiss alerts
+  document.addEventListener('DOMContentLoaded', () => {
+    const alertBox = document.getElementById('alertBox');
+    if (alertBox) {
       setTimeout(() => {
-        alerts.forEach(alert => {
-          alert.classList.add('fade-out');
-          setTimeout(() => alert.remove(), 1000);
-        });
-      }, 4000);
+        alertBox.style.opacity = '0';
+        alertBox.style.transform = 'translateY(-10px)';
+        setTimeout(() => alertBox.remove(), 300);
+      }, 5000);
+    }
+  });
+  
+  // Form submission loading state
+  const loginForm = document.getElementById('loginForm');
+  const loginBtn = document.getElementById('loginBtn');
+  
+  loginForm.addEventListener('submit', () => {
+    loginBtn.disabled = true;
+    loginBtn.querySelector('.btn-text').style.display = 'none';
+    loginBtn.querySelector('.btn-loading').style.display = 'inline-flex';
+  });
+  
+  // Floating labels
+  document.querySelectorAll('.input-group-modern input').forEach(input => {
+    input.addEventListener('focus', () => {
+      input.parentElement.classList.add('focused');
+    });
+    
+    input.addEventListener('blur', () => {
+      if (!input.value) {
+        input.parentElement.classList.remove('focused');
+      }
+    });
+    
+    // Check if input has value on load
+    if (input.value) {
+      input.parentElement.classList.add('focused');
     }
   });
 </script>

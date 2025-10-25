@@ -91,9 +91,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const year = schoolYearSelect.value;
     const strand = strandSelect.value;
 
-    let isValid = grade && year && (selectedLevel === 'jhs' || (selectedLevel === 'shs' && strand));
+    // Check if level is selected first
+    if (!selectedLevel) {
+        getStartedBtn.disabled = true;
+        return;
+    }
+
+    let isValid = false;
+    
+    if (selectedLevel === 'jhs') {
+        isValid = grade !== "" && year !== "";
+    } else if (selectedLevel === 'shs') {
+        isValid = grade !== "" && year !== "" && strand !== "";
+    }
+
     getStartedBtn.disabled = !isValid;
-  }
+}
 
   // On submit
   function handleMainFormSubmit(e) {
