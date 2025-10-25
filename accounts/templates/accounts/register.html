@@ -5,165 +5,287 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Register - GradeNest</title>
-  <link rel="stylesheet" href="{% static 'accounts/css/login.css' %}" />
+  <link rel="stylesheet" href="{% static 'accounts/css/login-modern.css' %}" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
-
+  
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-
-  <style>
-    .error-message {
-      color: #ff4d4d;
-      font-size: 13px;
-      margin-top: 4px;
-    }
-    .messages {
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    .message {
-      color: #ff3333;
-      font-weight: 500;
-      margin: 5px 0;
-      background: #2a2a2a;
-      padding: 8px 10px;
-      border-radius: 8px;
-      display: inline-block;
-      opacity: 1;
-      transition: opacity 1s ease;
-    }
-    .message a {
-      color: #00c853;
-      text-decoration: underline;
-    }
-    .message.hide {
-      opacity: 0;
-      pointer-events: none;
-    }
-  </style>
 </head>
 <body>
 
-<header class="site-header">
-  <div class="logo">
-    <img src="{% static 'accounts/img/gradenest-logo.png' %}" alt="GradeNest Logo" class="logo-img" />
-    <span>GradeNest</span>
+<!-- Modern Split-Screen Auth Container -->
+<div class="auth-container">
+  
+  <!-- Left Side: Brand Experience -->
+  <div class="auth-visual">
+    <div class="visual-content">
+      <!-- Animated Background Elements -->
+      <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+      </div>
+      
+      <!-- Logo and Brand -->
+      <div class="brand-section">
+        <img src="{% static 'accounts/img/gradenest-logo.png' %}" alt="GradeNest" class="logo-large" />
+        <h1 class="brand-name">GradeNest</h1>
+        <p class="brand-tagline">Your Academic Compass</p>
+      </div>
+      
+      <!-- Main Illustration -->
+      <div class="auth-main-image">
+        <img src="{% static 'accounts/img/education-level-img.png' %}" alt="Student Success" />
+      </div>
+    </div>
   </div>
-  <nav>
-    <ul class="nav-links">
-      <li><a href="#">Home</a></li>
-      <li><a href="#">Features</a></li>
-      <li><a href="#">Contact</a></li>
-    </ul>
-  </nav>
-</header>
-
-<div class="container">
-  <form id="registerForm" class="form" method="POST" action="{% url 'accounts:register' %}">
-    {% csrf_token %}
-    <h2>Create Account</h2>
-
-    {% if messages %}
-    <div class="messages">
-      {% for message in messages %}
-        {% if "Email already registered" in message %}
-          <p class="message" id="autoHideMessage">{{ message }} <a href="{% url 'accounts:login' %}">Click here to login.</a></p>
-        {% else %}
-          <p class="message" id="autoHideMessage">{{ message }}</p>
+  
+  <!-- Right Side: Register Form -->
+  <div class="auth-form-section">
+    <div class="form-wrapper-modern">
+      <!-- Back to Home Link -->
+      <a href="{% url 'accounts:landing-page' %}" class="back-link">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Back to Home
+      </a>
+      
+      <div class="form-header">
+        <h2 class="form-title-modern">Create your account 🎓</h2>
+        <p class="form-subtitle">Start your journey to academic excellence</p>
+      </div>
+      
+      <!-- Messages/Alerts -->
+      {% if messages %}
+        <div class="messages-modern" id="alertBox">
+          {% for message in messages %}
+            <div class="alert-modern error">
+              <div class="alert-icon">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M10 6V10M10 14H10.01M19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1C14.9706 1 19 5.02944 19 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <span>
+                {{ message }}
+                {% if "Email already registered" in message %}
+                  <a href="{% url 'accounts:login' %}" class="link-primary-bold">Click here to login.</a>
+                {% endif %}
+              </span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      
+      <!-- Register Form -->
+      <form id="registerForm" class="modern-form" method="POST" action="{% url 'accounts:register' %}">
+        {% csrf_token %}
+        
+        <!-- Full Name Input -->
+        <div class="input-group-modern">
+          <input 
+            type="text" 
+            id="fullName" 
+            name="full_name"
+            value="{{ full_name|default:'' }}"
+            required 
+            autocomplete="name"
+          />
+          <label for="fullName">Full Name</label>
+          <div class="input-icon-left">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M10 10C12.7614 10 15 7.76142 15 5C15 2.23858 12.7614 0 10 0C7.23858 0 5 2.23858 5 5C5 7.76142 7.23858 10 10 10Z" stroke="currentColor" stroke-width="2"/>
+              <path d="M17 20C17 16.134 13.866 13 10 13C6.13401 13 3 16.134 3 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+        
+        <!-- Email Input -->
+        <div class="input-group-modern">
+          <input 
+            type="email" 
+            id="email" 
+            name="email"
+            value="{{ email|default:'' }}"
+            required 
+            autocomplete="email"
+          />
+          <label for="email">Email Address</label>
+          <div class="input-icon-left">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M3 5C3 3.89543 3.89543 3 5 3H15C16.1046 3 17 3.89543 17 5V15C17 16.1046 16.1046 17 15 17H5C3.89543 17 3 16.1046 3 15V5Z" stroke="currentColor" stroke-width="2"/>
+              <path d="M3 5L10 10L17 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        {% if email_error %}
+          <p class="error-message-inline">{{ email_error }}</p>
         {% endif %}
-      {% endfor %}
+        
+        <!-- Password Input -->
+        <div class="input-group-modern">
+          <input 
+            type="password" 
+            id="password1" 
+            name="password1"
+            required 
+            autocomplete="new-password"
+          />
+          <label for="password1">Password</label>
+          <div class="input-icon-left">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="3" y="9" width="14" height="10" rx="2" stroke="currentColor" stroke-width="2"/>
+              <path d="M7 9V6C7 4.34315 8.34315 3 10 3C11.6569 3 13 4.34315 13 6V9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="10" cy="14" r="1" fill="currentColor"/>
+            </svg>
+          </div>
+          <button type="button" class="password-toggle" id="passwordToggle1">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" class="eye-icon">
+              <path d="M1 10C1 10 4 4 10 4C16 4 19 10 19 10C19 10 16 16 10 16C4 16 1 10 1 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" class="eye-slash-icon" style="display:none;">
+              <path d="M14.12 14.12C12.8 15.24 11.18 16 10 16C4 16 1 10 1 10C1.58 8.86 2.52 7.51 3.88 6.12M8.24 5.24C8.82 5.08 9.4 5 10 5C16 5 19 11 19 11C18.68 11.62 18.24 12.26 17.76 12.88M1 1L19 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        {% if password_format_error %}
+          <p class="error-message-inline">{{ password_format_error }}</p>
+        {% endif %}
+        
+        <!-- Confirm Password Input -->
+        <div class="input-group-modern">
+          <input 
+            type="password" 
+            id="password2" 
+            name="password2"
+            required 
+            autocomplete="new-password"
+          />
+          <label for="password2">Confirm Password</label>
+          <div class="input-icon-left">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="3" y="9" width="14" height="10" rx="2" stroke="currentColor" stroke-width="2"/>
+              <path d="M7 9V6C7 4.34315 8.34315 3 10 3C11.6569 3 13 4.34315 13 6V9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="10" cy="14" r="1" fill="currentColor"/>
+            </svg>
+          </div>
+          <button type="button" class="password-toggle" id="passwordToggle2">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" class="eye-icon">
+              <path d="M1 10C1 10 4 4 10 4C16 4 19 10 19 10C19 10 16 16 10 16C4 16 1 10 1 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" class="eye-slash-icon" style="display:none;">
+              <path d="M14.12 14.12C12.8 15.24 11.18 16 10 16C4 16 1 10 1 10C1.58 8.86 2.52 7.51 3.88 6.12M8.24 5.24C8.82 5.08 9.4 5 10 5C16 5 19 11 19 11C18.68 11.62 18.24 12.26 17.76 12.88M1 1L19 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        {% if password_error %}
+          <p class="error-message-inline">{{ password_error }}</p>
+        {% endif %}
+        
+        <!-- Terms & Conditions -->
+        <div class="terms-modern">
+          <label class="checkbox-modern">
+            <input type="checkbox" id="terms" name="terms" required />
+            <span class="checkbox-custom"></span>
+            <span class="checkbox-label">
+              I agree to the <a href="#" class="link-primary">terms and conditions</a>
+            </span>
+          </label>
+        </div>
+        
+        <!-- Submit Button -->
+        <button type="submit" class="btn-primary-full" id="registerBtn">
+          <span class="btn-text">Create Account</span>
+          <span class="btn-loading" style="display:none;">
+            <svg class="spinner" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="50" stroke-dashoffset="25">
+                <animateTransform attributeName="transform" type="rotate" from="0 10 10" to="360 10 10" dur="1s" repeatCount="indefinite"/>
+              </circle>
+            </svg>
+          </span>
+        </button>
+        
+        <!-- Login Link -->
+        <p class="form-footer">
+          Already have an account? 
+          <a href="{% url 'accounts:login' %}" class="link-primary-bold">Sign in</a>
+        </p>
+      </form>
     </div>
-    {% endif %}
-
-    <label for="username">Full Name <span class="required">*</span></label>
-    <div class="input-wrapper">
-      <img src="{% static 'accounts/img/user-icon.png' %}" alt="User Icon" class="input-icon" />
-      <input
-        type="text"
-        id="username"
-        name="full_name"
-        placeholder="Enter your full name"
-        value="{{ full_name|default:'' }}"
-        required
-      />
-    </div>
-
-    <label for="email">Email <span class="required">*</span></label>
-    <div class="input-wrapper">
-      <img src="{% static 'accounts/img/email-icon.png' %}" alt="Email Icon" class="input-icon" />
-      <input
-        type="email"
-        id="email"
-        name="email"
-        placeholder="Enter your email"
-        value="{{ email|default:'' }}"
-        required
-      />
-    </div>
-    {% if email_error %}
-      <p class="error-message">{{ email_error }}</p>
-    {% endif %}
-
-    <label for="password1">Password <span class="required">*</span></label>
-    <div class="input-wrapper">
-      <img src="{% static 'accounts/img/lock-icon.png' %}" alt="Lock Icon" class="input-icon" />
-      <input
-        type="password"
-        id="password1"
-        name="password1"
-        placeholder="Enter your password"
-        required
-      />
-    </div>
-    {% if password_format_error %}
-      <p class="error-message">{{ password_format_error }}</p>
-    {% endif %}
-
-    <label for="password2">Confirm Password <span class="required">*</span></label>
-    <div class="input-wrapper">
-      <img src="{% static 'accounts/img/lock2-icon.png' %}" alt="Lock Icon" class="input-icon" />
-      <input
-        type="password"
-        id="password2"
-        name="password2"
-        placeholder="Re-enter password"
-        required
-      />
-    </div>
-    {% if password_error %}
-      <p class="error-message">{{ password_error }}</p>
-    {% endif %}
-
-    <div class="terms">
-      <label for="terms">
-        <input type="checkbox" id="terms" required />
-        I agree to the <a href="#">terms and conditions</a>
-      </label>
-    </div>
-
-    <button type="submit">Register</button>
-    <a href="{% url 'accounts:login' %}">Already have an account? Log in</a>
-  </form>
+  </div>
+  
 </div>
 
 <script>
-  // Fade out the message smoothly after 4 seconds
-  document.addEventListener("DOMContentLoaded", () => {
-    const msg = document.getElementById("autoHideMessage");
-    if (msg) {
+  // Password Toggle Functions
+  const setupPasswordToggle = (toggleId, inputId) => {
+    const toggle = document.getElementById(toggleId);
+    const input = document.getElementById(inputId);
+    const eyeIcon = toggle.querySelector('.eye-icon');
+    const eyeSlashIcon = toggle.querySelector('.eye-slash-icon');
+    
+    toggle.addEventListener('click', () => {
+      const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+      input.setAttribute('type', type);
+      
+      if (type === 'text') {
+        eyeIcon.style.display = 'none';
+        eyeSlashIcon.style.display = 'block';
+      } else {
+        eyeIcon.style.display = 'block';
+        eyeSlashIcon.style.display = 'none';
+      }
+    });
+  };
+  
+  setupPasswordToggle('passwordToggle1', 'password1');
+  setupPasswordToggle('passwordToggle2', 'password2');
+  
+  // Auto-dismiss alerts
+  document.addEventListener('DOMContentLoaded', () => {
+    const alertBox = document.getElementById('alertBox');
+    if (alertBox) {
       setTimeout(() => {
-        msg.classList.add("hide");
-      }, 4000); // Start fade after 4 seconds
-      setTimeout(() => {
-        msg.style.display = "none";
-      }, 5000); // Fully remove after fade
+        alertBox.style.opacity = '0';
+        alertBox.style.transform = 'translateY(-10px)';
+        setTimeout(() => alertBox.remove(), 300);
+      }, 6000);
+    }
+  });
+  
+  // Form submission loading state
+  const registerForm = document.getElementById('registerForm');
+  const registerBtn = document.getElementById('registerBtn');
+  
+  registerForm.addEventListener('submit', () => {
+    registerBtn.disabled = true;
+    registerBtn.querySelector('.btn-text').style.display = 'none';
+    registerBtn.querySelector('.btn-loading').style.display = 'inline-flex';
+  });
+  
+  // Floating labels
+  document.querySelectorAll('.input-group-modern input').forEach(input => {
+    input.addEventListener('focus', () => {
+      input.parentElement.classList.add('focused');
+    });
+    
+    input.addEventListener('blur', () => {
+      if (!input.value) {
+        input.parentElement.classList.remove('focused');
+      }
+    });
+    
+    // Check if input has value on load
+    if (input.value) {
+      input.parentElement.classList.add('focused');
     }
   });
 </script>
 
 </body>
 </html>
-{% load static %}

@@ -26,7 +26,6 @@
     </div>
     
     <div class="profile-dropdown" id="profileDropdown">
-      <a href="#" class="dropdown-item" id="settingsLink">Settings</a>
       <a href="{% url 'accounts:logout' %}" class="dropdown-item logout-item">Logout</a>
     </div>
   </div>
@@ -56,60 +55,774 @@
 <main class="main-content">
   <div class="content-wrapper">
 
-    <div class="page-header">
-      <div class="header-left">
-        <h1>Welcome, <span id="welcomeName">{{ user.full_name|default:"User" }}</span></h1>
-        <p class="date-text" id="currentDate"></p>
-      </div>
-      <div class="header-right">
-        <p class="school-year-badge"><strong>SCHOOL YEAR {{ profile.school_year|default:"Not set" }}</strong></p>
-      </div>
+    <!-- Breadcrumb Navigation -->
+    <div class="breadcrumb-nav" id="breadcrumbNav">
+      <span class="breadcrumb-item active" data-level="dashboard">Dashboard</span>
     </div>
 
-    <hr class="divider" />
+    <!-- Dashboard View -->
+    <div id="dashboardView" class="view-container active">
+      <div class="page-header">
+        <div class="header-left">
+          <h1>Welcome, <span id="welcomeName">{{ user.full_name|default:"User" }}</span></h1>
+          <p class="date-text" id="currentDate"></p>
+        </div>
+        <div class="header-right">
+          <p class="school-year-badge"><strong>SCHOOL YEAR {{ profile.school_year|default:"Not set" }}</strong></p>
+        </div>
+      </div>
 
-    <div class="quarters-container">
-      <div class="quarters-left" id="quartersContainer"></div>
+      <hr class="divider" />
 
-      <div class="quarters-right">
-        <div class="overall-gwa-card">
-          <div class="overall-title">Overall GWA in this<br>School Year</div>
-          <div class="overall-gwa-container">
-            <div class="gwa-circle-large">
-              <span style="font-size: 48px; font-weight: 700; color: #FFFFFF;" id="overallGwaValue">--</span>
+      <div class="quarters-container">
+        <div class="quarters-left" id="quartersContainer"></div>
+
+        <div class="quarters-right">
+          <div class="overall-gwa-card">
+            <div class="overall-title">Overall GWA in this<br>School Year</div>
+            <div class="overall-gwa-container">
+              <div class="gwa-circle-large">
+                <span style="font-size: 48px; font-weight: 700; color: #FFFFFF;" id="overallGwaValue">--</span>
+              </div>
+              <p class="overall-remark" id="overallRemark">you did great</p>
             </div>
-            <p class="overall-remark" id="overallRemark">you did great</p>
+            <button class="mark-done-btn" id="markDoneBtn">MARK AS DONE</button>
+            <span class="button-hint hidden" id="buttonHint">All quarters marked complete</span>
           </div>
-          <button class="mark-done-btn" id="markDoneBtn">MARK AS DONE</button>
-          <span class="button-hint hidden" id="buttonHint">All quarters marked complete</span>
         </div>
       </div>
     </div>
+
+    <!-- Subjects View -->
+    <div id="subjectsView" class="view-container">
+      <div class="view-header">
+        <button class="btn-back" id="backToQuarters">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Back to Quarters
+        </button>
+        <h2 id="subjectsViewTitle">First Quarter - Subjects</h2>
+      </div>
+      <div class="grade-legend">
+        <span class="legend-title">Grade Scale:</span>
+        <div class="legend-items">
+          <span class="legend-item"><span class="legend-color" style="background-color: #10b981;"></span>90-100 Outstanding</span>
+          <span class="legend-item"><span class="legend-color" style="background-color: #38CA79;"></span>85-89 Very Satisfactory</span>
+          <span class="legend-item"><span class="legend-color" style="background-color: #3b82f6;"></span>80-84 Satisfactory</span>
+          <span class="legend-item"><span class="legend-color" style="background-color: #f59e0b;"></span>75-79 Fairly Satisfactory</span>
+          <span class="legend-item"><span class="legend-color" style="background-color: #ef4444;"></span>Below 75 Did Not Meet</span>
+        </div>
+      </div>
+      <div class="subjects-grid" id="subjectsGrid"></div>
+    </div>
+
+    <!-- Subject Detail View -->
+    <div id="subjectDetailView" class="view-container">
+      <div class="view-header">
+        <button class="btn-back" id="backToSubjects">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Back to Subjects
+        </button>
+        <div class="subject-detail-header">
+          <div class="grade-display-section">
+            <div class="grade-circle-container">
+              <div class="grade-circle-wrapper">
+                <svg class="grade-circle" viewBox="0 0 120 120">
+                  <circle class="bg-circle" cx="60" cy="60" r="54" 
+                          stroke-width="10" fill="none"/>
+                  <circle class="progress-circle" id="initialGradeCircle" cx="60" cy="60" r="54" 
+                          stroke-width="10" fill="none"
+                          stroke-dasharray="339.29" 
+                          stroke-dashoffset="339.29"
+                          stroke-linecap="round"/>
+                </svg>
+                <div class="grade-circle-value" id="initialGradeDisplay">--</div>
+                <div class="grade-circle-label">Initial</div>
+              </div>
+              <span class="grade-arrow">→</span>
+              <div class="grade-circle-wrapper">
+                <svg class="grade-circle" viewBox="0 0 120 120">
+                  <circle class="bg-circle" cx="60" cy="60" r="54" 
+                          stroke-width="10" fill="none"/>
+                  <circle class="progress-circle" id="transmutedGradeCircle" cx="60" cy="60" r="54" 
+                          stroke-width="10" fill="none"
+                          stroke-dasharray="339.29" 
+                          stroke-dashoffset="339.29"
+                          stroke-linecap="round"/>
+                </svg>
+                </svg>
+                <div class="grade-circle-value" id="transmutedGradeDisplay">--</div>
+                <div class="grade-circle-label">Final</div>
+              </div>
+            </div>
+          </div>
+          <h2 id="subjectDetailTitle">Mathematics - Grade Components</h2>
+        </div>
+      </div>
+      
+      <div class="components-container">
+        <div class="components-section">
+          <div class="section-header">
+            <h3>Grade Components</h3>
+            <div class="grade-info">
+              <span class="info-text">Component weights are based on DepEd standards</span>
+            </div>
+          </div>
+          
+          <!-- Component Tabs -->
+          <div class="component-tabs">
+            <button class="component-tab active" data-component="WW">
+              <span class="tab-icon">📝</span>
+              <span class="tab-label">Written Works</span>
+            </button>
+            <button class="component-tab" data-component="PT">
+              <span class="tab-icon">📊</span>
+              <span class="tab-label">Performance Tasks</span>
+            </button>
+            <button class="component-tab" data-component="QA">
+              <span class="tab-icon">📋</span>
+              <span class="tab-label">Quarterly Assessment</span>
+            </button>
+          </div>
+          
+          <div class="components-table-wrapper">
+            <table class="components-table" id="componentsTable">
+              <thead>
+                <tr>
+                  <th>Item Name</th>
+                  <th>Score</th>
+                  <th>Highest Possible Score</th>
+                  <th>Percentage Score (%)</th>
+                  <th>PS</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="componentsTableBody">
+                <!-- Components will be added dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </main>
 
-<div class="modal-overlay" id="modalOverlay"></div>
-<div class="modal" id="quarterModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3 id="modalTitle">Quarter Details</h3>
-      <button class="close-btn" id="closeModalBtn">&times;</button>
-    </div>
-    <div class="modal-body" id="modalBody"></div>
-    <div class="modal-footer">
-      <button class="btn-ok" id="modalOkBtn">OK</button>
-    </div>
-  </div>
-</div>
+<script id="user-profile-data" type="application/json">
+{
+  "gradeLevel": "{{ profile.grade_level|default:'Grade 7' }}",
+  "strand": "{{ profile.strand|default:'' }}",
+  "schoolYear": "{{ profile.school_year|default:'Not set' }}",
+  "isJHS": {{ isJHS|yesno:"true,false" }},
+  "isSHS": {{ isSHS|yesno:"true,false" }}
+}
+</script>
+<script>
+  // Parse user profile data from JSON
+  window.userProfile = JSON.parse(document.getElementById('user-profile-data').textContent);
+</script>
 
 </body>
-<script>
-  window.userProfile = {
-    gradeLevel: "{{ profile.grade_level|default:'Grade 7' }}",
-    strand: "{{ profile.strand|default:'' }}",
-    schoolYear: "{{ profile.school_year|default:'Not set' }}",
-    isJHS: {{ isJHS|yesno:'true,false' }},
-    isSHS: {{ isSHS|yesno:'true,false' }}
-  };
-</script>
-</html>
+<div class="page-header-modern">
+    <div class="header-content">
+        <div class="greeting-section">
+            <h1 class="greeting-dynamic">
+                Good <span id="timeOfDay">morning</span>, <span class="user-name">{{ user.first_name }}</span>! 👋
+            </h1>
+            <p class="motivational-quote" id="dailyQuote">
+                "Success is the sum of small efforts repeated day in and day out."
+            </p>
+        </div>
+        
+        <div class="quick-stats-bar">
+            <div class="stat-item">
+                <div class="stat-icon">📚</div>
+                <div class="stat-content">
+                    <span class="stat-value">8</span>
+                    <span class="stat-label">Subjects</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-content">
+                    <span class="stat-value">3/5</span>
+                    <span class="stat-label">Goals Met</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">📈</div>
+                <div class="stat-content">
+                    <span class="stat-value trending-up">+2.5</span>
+                    <span class="stat-label">vs Last Quarter</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div><div class="auth-container">
+    <!-- Left: Visual Brand Experience -->
+    <div class="auth-visual">
+        <div class="visual-content">
+            <img src="gradenest-logo-large.svg" class="logo-large" />
+            <h2 class="visual-title">Track Your Academic Journey</h2>
+            <div class="feature-highlights">
+                <div class="highlight-item">
+                    <span class="icon">✓</span>
+                    <span>Real-time grade tracking</span>
+                </div>
+                <div class="highlight-item">
+                    <span class="icon">✓</span>
+                    <span>DepEd-compliant calculations</span>
+                </div>
+                <div class="highlight-item">
+                    <span class="icon">✓</span>
+                    <span>Goal setting & insights</span>
+                </div>
+            </div>
+            
+            <!-- Animated illustration -->
+            <div class="auth-illustration">
+                <lottie-player src="student-success.json"></lottie-player>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right: Form -->
+    <div class="auth-form-section">
+        <div class="form-wrapper-modern">
+            <h2 class="form-title-modern">Welcome back!</h2>
+            <p class="form-subtitle">Enter your credentials to continue</p>
+            
+            <!-- Social Login (Optional) -->
+            <div class="social-login">
+                <button class="btn-social google">
+                    <img src="google-icon.svg" /> Continue with Google
+                </button>
+            </div>
+            
+            <div class="divider-modern">
+                <span>or continue with email</span>
+            </div>
+            
+            <form class="modern-form">
+                <!-- Floating Label Inputs -->
+                <div class="input-group-modern">
+                    <input type="email" id="email" required />
+                    <label for="email">Email Address</label>
+                    <div class="input-icon">
+                        <svg><!-- Email icon --></svg>
+                    </div>
+                </div>
+                
+                <!-- Password with show/hide toggle -->
+                <div class="input-group-modern">
+                    <input type="password" id="password" required />
+                    <label for="password">Password</label>
+                    <button type="button" class="password-toggle">
+                        <svg><!-- Eye icon --></svg>
+                    </button>
+                </div>
+                
+                <!-- Remember me & Forgot password -->
+                <div class="form-options">
+                    <label class="checkbox-modern">
+                        <input type="checkbox" />
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#" class="link-primary">Forgot password?</a>
+                </div>
+                
+                <button type="submit" class="btn-primary-full">
+                    Sign In
+                    <span class="btn-loading hidden">
+                        <svg class="spinner"></svg>
+                    </span>
+                </button>
+                
+                <p class="form-footer">
+                    Don't have an account? 
+                    <a href="/register" class="link-primary-bold">Sign up free</a>
+                </p>
+            </form>
+        </div>
+    </div>
+</div><section class="testimonials">
+    <div class="testimonials-header">
+        <h2>Loved by students across the Philippines</h2>
+        <div class="rating-stars">
+            ⭐⭐⭐⭐⭐ <span>4.9/5 from 2,500+ reviews</span>
+        </div>
+    </div>
+    
+    <div class="testimonials-carousel">
+        <!-- Auto-scrolling student testimonials with photos -->
+    </div>
+</section><section class="features-modern">
+    <h2 class="section-title">
+        Everything you need to
+        <span class="gradient-text">excel academically</span>
+    </h2>
+    
+    <div class="features-grid-modern">
+        <!-- Feature Card with Icon Animation -->
+        <div class="feature-card-modern">
+            <div class="feature-icon-wrapper">
+                <div class="icon-background"></div>
+                <svg class="feature-icon"><!-- Animated calculator icon --></svg>
+            </div>
+            <h3>DepEd-Compliant Calculations</h3>
+            <p>Automatic grade computation following official K-12 transmutation tables</p>
+            <a href="#" class="feature-link">Learn more →</a>
+        </div>
+        
+        <!-- Additional features with hover animations -->
+    </div>
+</section><!-- Animated gradient background with floating elements -->
+<section class="hero-modern">
+    <div class="hero-background">
+        <div class="floating-grades"></div> <!-- Animated grade cards -->
+    </div>
+    
+    <div class="hero-content-modern">
+        <div class="hero-badge">🎓 Trusted by 10,000+ Students</div>
+        <h1 class="hero-title-modern">
+            Your Grades,
+            <span class="gradient-text">Simplified</span>
+        </h1>
+        <p class="hero-subtitle">
+            Track, analyze, and improve your academic performance with 
+            the most intuitive grade management system for Filipino students.
+        </p>
+        
+        <div class="cta-group">
+            <button class="btn-primary-large">
+                Start Tracking Free
+                <span class="btn-icon">→</span>
+            </button>
+            <button class="btn-secondary-large">
+                <span class="play-icon">▶</span>
+                Watch Demo
+            </button>
+        </div>
+        
+        <div class="social-proof">
+            <div class="avatar-stack">
+                <!-- Overlapping user avatars -->
+            </div>
+            <p>Join thousands of students achieving their goals</p>
+        </div>
+    </div>
+    
+    <div class="hero-visual">
+        <!-- 3D-style dashboard mockup with animations -->
+        <img src="dashboard-mockup-3d.png" alt="Dashboard" class="mockup-floating" />
+    </div>
+</section>:root {
+    /* Primary Palette */
+    --primary-green: #38CA79;
+    --primary-green-light: #4FD889;
+    --primary-green-dark: #2BA564;
+    --primary-green-subtle: #E8F7EF;
+    
+    /* Semantic Colors */
+    --success: #10B981;      /* Outstanding grades */
+    --info: #3B82F6;         /* Satisfactory grades */
+    --warning: #F59E0B;      /* Needs improvement */
+    --error: #EF4444;        /* Failed */
+    
+    /* Neutrals (Enhanced) */
+    --neutral-50: #F9FAFB;
+    --neutral-100: #F3F4F6;
+    --neutral-200: #E5E7EB;
+    --neutral-300: #D1D5DB;
+    --neutral-400: #9CA3AF;
+    --neutral-500: #6B7280;
+    --neutral-600: #4B5563;
+    --neutral-700: #374151;
+    --neutral-800: #1F2937;
+    --neutral-900: #111827;
+    
+    /* Dark Theme */
+    --dark-bg-primary: #1D2A35;
+    --dark-bg-secondary: #253745;
+    --dark-bg-tertiary: #2C3E50;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, #38CA79 0%, #2BA564 100%);
+    --gradient-hero: linear-gradient(135deg, #253745 0%, #1D2A35 100%);
+    --gradient-card: linear-gradient(145deg, #FFFFFF 0%, #F9FAFB 100%);
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    --shadow-green: 0 8px 20px rgba(56, 202, 121, 0.25);
+    
+    /* Spacing System (8px base) */
+    --space-1: 0.25rem;  /* 4px */
+    --space-2: 0.5rem;   /* 8px */
+    --space-3: 0.75rem;  /* 12px */
+    --space-4: 1rem;     /* 16px */
+    --space-5: 1.25rem;  /* 20px */
+    --space-6: 1.5rem;   /* 24px */
+    --space-8: 2rem;     /* 32px */
+    --space-10: 2.5rem;  /* 40px */
+    --space-12: 3rem;    /* 48px */
+    --space-16: 4rem;    /* 64px */
+    
+    /* Border Radius */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+    
+    /* Typography Scale */
+    --text-xs: 0.75rem;    /* 12px */
+    --text-sm: 0.875rem;   /* 14px */
+    --text-base: 1rem;     /* 16px */
+    --text-lg: 1.125rem;   /* 18px */
+    --text-xl: 1.25rem;    /* 20px */
+    --text-2xl: 1.5rem;    /* 24px */
+    --text-3xl: 1.875rem;  /* 30px */
+    --text-4xl: 2.25rem;   /* 36px */
+    --text-5xl: 3rem;      /* 48px */
+    
+    /* Transitions */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}<div class="quarters-grid-modern">
+    <div class="quarter-card" data-quarter="1">
+        <div class="quarter-card-header">
+            <div class="quarter-badge">Q1</div>
+            <button class="quarter-menu-btn">⋮</button>
+        </div>
+        
+        <div class="quarter-card-body">
+            <h3 class="quarter-title">First Quarter</h3>
+            <p class="quarter-period">Aug 29 - Oct 25, 2024</p>
+            
+            <!-- Mini Progress Ring -->
+            <div class="mini-gwa-ring">
+                <svg viewBox="0 0 100 100">
+                    <circle class="ring-bg" cx="50" cy="50" r="45"></circle>
+                    <circle class="ring-progress" cx="50" cy="50" r="45"></circle>
+                </svg>
+                <div class="ring-value">92.5</div>
+            </div>
+            
+            <!-- Status Badge -->
+            <div class="status-badge completed">
+                <span class="status-icon">✓</span>
+                Completed
+            </div>
+            
+            <!-- Subjects Preview -->
+            <div class="subjects-preview">
+                <div class="subject-mini">Math: <strong class="grade-success">95</strong></div>
+                <div class="subject-mini">Science: <strong class="grade-success">90</strong></div>
+                <div class="subject-mini-more">+6 more</div>
+            </div>
+        </div>
+        
+        <div class="quarter-card-footer">
+            <button class="btn-view-subjects">
+                View Subjects
+                <span class="arrow">→</span>
+            </button>
+        </div>
+    </div>
+</div><div class="gwa-card-premium">
+    <div class="card-glow"></div> <!-- Animated glow effect -->
+    
+    <div class="gwa-header">
+        <h3>Your Overall Performance</h3>
+        <p class="school-year-tag">S.Y. 2024-2025</p>
+    </div>
+    
+    <div class="gwa-visualization">
+        <!-- Large animated circular progress -->
+        <div class="gwa-circle-premium">
+            <svg viewBox="0 0 200 200">
+                <defs>
+                    <linearGradient id="gwaGradient">
+                        <stop offset="0%" stop-color="#38CA79"/>
+                        <stop offset="100%" stop-color="#2BA564"/>
+                    </linearGradient>
+                </defs>
+                <circle class="circle-bg" cx="100" cy="100" r="90"></circle>
+                <circle class="circle-progress" cx="100" cy="100" r="90"></circle>
+            </svg>
+            <div class="gwa-inner">
+                <span class="gwa-value-large" id="overallGwa">93.2</span>
+                <span class="gwa-label">Overall GWA</span>
+            </div>
+        </div>
+        
+        <!-- Performance Indicator -->
+        <div class="performance-badge outstanding">
+            <span class="badge-icon">🏆</span>
+            <span class="badge-text">Outstanding</span>
+        </div>
+    </div>
+    
+    <!-- Progress Breakdown -->
+    <div class="quarters-breakdown">
+        <div class="breakdown-item">
+            <span class="quarter-label">Q1</span>
+            <div class="progress-bar-mini">
+                <div class="progress-fill" style="width: 92.5%"></div>
+            </div>
+            <span class="quarter-grade">92.5</span>
+        </div>
+        <div class="breakdown-item">
+            <span class="quarter-label">Q2</span>
+            <div class="progress-bar-mini">
+                <div class="progress-fill" style="width: 94%"></div>
+            </div>
+            <span class="quarter-grade">94.0</span>
+        </div>
+        <!-- Q3, Q4 -->
+    </div>
+    
+    <!-- Motivational Message -->
+    <div class="gwa-message">
+        <p class="message-text">
+            You're performing excellently! Keep up the great work! 🌟
+        </p>
+    </div>
+    
+    <button class="btn-mark-done-premium">
+        <span class="btn-icon">✓</span>
+        Mark School Year Complete
+    </button>
+</div><div class="subject-card-modern" data-subject="Mathematics">
+    <div class="subject-card-accent"></div> <!-- Colored left border -->
+    
+    <div class="subject-header">
+        <div class="subject-icon-wrapper">
+            <div class="icon-bg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"></div>
+            <span class="subject-emoji">📐</span>
+        </div>
+        <div class="subject-title-section">
+            <h4 class="subject-name">Mathematics</h4>
+            <p class="subject-code">MATH 10</p>
+        </div>
+    </div>
+    
+    <div class="subject-body">
+        <!-- Grade Display -->
+        <div class="grade-display-modern">
+            <div class="grade-item">
+                <span class="grade-label">Initial</span>
+                <span class="grade-value initial">89.5</span>
+            </div>
+            <span class="grade-arrow">→</span>
+            <div class="grade-item">
+                <span class="grade-label">Transmuted</span>
+                <span class="grade-value transmuted">87</span>
+            </div>
+        </div>
+        
+        <!-- Components Breakdown (Compact) -->
+        <div class="components-mini">
+            <div class="component-bar">
+                <div class="bar-segment ww" style="width: 25%" title="Written Works: 85"></div>
+                <div class="bar-segment pt" style="width: 50%" title="Performance Tasks: 90"></div>
+                <div class="bar-segment qa" style="width: 25%" title="Quarterly Assessment: 92"></div>
+            </div>
+            <div class="component-legend">
+                <span class="legend-item-mini">
+                    <span class="dot ww"></span>WW: 85
+                </span>
+                <span class="legend-item-mini">
+                    <span class="dot pt"></span>PT: 90
+                </span>
+                <span class="legend-item-mini">
+                    <span class="dot qa"></span>QA: 92
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="subject-footer">
+        <button class="btn-view-details">
+            View Details
+            <svg class="chevron-right"></svg>
+        </button>
+    </div>
+</div>/* Improved Component Tabs */
+.component-tabs-modern {
+    display: flex;
+    gap: 8px;
+    padding: 4px;
+    background: var(--neutral-100);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-6);
+}
+
+.component-tab-modern {
+    flex: 1;
+    padding: 12px 20px;
+    border-radius: var(--radius-md);
+    border: none;
+    background: transparent;
+    font-weight: 600;
+    color: var(--neutral-600);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    position: relative;
+}
+
+.component-tab-modern:hover {
+    color: var(--neutral-900);
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.component-tab-modern.active {
+    background: white;
+    color: var(--primary-green);
+    box-shadow: var(--shadow-md);
+}
+
+.component-tab-modern.active::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 20%;
+    right: 20%;
+    height: 3px;
+    background: var(--gradient-primary);
+    border-radius: 3px 3px 0 0;
+}.btn-primary-modern {
+    position: relative;
+    overflow: hidden;
+    transition: all var(--transition-base);
+}
+
+.btn-primary-modern::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-primary-modern:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-primary-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-green);
+}
+
+.btn-primary-modern:active {
+    transform: translateY(0);
+}.subject-card-modern {
+    transition: all var(--transition-base);
+}
+
+.subject-card-modern:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+}
+
+.subject-card-modern:hover .subject-card-accent {
+    width: 6px; /* Expands from 4px */
+}<div class="skeleton-loader">
+    <div class="skeleton-header"></div>
+    <div class="skeleton-text"></div>
+    <div class="skeleton-text short"></div>
+</div>@keyframes shimmer {
+    0% { background-position: -468px 0; }
+    100% { background-position: 468px 0; }
+}
+
+.skeleton-loader div {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 468px 100%;
+    animation: shimmer 1.2s infinite;
+}<div class="achievement-toast">
+    <div class="achievement-icon">🎉</div>
+    <div class="achievement-content">
+        <h4>Achievement Unlocked!</h4>
+        <p>You've reached 90+ in all subjects this quarter!</p>
+    </div>
+    <button class="toast-close">×</button>
+</div>// When user improves grade significantly
+if (newGrade > previousGrade + 5) {
+    showConfetti();
+    showToast('Amazing progress! 🚀', 'success');
+}// Focus management for modals
+const trapFocus = (element) => {
+    const focusableElements = element.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+    
+    element.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+            if (e.shiftKey && document.activeElement === firstElement) {
+                e.preventDefault();
+                lastElement.focus();
+            } else if (!e.shiftKey && document.activeElement === lastElement) {
+                e.preventDefault();
+                firstElement.focus();
+            }
+        }
+    });
+};<button 
+    class="btn-delete-item" 
+    aria-label="Delete Mathematics Written Work 1"
+    role="button"
+>
+    <svg aria-hidden="true"></svg>
+</button>
+
+<div role="status" aria-live="polite" class="sr-only">
+    Grade updated successfully
+</div>/* Mobile: Stack everything */
+.quarters-grid-modern {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 768px) {
+    .quarters-grid-modern {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Desktop: 4 columns */
+@media (min-width: 1200px) {
+    .quarters-grid-modern {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}<button class="mobile-menu-toggle" aria-label="Toggle menu">
+    <span class="hamburger"></span>
+</button>
+
+<nav class="mobile-nav">
+    <div class="mobile-nav-header">
+        <img src="logo.png" alt="GradeNest" />
+        <button class="mobile-nav-close">×</button>
+    </div>
+    <ul class="mobile-nav-links">
+        <!-- Navigation items -->
+    </ul>
+</nav></html>
