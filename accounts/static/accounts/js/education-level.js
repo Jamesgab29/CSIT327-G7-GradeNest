@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const levelBtns = document.querySelectorAll('.level-btn');
   const gradeLevelSelect = document.getElementById('gradeLevel');
-  const gradeLevelLabel = document.getElementById('gradeLevelLabel');
   const schoolYearSelect = document.getElementById('schoolYear');
   const strandGroup = document.getElementById('strandGroup');
   const strandSelect = document.getElementById('strand');
@@ -9,7 +8,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const educationForm = document.getElementById('educationForm');
 
   let selectedLevel = null;
-  let educationData = {};
 
   const gradeOptions = {
     jhs: [
@@ -43,15 +41,21 @@ document.addEventListener("DOMContentLoaded", () => {
     // Disable strand by default until SHS selected
     strandGroup.style.display = "none";
     strandSelect.disabled = true;
+    
+    // Disable button initially
+    getStartedBtn.disabled = true;
   }
 
   // Handle JHS/SHS button selection
   function handleLevelSelection(e) {
-    selectedLevel = e.target.dataset.level;
+    const btn = e.currentTarget || e.target.closest('.level-btn');
+    if (!btn) return;
+
+    selectedLevel = btn.dataset.level;
 
     // Highlight the active button
-    levelBtns.forEach(btn => btn.classList.remove('active'));
-    e.target.classList.add('active');
+    levelBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
 
     updateFormForLevel(selectedLevel);
   }
@@ -75,6 +79,10 @@ document.addEventListener("DOMContentLoaded", () => {
       strandSelect.value = "";
     }
 
+    // Reset selections when switching levels
+    gradeLevelSelect.value = "";
+    schoolYearSelect.value = "";
+    
     validateMainForm();
   }
 
@@ -93,20 +101,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Check if level is selected first
     if (!selectedLevel) {
-        getStartedBtn.disabled = true;
-        return;
+      getStartedBtn.disabled = true;
+      return;
     }
 
     let isValid = false;
     
     if (selectedLevel === 'jhs') {
-        isValid = grade !== "" && year !== "";
+      isValid = grade !== "" && year !== "";
     } else if (selectedLevel === 'shs') {
-        isValid = grade !== "" && year !== "" && strand !== "";
+      isValid = grade !== "" && year !== "" && strand !== "";
     }
 
     getStartedBtn.disabled = !isValid;
-}
+  }
 
   // On submit
   function handleMainFormSubmit(e) {
@@ -126,19 +134,12 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Save data to object (optional)
-    educationData = { grade, strand, schoolYear };
+    if (selectedLevel === 'shs' && !strand) {
+      alert("Please select a strand for Senior High School.");
+      return;
+    }
 
-    // ✅ Submit the form to Django
-    submitEducationData(grade, strand, schoolYear);
-  }
-
-  // Submit to Django backend
-  function submitEducationData(grade, strand, schoolYear) {
-    document.getElementById('gradeLevel').value = grade;
-    document.getElementById('strand').value = strand || "";
-    document.getElementById('schoolYear').value = schoolYear;
-
+    // Submit the form
     educationForm.submit();
   }
 });
