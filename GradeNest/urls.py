@@ -19,6 +19,11 @@ from django.urls import path, include
 from django.shortcuts import redirect
 
 urlpatterns = [
-    path("", include("accounts.urls")),
     path("admin/", admin.site.urls),
+
+    # Include all app routes
+    path("", include("accounts.urls")),
+
+    # Redirect fallback login route (for Django’s auth views)
+    path("login/", lambda request: redirect("accounts:login")),
 ]
