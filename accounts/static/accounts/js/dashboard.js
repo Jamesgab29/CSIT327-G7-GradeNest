@@ -2,6 +2,7 @@
 const appState = {
   currentView: 'dashboard',
   currentQuarter: null,
+  currentSemester: null,
   currentSubject: null,
   quarters: [],
   semesters: [],
@@ -70,6 +71,311 @@ const COMPONENT_NAMES = {
   QA: 'Quarterly Assessment'
 };
 
+// CORRECTED: Subjects are DIFFERENT per quarter within a semester
+const SHS_SUBJECTS = {
+  STEM: {
+    "Grade 11": {
+      "First Semester": {
+        "Quarter 1": [
+          "Oral Communication in Context",
+          "Komunikasyon at Pananaliksik sa Wika at Kulturang Pilipino",
+          "General Mathematics",
+          "Earth and Life Science",
+          "Introduction to Philosophy of the Human Person",
+          "Physical Education & Health 1",
+          "Pre-Calculus",
+          "General Biology 1"
+        ],
+        "Quarter 2": [
+          "Reading and Writing Skills",
+          "Pagbasa at Pagsusuri ng Iba't Ibang Teksto Tungo sa Pananaliksik",
+          "Statistics and Probability",
+          "Physical Science",
+          "Personal Development",
+          "Physical Education & Health 2",
+          "English for Academic and Professional Purposes",
+          "General Chemistry 1"
+        ]
+      },
+      "Second Semester": {
+        "Quarter 1": [
+          "21st Century Literature from the Philippines and the World",
+          "Understanding Culture, Society, and Politics",
+          "Practical Research 1 (Qualitative)",
+          "Practical Research 2 (Quantitative)",
+          "Empowerment Technologies",
+          "Basic Calculus",
+          "General Biology 2",
+          "General Physics 1"
+        ],
+        "Quarter 2": [
+          "Contemporary Philippine Arts from the Regions",
+          "Media and Information Literacy",
+          "Filipino sa Piling Larangan",
+          "Buffer Subject / Elective",
+          "General Chemistry 2"
+        ]
+      }
+    },
+    "Grade 12": {
+      "First Semester": {
+        "Quarter 1": [
+          "Entrepreneurship",
+          "Physical Education & Health 3",
+          "General Physics 2",
+          "Disaster Readiness and Risk Reduction"
+        ],
+        "Quarter 2": [
+          "Inquiries, Investigations, and Immersion",
+          "Physical Education & Health 3 (Cont.)"
+        ]
+      },
+      "Second Semester": {
+        "Quarter 1": [
+          "Physical Education & Health 4",
+          "Work Immersion / Research Project (Part 1)"
+        ],
+        "Quarter 2": [
+          "Work Immersion / Research Project (Part 2)"
+        ]
+      }
+    }
+  },
+  ABM: {
+    "Grade 11": {
+      "First Semester": {
+        "Quarter 1": [
+          "Oral Communication in Context",
+          "Komunikasyon at Pananaliksik sa Wika at Kulturang Pilipino",
+          "General Mathematics",
+          "Earth and Life Science",
+          "Introduction to Philosophy of the Human Person",
+          "Physical Education & Health 1",
+          "English for Academic and Professional Purposes",
+          "Fundamentals of Accountancy, Business & Mgt 1"
+        ],
+        "Quarter 2": [
+          "Reading and Writing Skills",
+          "Pagbasa at Pagsusuri ng Iba't Ibang Teksto Tungo sa Pananaliksik",
+          "Statistics and Probability",
+          "Physical Science",
+          "Personal Development",
+          "Physical Education & Health 2",
+          "Practical Research 1 (Qualitative)",
+          "Business Mathematics"
+        ]
+      },
+      "Second Semester": {
+        "Quarter 1": [
+          "21st Century Literature from the Philippines and the World",
+          "Understanding Culture, Society, and Politics",
+          "Media and Information Literacy",
+          "Practical Research 2 (Quantitative)",
+          "Empowerment Technologies",
+          "Organization and Management",
+          "Principles of Marketing",
+          "Applied Economics"
+        ],
+        "Quarter 2": [
+          "Contemporary Philippine Arts from the Regions",
+          "Filipino sa Piling Larangan",
+          "Buffer Subject / Elective",
+          "Buffer Subject / Elective",
+          "Fundamentals of Accountancy, Business & Mgt 1 (Cont.)"
+        ]
+      }
+    },
+    "Grade 12": {
+      "First Semester": {
+        "Quarter 1": [
+          "Entrepreneurship",
+          "Physical Education & Health 3",
+          "Fundamentals of Accountancy, Business & Mgt 2",
+          "Business Finance"
+        ],
+        "Quarter 2": [
+          "Inquiries, Investigations, and Immersion",
+          "Physical Education & Health 3 (Cont.)",
+          "Business Finance (Cont.)",
+          "Business Ethics and Social Responsibility"
+        ]
+      },
+      "Second Semester": {
+        "Quarter 1": [
+          "Physical Education & Health 4",
+          "Work Immersion / Business Enterprise Simulation (Part 1)"
+        ],
+        "Quarter 2": [
+          "Physical Education & Health 4 (Cont.)",
+          "Work Immersion / Business Enterprise Simulation (Part 2)"
+        ]
+      }
+    }
+  },
+  HUMSS: {
+    "Grade 11": {
+      "First Semester": {
+        "Quarter 1": [
+          "Oral Communication in Context",
+          "Komunikasyon at Pananaliksik sa Wika at Kulturang Pilipino",
+          "General Mathematics",
+          "Earth and Life Science",
+          "Introduction to Philosophy of the Human Person",
+          "Physical Education & Health 1",
+          "English for Academic and Professional Purposes",
+          "Philippine Politics and Governance"
+        ],
+        "Quarter 2": [
+          "Reading and Writing Skills",
+          "Pagbasa at Pagsusuri ng Iba't Ibang Teksto Tungo sa Pananaliksik",
+          "Statistics and Probability",
+          "Physical Science",
+          "Personal Development",
+          "Physical Education & Health 2",
+          "Practical Research 1 (Qualitative)",
+          "Disciplines and Ideas in the Social Sciences"
+        ]
+      },
+      "Second Semester": {
+        "Quarter 1": [
+          "21st Century Literature from the Philippines and the World",
+          "Understanding Culture, Society, and Politics",
+          "Media and Information Literacy",
+          "Practical Research 2 (Quantitative)",
+          "Empowerment Technologies",
+          "Disciplines and Ideas in the Applied Social Sciences",
+          "Introduction to World Religions and Belief Systems",
+          "Creative Writing"
+        ],
+        "Quarter 2": [
+          "Contemporary Philippine Arts from the Regions",
+          "Filipino sa Piling Larangan",
+          "Buffer Subject / Elective",
+          "Buffer Subject / Elective",
+          "Introduction to World Religions and Belief Systems (Cont.)"
+        ]
+      }
+    },
+    "Grade 12": {
+      "First Semester": {
+        "Quarter 1": [
+          "Entrepreneurship",
+          "Physical Education & Health 3",
+          "Community Engagement, Solidarity, and Citizenship",
+          "Creative Non-Fiction"
+        ],
+        "Quarter 2": [
+          "Inquiries, Investigations, and Immersion",
+          "Physical Education & Health 3 (Cont.)",
+          "Community Engagement, Solidarity, and Citizenship (Cont.)",
+          "Trends, Networks, and Critical Thinking in the 21st Century Culture"
+        ]
+      },
+      "Second Semester": {
+        "Quarter 1": [
+          "Physical Education & Health 4",
+          "Work Immersion / Research (Part 1)"
+        ],
+        "Quarter 2": [
+          "Physical Education & Health 4 (Cont.)",
+          "Work Immersion / Research (Part 2)"
+        ]
+      }
+    }
+  },
+  GAS: {
+    "Grade 11": {
+      "First Semester": {
+        "Quarter 1": [
+          "Oral Communication in Context",
+          "Komunikasyon at Pananaliksik sa Wika at Kulturang Pilipino",
+          "General Mathematics",
+          "Earth and Life Science",
+          "Introduction to Philosophy of the Human Person",
+          "Physical Education & Health 1",
+          "English for Academic and Professional Purposes",
+          "Humanities 1"
+        ],
+        "Quarter 2": [
+          "Reading and Writing Skills",
+          "Pagbasa at Pagsusuri ng Iba't Ibang Teksto Tungo sa Pananaliksik",
+          "Statistics and Probability",
+          "Physical Science",
+          "Personal Development",
+          "Physical Education & Health 2",
+          "Practical Research 1 (Qualitative)",
+          "Social Science 1"
+        ]
+      },
+      "Second Semester": {
+        "Quarter 1": [
+          "21st Century Literature from the Philippines and the World",
+          "Understanding Culture, Society, and Politics",
+          "Media and Information Literacy",
+          "Practical Research 2 (Quantitative)",
+          "Empowerment Technologies",
+          "Organization and Management",
+          "Disaster Readiness and Risk Reduction",
+          "Elective 1"
+        ],
+        "Quarter 2": [
+          "Contemporary Philippine Arts from the Regions",
+          "Filipino sa Piling Larangan",
+          "Buffer Subject / Elective",
+          "Buffer Subject / Elective",
+          "Elective 1 (Cont.)"
+        ]
+      }
+    },
+    "Grade 12": {
+      "First Semester": {
+        "Quarter 1": [
+          "Entrepreneurship",
+          "Physical Education & Health 3",
+          "Humanities 2",
+          "Applied Economics"
+        ],
+        "Quarter 2": [
+          "Inquiries, Investigations, and Immersion",
+          "Physical Education & Health 3 (Cont.)",
+          "Humanities 2 (Cont.)",
+          "Applied Economics (Cont.)"
+        ]
+      },
+      "Second Semester": {
+        "Quarter 1": [
+          "Physical Education & Health 4",
+          "Elective 2 (Part 1)",
+          "Work Immersion / Research / Career Advocacy (Part 1)"
+        ],
+        "Quarter 2": [
+          "Physical Education & Health 4 (Cont.)",
+          "Elective 2 (Part 2)",
+          "Work Immersion / Research / Career Advocacy (Part 2)"
+        ]
+      }
+    }
+  }
+};
+
+// SHS Component Weights
+const SHS_COMPONENT_WEIGHTS = {
+  // Core & Specialized
+  default: { WW: 25, PT: 50, QA: 25 },
+  // Work Immersion/Research/Business Enterprise/Exhibit/Performance
+  immersion: { WW: 20, PT: 60, QA: 20 }
+};
+
+// Helper to get weights by subject
+function getShsComponentWeights(subject) {
+  const immersionKeywords = [
+    "Work Immersion", "Research", "Business Enterprise", "Simulation", "Exhibit", "Performance", "Immersion", "Research Project"
+  ];
+  if (immersionKeywords.some(k => subject.toLowerCase().includes(k.toLowerCase()))) {
+    return SHS_COMPONENT_WEIGHTS.immersion;
+  }
+  return SHS_COMPONENT_WEIGHTS.default;
+}
 // ==================== VALIDATION & MODALS ====================
 
 function showValidationError(inputElement, message) {
@@ -301,49 +607,63 @@ function initializeGradeStructure(profile) {
       });
     });
   } else if (profile.isSHS) {
+    // Initialize SHS structure with semesters
     appState.semesters = [
       {
         name: 'First Semester',
         quarters: [
           { id: 1, name: 'First Quarter', gwa: null, marked: false, subjects: {} },
           { id: 2, name: 'Second Quarter', gwa: null, marked: false, subjects: {} }
-        ]
+        ],
+        finalGrade: null
       },
       {
         name: 'Second Semester',
         quarters: [
           { id: 3, name: 'First Quarter', gwa: null, marked: false, subjects: {} },
           { id: 4, name: 'Second Quarter', gwa: null, marked: false, subjects: {} }
-        ]
+        ],
+        finalGrade: null
       }
     ];
   }
 }
 
+// ==================== COMPLETE FUNCTION: renderGradeCards ====================
 function renderGradeCards(profile) {
   const container = document.getElementById('quartersContainer');
   container.innerHTML = '';
+  container.className = 'quarters-grid-compact'; // Reset classes
 
   if (profile.isJHS) {
+    // JHS: Show 4 quarters in 2x2 grid
+    container.classList.add('jhs-layout');
+    
     appState.quarters.forEach(quarter => {
       const card = createQuarterCard(quarter);
       container.appendChild(card);
     });
   } else if (profile.isSHS) {
-    appState.semesters.forEach(semester => {
+    // SHS: Show two semester columns side by side
+    container.classList.add('shs-layout');
+    
+    appState.semesters.forEach((semester, semIndex) => {
+      // Create semester wrapper
       const wrapper = document.createElement('div');
       wrapper.className = 'semester-wrapper';
       
+      // Semester title
       const title = document.createElement('div');
       title.className = 'semester-title';
-      title.textContent = semester.name;
+      title.textContent = semester.name.toUpperCase();
       wrapper.appendChild(title);
 
+      // Quarters container for this semester - VERTICAL
       const quartersContainer = document.createElement('div');
       quartersContainer.className = 'semester-quarters';
 
       semester.quarters.forEach(quarter => {
-        const card = createQuarterCard(quarter);
+        const card = createQuarterCard(quarter, semester);
         quartersContainer.appendChild(card);
       });
 
@@ -353,39 +673,214 @@ function renderGradeCards(profile) {
   }
 }
 
-function createQuarterCard(quarter) {
+function createQuarterCard(quarter, semester = null) {
   const card = document.createElement('div');
-  card.className = 'quarter-card';
+  card.className = 'quarter-card-compact';
   card.id = `quarter-${quarter.id}`;
   
-  const gwaValue = quarter.gwa ? quarter.gwa.toFixed(2) : '--';
+  const gwaValue = quarter.gwa ? quarter.gwa.toFixed(1) : '--';
   const statusText = quarter.marked ? 'Completed' : 'In Progress';
-  const statusClass = quarter.marked ? 'badge-green' : 'badge-orange';
+  const statusClass = quarter.marked ? 'status-completed' : 'status-progress';
+  
+  // Calculate progress for mini ring
+  const circumference = 2 * Math.PI * 27; // radius = 27 for 60px circle
+  const progress = quarter.gwa ? (quarter.gwa / 100) * circumference : 0;
+  const dashOffset = circumference - progress;
+  
+  // Count subjects - ensure it's a valid positive number
+  const subjectCount = quarter.subjects && Object.keys(quarter.subjects).length > 0 ? Object.keys(quarter.subjects).length : 8;
+  
+  // Create subject dots (max 5 dots)
+  const dotsCount = Math.min(Math.max(subjectCount, 0), 5);
+  const subjectDots = dotsCount > 0 ? Array.from({length: dotsCount}, () => '<span class="subject-dot"></span>').join('') : '';
   
   card.innerHTML = `
-    <div class="quarter-card-left">
-      <div class="quarter-title">
-        <span class="quarter-number">${quarter.name.split(' ')[0].toUpperCase()}</span>
-        <span class="quarter-label">${quarter.name.split(' ')[1].toUpperCase()}</span>
-      </div>
-      <div class="quarter-info">
-        <span class="${statusClass}">${statusText}</span>
+    <div class="quarter-header-compact">
+      <div class="quarter-title-section">
+        <h4 class="quarter-name">
+          <span class="quarter-number">${quarter.name.split(' ')[0]}</span>
+          ${quarter.name.split(' ')[1]}
+        </h4>
+        <span class="quarter-status-badge ${statusClass}">${statusText}</span>
       </div>
     </div>
-    <div class="gwa-display">
-      <div class="gwa-circle">
-        <span class="gwa-value">${gwaValue}</span>
-        <span class="gwa-label">GWA</span>
+    
+    <div class="quarter-gwa-mini">
+      <div class="gwa-ring-mini">
+        <svg viewBox="0 0 60 60">
+          <circle class="gwa-bg-mini" cx="30" cy="30" r="27"/>
+          <circle class="gwa-progress-mini" cx="30" cy="30" r="27"
+                  stroke-dasharray="${circumference}"
+                  stroke-dashoffset="${dashOffset}"/>
+        </svg>
+        <div class="gwa-value-mini">${gwaValue}</div>
       </div>
-      <p class="gwa-text">(not yet computed)</p>
+      <div class="quarter-details">
+        <div class="detail-label">Quarter GWA</div>
+        <div class="detail-value">${gwaValue === '--' ? 'Not computed' : gwaValue}</div>
+      </div>
+    </div>
+    
+    <div class="quarter-subjects-preview">
+      <span class="subject-count">${subjectCount} subjects</span>
+      ${subjectDots}
     </div>
   `;
 
-  card.addEventListener('click', () => showSubjectsView(quarter));
+  card.addEventListener('click', () => {
+    if (semester) {
+      showShsSubjectsView(semester, quarter);
+    } else {
+      showSubjectsView(quarter);
+    }
+  });
   return card;
 }
 
 // ==================== VIEW NAVIGATION ====================
+
+function showShsSubjectsView(semester, quarter) {
+  appState.currentSemester = semester;
+  appState.currentQuarter = quarter;
+
+  // Get subjects for this specific quarter within the semester
+  const profile = window.userProfile;
+  const strand = profile.strand || 'STEM';
+  const gradeLevel = profile.gradeLevel || 'Grade 11';
+  
+  // Determine quarter name based on quarter.id
+  // For First Semester: id 1 = Quarter 1, id 2 = Quarter 2
+  // For Second Semester: id 3 = Quarter 1, id 4 = Quarter 2
+  const quarterName = (quarter.id === 1 || quarter.id === 3) ? 'Quarter 1' : 'Quarter 2';
+  const quarterSubjects = SHS_SUBJECTS[strand]?.[gradeLevel]?.[semester.name]?.[quarterName] || [];
+
+  // Initialize subjects in quarter if not already initialized
+  if (!quarter.subjects || Object.keys(quarter.subjects).length === 0) {
+    quarter.subjects = {};
+    quarterSubjects.forEach(subject => {
+      quarter.subjects[subject] = {
+        isMAPEH: false,
+        components: {
+          WW: { items: [], weight: getShsComponentWeights(subject).WW },
+          PT: { items: [], weight: getShsComponentWeights(subject).PT },
+          QA: { items: [], weight: getShsComponentWeights(subject).QA }
+        },
+        initialGrade: null,
+        transmutedGrade: null,
+        finalGrade: null
+      };
+    });
+  }
+
+  // Update view title
+  const displayQuarterName = (quarter.id === 1 || quarter.id === 3) ? '1st Quarter' : '2nd Quarter';
+  document.getElementById('subjectsViewTitle').textContent = `${semester.name} - ${displayQuarterName}`;
+  
+  // Add/Update quarter switching buttons
+  const viewHeader = document.querySelector('#subjectsView .view-header');
+  let quarterSwitcher = viewHeader.querySelector('.quarter-switcher');
+  
+  // Remove existing switcher if present
+  if (quarterSwitcher) {
+    quarterSwitcher.remove();
+  }
+  
+  // Create new quarter switcher
+  quarterSwitcher = document.createElement('div');
+  quarterSwitcher.className = 'quarter-switcher';
+  
+  semester.quarters.forEach(q => {
+    const btn = document.createElement('button');
+    btn.className = 'quarter-switch-btn';
+    if (q.id === quarter.id) {
+      btn.classList.add('active');
+    }
+    
+    const btnLabel = (q.id === semester.quarters[0].id) ? '1st Quarter' : '2nd Quarter';
+    btn.textContent = btnLabel;
+    
+    btn.addEventListener('click', () => {
+      showShsSubjectsView(semester, q);
+    });
+    
+    quarterSwitcher.appendChild(btn);
+  });
+  
+  viewHeader.appendChild(quarterSwitcher);
+  
+  // Render subject cards
+  const grid = document.getElementById('subjectsGrid');
+  grid.innerHTML = '';
+  
+  quarterSubjects.forEach(subject => {
+    const subjectData = quarter.subjects[subject];
+    const grade = subjectData.finalGrade || null;
+    const percentage = grade ? grade : 0;
+    const hasComponents = subjectData.components && 
+      (subjectData.components.WW.items.length > 0 || 
+       subjectData.components.PT.items.length > 0 || 
+       subjectData.components.QA.items.length > 0);
+    
+    // Determine color based on grade
+    let progressColor = '#E5E7EB';
+    if (grade !== null) {
+      if (grade >= 90) progressColor = '#10b981';
+      else if (grade >= 85) progressColor = '#38CA79';
+      else if (grade >= 80) progressColor = '#3b82f6';
+      else if (grade >= 75) progressColor = '#f59e0b';
+      else progressColor = '#ef4444';
+    }
+    
+    const card = document.createElement('div');
+    card.className = 'subject-card';
+    card.setAttribute('data-subject', subject);
+    card.innerHTML = `
+      <div class="subject-card-header">
+        <h3 class="subject-card-title">${subject}</h3>
+        <div class="subject-card-status">
+          ${hasComponents ? '<span class="status-badge completed">Has Components</span>' : '<span class="status-badge pending">No Components</span>'}
+        </div>
+      </div>
+      <div class="subject-card-body">
+        <div class="circular-progress-container">
+          <svg class="circular-progress" width="120" height="120" viewBox="0 0 120 120">
+            <circle class="progress-bg" cx="60" cy="60" r="52" 
+                    stroke="#E5E7EB" stroke-width="8" fill="none"/>
+            <circle class="progress-bar" cx="60" cy="60" r="52" 
+                    stroke="${progressColor}" stroke-width="8" fill="none"
+                    stroke-dasharray="${2 * Math.PI * 52}" 
+                    stroke-dashoffset="${2 * Math.PI * 52 * (1 - percentage / 100)}"
+                    transform="rotate(-90 60 60)"
+                    stroke-linecap="round"/>
+          </svg>
+          <div class="progress-text">
+            <span class="progress-value">${grade !== null ? grade.toFixed(2) : '--'}</span>
+            <span class="progress-label">${grade !== null ? percentage.toFixed(0) + '%' : 'No grade'}</span>
+          </div>
+        </div>
+        <button class="btn-visit-subject">Visit</button>
+      </div>
+    `;
+    
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', () => {
+      showSubjectDetailView(subject);
+    });
+    
+    const visitBtn = card.querySelector('.btn-visit-subject');
+    if (visitBtn) {
+      visitBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        showSubjectDetailView(subject);
+      });
+    }
+    
+    grid.appendChild(card);
+  });
+
+  showView('subjects');
+}
 
 function showView(viewName) {
   console.log('showView called with:', viewName);
@@ -632,12 +1127,27 @@ function updateBreadcrumb() {
     
     const quarterItem = document.createElement('span');
     quarterItem.className = 'breadcrumb-item';
-    quarterItem.textContent = appState.currentQuarter.name;
+    
+    // Display quarter name based on semester structure
+    if (appState.currentSemester) {
+      // For SHS: show "First Semester - First Quarter" format
+      const quarterName = (appState.currentQuarter.id === 1 || appState.currentQuarter.id === 3) ? 'First Quarter' : 'Second Quarter';
+      quarterItem.textContent = quarterName;
+    } else {
+      // For JHS: show regular quarter name
+      quarterItem.textContent = appState.currentQuarter.name;
+    }
     
     if (appState.currentView === 'subjects') {
       quarterItem.classList.add('active');
     } else {
-      quarterItem.addEventListener('click', () => showSubjectsView(appState.currentQuarter));
+      quarterItem.addEventListener('click', () => {
+        if (appState.currentSemester) {
+          showShsSubjectsView(appState.currentSemester, appState.currentQuarter);
+        } else {
+          showSubjectsView(appState.currentQuarter);
+        }
+      });
     }
     breadcrumb.appendChild(quarterItem);
   }
@@ -1176,47 +1686,124 @@ function updateMAPEHCalculations() {
 
 function computeQuarterGWA() {
   const quarter = appState.currentQuarter;
+  const profile = window.userProfile;
   const grades = [];
   
-  JHS_SUBJECTS.forEach(subject => {
-    const subjectData = quarter.subjects[subject];
-    if (subjectData.finalGrade) {
-      grades.push(subjectData.finalGrade);
-    }
-  });
+  if (profile.isSHS) {
+    // For SHS, get the current quarter's subjects based on semester and quarter
+    const semester = appState.currentSemester;
+    const strand = profile.strand || 'STEM';
+    const gradeLevel = profile.gradeLevel || 'Grade 11';
+    const quarterName = quarter.id === 1 || quarter.id === 3 ? 'Quarter 1' : 'Quarter 2';
+    const quarterSubjects = SHS_SUBJECTS[strand]?.[gradeLevel]?.[semester.name]?.[quarterName] || [];
+    
+    quarterSubjects.forEach(subject => {
+      const subjectData = quarter.subjects[subject];
+      if (subjectData && subjectData.finalGrade) {
+        grades.push(subjectData.finalGrade);
+      }
+    });
+  } else {
+    // For JHS
+    JHS_SUBJECTS.forEach(subject => {
+      const subjectData = quarter.subjects[subject];
+      if (subjectData.finalGrade) {
+        grades.push(subjectData.finalGrade);
+      }
+    });
+  }
   
   if (grades.length > 0) {
     quarter.gwa = grades.reduce((sum, g) => sum + g, 0) / grades.length;
   }
   
-  updateOverallGwa({ isJHS: true, isSHS: false });
+  // For SHS, also compute semester final grade
+  if (profile.isSHS && appState.currentSemester) {
+    const semester = appState.currentSemester;
+    const q1Grade = semester.quarters[0].gwa;
+    const q2Grade = semester.quarters[1].gwa;
+    
+    if (q1Grade && q2Grade) {
+      semester.finalGrade = (q1Grade + q2Grade) / 2;
+    }
+  }
+  
+  updateOverallGwa(profile);
 }
 
 function updateOverallGwa(profile) {
-  const allQuarters = profile.isSHS
-    ? appState.semesters.flatMap(s => s.quarters)
-    : appState.quarters;
-
-  const gwaValues = allQuarters.filter(q => q.gwa).map(q => q.gwa);
+  let gwaValues = [];
   
-  if (gwaValues.length) {
+  if (profile.isSHS) {
+    // For SHS, use semester final grades
+    appState.semesters.forEach(semester => {
+      if (semester.finalGrade) {
+        gwaValues.push(semester.finalGrade);
+      }
+    });
+  } else {
+    // For JHS, use quarter GWAs
+    gwaValues = appState.quarters.filter(q => q.gwa).map(q => q.gwa);
+  }
+  
+  const hasGwa = gwaValues.length > 0;
+  
+  if (hasGwa) {
     appState.overallGwa = (gwaValues.reduce((a,b)=>a+b,0) / gwaValues.length).toFixed(2);
   } else {
     appState.overallGwa = 0;
   }
 
-  document.getElementById('overallGwaValue').textContent = gwaValues.length ? appState.overallGwa : '--';
-  document.getElementById('overallRemark').textContent =
-    appState.overallGwa >= 90 ? 'Outstanding!' :
-    appState.overallGwa >= 85 ? 'Great job!' :
-    appState.overallGwa >= 80 ? 'You did great' :
-    appState.overallGwa >= 75 ? 'Keep it up!' :
-    'You did great';
+  // Update GWA display
+  const gwaValueElement = document.getElementById('overallGwaValue');
+  const remarkElement = document.getElementById('overallRemark');
+  const buttonHint = document.getElementById('buttonHint');
+  const markDoneBtn = document.getElementById('markDoneBtn');
+  
+  gwaValueElement.textContent = hasGwa ? appState.overallGwa : '--';
+  
+  // Show remark only if there's a computed GWA
+  if (hasGwa) {
+    remarkElement.textContent =
+      appState.overallGwa >= 90 ? 'Outstanding! 🌟' :
+      appState.overallGwa >= 85 ? 'Great job! 🎉' :
+      appState.overallGwa >= 80 ? 'You did great! 👏' :
+      appState.overallGwa >= 75 ? 'Keep it up! 💪' :
+      'Keep pushing forward! 🌟';
+    remarkElement.style.opacity = '1';
+  } else {
+    remarkElement.textContent = 'Keep pushing forward! 🌟';
+    remarkElement.style.opacity = '0.6';
+  }
+  
+  // Check if all quarters/semesters are marked as complete
+  const allQuarters = profile.isSHS
+    ? appState.semesters.flatMap(s => s.quarters)
+    : appState.quarters;
+  const allQuartersCompleted = allQuarters.every(q => q.marked);
+  
+  // Update hint text and button state based on completion status
+  if (allQuartersCompleted && hasGwa) {
+    buttonHint.textContent = 'All quarters completed';
+    buttonHint.classList.remove('hidden');
+    markDoneBtn.disabled = true;
+    markDoneBtn.style.opacity = '0.6';
+    markDoneBtn.style.cursor = 'not-allowed';
+  } else {
+    buttonHint.textContent = 'All quarters not yet completed';
+    buttonHint.classList.remove('hidden');
+    markDoneBtn.disabled = false;
+    markDoneBtn.style.opacity = '1';
+    markDoneBtn.style.cursor = 'pointer';
+  }
   
   // Update quarter cards if on dashboard
   if (appState.currentView === 'dashboard') {
     renderGradeCards(profile);
   }
+  
+  // Update sidebar stats to reflect current GWA and progress
+  updateSidebarStats(profile);
 }
 
 function setupProfileDropdown() {
@@ -1230,9 +1817,104 @@ function setupProfileDropdown() {
     if (!toggle.contains(e.target) && !dropdown.contains(e.target)) dropdown.style.display = 'none';
   });
 }
+
 function setCurrentDate() {
-  document.getElementById('currentDate').textContent =
-    new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const dateElement = document.getElementById('currentDate');
+  if (dateElement) {
+    dateElement.textContent = new Date().toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  }
+}
+
+function setupYearCompleteModal() {
+  const markDoneBtn = document.getElementById('markDoneBtn');
+  const modal = document.getElementById('confirmYearCompleteModal');
+  const btnCancel = document.getElementById('btnCancelYearComplete');
+  const btnConfirm = document.getElementById('btnConfirmYearComplete');
+  const buttonHint = document.getElementById('buttonHint');
+  
+  if (!markDoneBtn || !modal) return;
+  
+  // Show modal when Mark Year Complete button is clicked
+  markDoneBtn.addEventListener('click', () => {
+    // Check if all quarters are completed
+    const allQuartersCompleted = appState.quarters.every(q => q.marked);
+    
+    if (!allQuartersCompleted) {
+      // Show warning modal
+      modal.classList.add('show');
+    } else {
+      // If all quarters are complete, mark directly
+      markSchoolYearComplete();
+    }
+  });
+  
+  // Cancel button - close modal
+  btnCancel.addEventListener('click', () => {
+    modal.classList.remove('show');
+  });
+  
+  // Confirm button - mark year complete
+  btnConfirm.addEventListener('click', () => {
+    modal.classList.remove('show');
+    markSchoolYearComplete();
+  });
+  
+  // Close modal when clicking outside
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('show');
+    }
+  });
+  
+  // Close modal on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('show')) {
+      modal.classList.remove('show');
+    }
+  });
+}
+
+function markSchoolYearComplete() {
+  const markDoneBtn = document.getElementById('markDoneBtn');
+  const buttonHint = document.getElementById('buttonHint');
+  const remarkElement = document.getElementById('overallRemark');
+  
+  // Mark all quarters as complete
+  appState.quarters.forEach(q => q.marked = true);
+  
+  // Save to localStorage
+  localStorage.setItem('gradeData', JSON.stringify(appState));
+  
+  // Update UI
+  markDoneBtn.disabled = true;
+  markDoneBtn.style.opacity = '0.6';
+  markDoneBtn.style.cursor = 'not-allowed';
+  buttonHint.classList.remove('hidden');
+  
+  // Update remark message
+  if (appState.overallGwa > 0) {
+    remarkElement.textContent =
+      appState.overallGwa >= 90 ? 'Outstanding! 🌟' :
+      appState.overallGwa >= 85 ? 'Great job! 🎉' :
+      appState.overallGwa >= 80 ? 'You did great! 👏' :
+      appState.overallGwa >= 75 ? 'Keep it up! 💪' :
+      'You did great! 💪';
+    remarkElement.style.opacity = '1';
+  }
+  
+  // Update quarter cards to show completed status
+  renderGradeCards(window.userProfile);
+  
+  // Update sidebar stats to reflect completion
+  updateSidebarStats(window.userProfile);
+  
+  // Show success message
+  alert('School year marked as complete! 🎉');
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -1242,13 +1924,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderGradeCards(profile);
   updateOverallGwa(profile);
   setupProfileDropdown();
-  
-  // Navigation event listeners
-  document.getElementById('backToQuarters').addEventListener('click', showDashboardView);
-  document.getElementById('backToSubjects').addEventListener('click', () => {
+  setupYearCompleteModal();
+  updateSidebarStats(profile); // Add sidebar stats update
+
+document.getElementById('backToQuarters').addEventListener('click', () => {
+  if (appState.currentSemester) {
+    // For SHS, go back to dashboard (shows semester view)
+    appState.currentQuarter = null;
+    appState.currentSemester = null;
+    showDashboardView();
+  } else {
+    // For JHS, go back to dashboard
+    showDashboardView();
+  }
+});
+
+document.getElementById('backToSubjects').addEventListener('click', () => {
+  if (appState.currentSemester) {
+    // For SHS, go back to subjects view with semester context
+    showShsSubjectsView(appState.currentSemester, appState.currentQuarter);
+  } else {
+    // For JHS, go back to subjects view
     showSubjectsView(appState.currentQuarter);
-  });
-  
+  }
+});
   // Component tab switching
   setupComponentTabs();
 });
@@ -1283,5 +1982,35 @@ function switchComponentTab(componentType) {
     renderMAPEHAreaComponents();
   } else {
     renderComponents();
+  }
+}
+
+function updateSidebarStats(profile) {
+  const sidebarGwa = document.getElementById('sidebarGwa');
+  const sidebarProgress = document.getElementById('sidebarProgress');
+  const goalsCount = document.getElementById('goalsCount');
+  
+  if (sidebarGwa && sidebarProgress) {
+    // Update GWA
+    const gwa = appState.overallGwa;
+    if (gwa > 0) {
+      sidebarGwa.textContent = gwa;
+    } else {
+      sidebarGwa.textContent = '--';
+    }
+    
+    // Calculate year progress based on completed quarters
+    const allQuarters = profile.isSHS
+      ? appState.semesters.flatMap(s => s.quarters)
+      : appState.quarters;
+    const completedQuarters = allQuarters.filter(q => q.marked).length;
+    const totalQuarters = allQuarters.length || 4;
+    const progress = Math.round((completedQuarters / totalQuarters) * 100);
+    sidebarProgress.textContent = `${progress}%`;
+    
+    // Update goals count (placeholder - integrate with actual goals system)
+    if (goalsCount) {
+      goalsCount.textContent = '0';
+    }
   }
 }

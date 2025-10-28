@@ -1,0 +1,963 @@
+/* ============================================
+   COMPACT DASHBOARD REDESIGN - NO SCROLLING
+   ============================================ */
+
+/* Compact Header */
+.dashboard-header-compact {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+}
+
+.welcome-section {
+    flex: 1;
+}
+
+.welcome-text {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1F2937;
+    margin-bottom: 4px;
+}
+
+.user-highlight {
+    color: #38CA79;
+}
+
+.date-badge {
+    font-size: 14px;
+    color: #6B7280;
+    font-weight: 500;
+}
+
+.school-year-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #38CA79;
+    color: white;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(56, 202, 121, 0.3);
+}
+
+.sy-icon {
+    font-size: 16px;
+}
+
+/* Main Dashboard Grid Layout */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+/* Quarter Cards - Compact 2x2 Grid */
+.quarters-grid-compact {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.quarter-card-compact {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    border: 2px solid #e5e7eb;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.quarter-card-compact::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #38CA79, #2ba564);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.quarter-card-compact:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    border-color: #38CA79;
+}
+
+.quarter-card-compact:hover::before {
+    opacity: 1;
+}
+
+.quarter-header-compact {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.quarter-title-section {
+    flex: 1;
+}
+
+.quarter-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1F2937;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.quarter-number {
+    color: #38CA79;
+    font-size: 18px;
+}
+
+.quarter-status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-completed {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-progress {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-upcoming {
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+.quarter-gwa-mini {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.gwa-ring-mini {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
+.gwa-ring-mini svg {
+    transform: rotate(-90deg);
+}
+
+.gwa-ring-mini circle {
+    fill: none;
+}
+
+.gwa-bg-mini {
+    stroke: #e5e7eb;
+    stroke-width: 6;
+}
+
+.gwa-progress-mini {
+    stroke: #38CA79;
+    stroke-width: 6;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.6s ease;
+}
+
+.gwa-value-mini {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 16px;
+    font-weight: 700;
+    color: #1F2937;
+}
+
+.quarter-details {
+    flex: 1;
+}
+
+.detail-label {
+    font-size: 11px;
+    color: #6B7280;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.detail-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1F2937;
+}
+
+.quarter-subjects-preview {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.subject-count {
+    font-size: 12px;
+    color: #6B7280;
+    font-weight: 500;
+}
+
+.subject-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #38CA79;
+}
+
+/* Overall GWA Card - Compact */
+.overall-gwa-compact {
+    background: linear-gradient(135deg, #1d2a35 0%, #253745 100%);
+    border-radius: 16px;
+    padding: 24px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.gwa-card-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.gwa-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.gwa-subtitle {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.gwa-visual {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.gwa-ring-compact {
+    position: relative;
+    width: 160px;
+    height: 160px;
+}
+
+.gwa-circle-svg {
+    transform: rotate(-90deg);
+}
+
+.gwa-bg {
+    stroke: rgba(255, 255, 255, 0.1);
+}
+
+.gwa-progress {
+    stroke: #38CA79;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s ease;
+}
+
+.gwa-value-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.gwa-number {
+    display: block;
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.gwa-label {
+    display: block;
+    font-size: 12px;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.gwa-remark {
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 16px;
+    opacity: 0.9;
+}
+
+.btn-complete-year {
+    width: 100%;
+    padding: 12px;
+    background: #38CA79;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-complete-year:hover {
+    background: #2ba564;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(56, 202, 121, 0.4);
+}
+
+.btn-complete-year:active {
+    transform: translateY(0);
+}
+
+.btn-icon {
+    font-size: 16px;
+}
+
+.completion-hint {
+    text-align: center;
+    font-size: 11px;
+    margin-top: 8px;
+    opacity: 0.7;
+}
+
+/* Quick Stats Bar - Compact Grid */
+.stats-overview-compact {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.stat-box {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+}
+
+.stat-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #38CA79;
+}
+
+.stat-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.stat-icon-wrapper.blue {
+    background: #dbeafe;
+}
+
+.stat-icon-wrapper.green {
+    background: #d1fae5;
+}
+
+.stat-icon-wrapper.purple {
+    background: #e9d5ff;
+}
+
+.stat-icon-wrapper.orange {
+    background: #fed7aa;
+}
+
+.stat-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-number {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1F2937;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.stat-number.trending {
+    color: #38CA79;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #6B7280;
+    font-weight: 500;
+}
+
+/* Responsive Design for Compact Layout */
+@media (max-width: 1400px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .overall-gwa-compact {
+        grid-row: 1;
+    }
+    
+    .quarters-grid-compact {
+        grid-row: 2;
+    }
+}
+
+@media (max-width: 768px) {
+    .quarters-grid-compact {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-overview-compact {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .dashboard-header-compact {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .school-year-pill {
+        align-self: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-overview-compact {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   CONFIRMATION MODAL
+   ============================================ */
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+}
+
+.modal-overlay.show {
+    display: flex;
+}
+
+.modal-container {
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease;
+    overflow: hidden;
+}
+
+.modal-header {
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1F2937;
+    margin: 0;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-message {
+    font-size: 16px;
+    color: #374151;
+    margin: 0 0 12px 0;
+    line-height: 1.6;
+}
+
+.modal-warning {
+    font-size: 14px;
+    color: #6B7280;
+    margin: 0;
+    font-style: italic;
+}
+
+.modal-footer {
+    padding: 16px 24px 24px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.btn-modal-cancel,
+.btn-modal-confirm {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Outfit', sans-serif;
+}
+
+.btn-modal-cancel {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.btn-modal-cancel:hover {
+    background: #e5e7eb;
+    transform: translateY(-1px);
+}
+
+.btn-modal-confirm {
+    background: #38CA79;
+    color: white;
+}
+
+.btn-modal-confirm:hover {
+    background: #2ba564;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(56, 202, 121, 0.4);
+}
+
+.btn-modal-cancel:active,
+.btn-modal-confirm:active {
+    transform: translateY(0);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ============================================
+   DASHBOARD GRID - THREE COLUMN LAYOUT
+   ============================================ */
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 400px;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+/* For JHS - spans both columns */
+.quarters-grid-compact.jhs-layout {
+    grid-column: 1 / 3;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+/* For SHS - each semester takes one column */
+.quarters-grid-compact.shs-layout {
+    display: contents; /* This makes children behave as grid items */
+}
+
+/* ============================================
+   SEMESTER STRUCTURE STYLING - VERTICAL QUARTERS
+   ============================================ */
+
+.semester-wrapper {
+    background: #f8f9fa;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.semester-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.semester-quarters {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Ensure quarter cards work within semester structure */
+.semester-quarters .quarter-card-compact {
+    width: 100%;
+}
+
+/* Overall GWA spans the third column */
+.overall-gwa-compact {
+    grid-column: 3;
+    grid-row: 1;
+}
+
+/* ============================================
+   QUARTER CARD ADJUSTMENTS FOR SEMESTER VIEW
+   ============================================ */
+
+.quarter-card-compact {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 2px solid #e5e7eb;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.quarter-card-compact::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #38CA79, #2ba564);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.quarter-card-compact:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    border-color: #38CA79;
+}
+
+.quarter-card-compact:hover::before {
+    opacity: 1;
+}
+
+/* ============================================
+   QUARTER SWITCHING BUTTONS (for subjects view)
+   ============================================ */
+
+.quarter-switcher {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.quarter-switch-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 2px solid #e5e7eb;
+    background: white;
+    color: #6b7280;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+    text-align: center;
+}
+
+.quarter-switch-btn:hover {
+    border-color: #38CA79;
+    background: #f0fdf4;
+    color: #38CA79;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(56, 202, 121, 0.15);
+}
+
+.quarter-switch-btn.active {
+    border-color: #38CA79;
+    background: #38CA79;
+    color: white;
+    box-shadow: 0 4px 12px rgba(56, 202, 121, 0.3);
+}
+
+.quarter-switch-btn.active:hover {
+    background: #2ba564;
+    border-color: #2ba564;
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS FOR SEMESTERS
+   ============================================ */
+
+@media (max-width: 1400px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .overall-gwa-compact {
+        grid-column: 1 / 3;
+        grid-row: auto;
+        max-width: 400px;
+        margin: 0 auto;
+        width: 100%;
+    }
+}
+
+@media (max-width: 1200px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .overall-gwa-compact {
+        grid-column: 1;
+        order: -1;
+        margin-bottom: 24px;
+    }
+    
+    .quarters-grid-compact.jhs-layout {
+        grid-column: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .semester-quarters {
+        gap: 12px;
+    }
+    
+    .quarter-switcher {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .quarter-switch-btn {
+        width: 100%;
+    }
+    
+    .quarters-grid-compact.jhs-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .semester-title {
+        font-size: 12px;
+    }
+    
+    .dashboard-grid {
+        gap: 16px;
+    }
+    
+    .semester-wrapper {
+        padding: 16px;
+    }
+}
+
+/* ============================================
+   OVERALL GWA CARD - CENTERED
+   ============================================ */
+
+.overall-gwa-compact {
+    background: linear-gradient(135deg, #1d2a35 0%, #253745 100%);
+    border-radius: 16px;
+    padding: 24px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    grid-column: 3;
+    grid-row: 1;
+}
+
+.gwa-card-header {
+    text-align: center;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.gwa-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.gwa-subtitle {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.gwa-visual {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 16px;
+    width: 100%;
+}
+
+.gwa-ring-compact {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gwa-circle-svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.gwa-bg {
+    stroke: rgba(255, 255, 255, 0.1);
+}
+
+.gwa-progress {
+    stroke: #38CA79;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s ease;
+}
+
+.gwa-value-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.gwa-number {
+    display: block;
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.gwa-label {
+    display: block;
+    font-size: 12px;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.gwa-remark {
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 16px;
+    opacity: 0.9;
+    width: 100%;
+}
+
+.btn-complete-year {
+    width: 100%;
+    max-width: 100%;
+    padding: 12px;
+    background: #38CA79;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-complete-year:hover:not(:disabled) {
+    background: #2ba564;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(56, 202, 121, 0.4);
+}
+
+.btn-complete-year:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.btn-complete-year:disabled {
+    background: rgba(255, 255, 255, 0.2);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.btn-icon {
+    font-size: 16px;
+}
+
+.completion-hint {
+    text-align: center;
+    font-size: 11px;
+    margin-top: 8px;
+    opacity: 0.7;
+    width: 100%;
+}
+
+.completion-hint.hidden {
+    display: none;
+}
