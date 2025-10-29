@@ -11,6 +11,7 @@ DEBUG = os.getenv('DEBUG', default=True)
 
 ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
+CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
 
 INSTALLED_APPS = [
     "django.contrib.admin",
