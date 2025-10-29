@@ -6,12 +6,11 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 
-SECRET_KEY = env('DJANGO_SECRET_KEY')
-DEBUG = env('DEBUG', default=True)
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+DEBUG = os.getenv('DEBUG', default=True)
 
-ALLOWED_HOSTS = ['localhost','127.0.0.1','.onrender.com']
+ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
-
 
 INSTALLED_APPS = [
     "django.contrib.admin",
