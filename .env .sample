@@ -1,0 +1,7 @@
+DB_URL = Your-Database-URL-Here
+
+DJANGO_SECRET_KEY = Your Secret Key Here
+
+DJANGO_DEBUG = True
+
+
