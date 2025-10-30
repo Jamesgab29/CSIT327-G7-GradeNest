@@ -53,3 +53,40 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.full_name or self.user.email} - {self.grade_level or 'No Level'}"
+
+
+# ---------------- QUARTER MODEL ----------------
+class Quarter(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='quarters', null=True, blank=True)
+    name = models.CharField(max_length=50)  # e.g., "1st Quarter", "2nd Quarter"
+
+    def __str__(self):
+        return f"{self.name} ({self.user.email if self.user else 'No User'})"
+
+
+# ---------------- SUBJECT MODEL ----------------
+class Subject(models.Model):
+    quarter = models.ForeignKey(Quarter, on_delete=models.CASCADE, related_name='subjects')
+    name = models.CharField(max_length=100)  # e.g., "Mathematics", "Science"
+
+    def __str__(self):
+        return f"{self.name} ({self.quarter.name})"
+
+
+# ---------------- COMPONENT MODEL ----------------
+class Component(models.Model):
+    COMPONENT_TYPES = [
+        ('WW', 'Written Works'),
+        ('PT', 'Performance Tasks'),
+        ('QA', 'Quarterly Assessment'),
+    ]
+
+    quarter = models.ForeignKey(Quarter, on_delete=models.CASCADE, related_name='components')
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='components')
+    name = models.CharField(max_length=100)  # e.g., "Quiz 1", "Project 1"
+    score = models.FloatField(default=0)  # Student's score
+    highest_score = models.FloatField(default=100)  # Maximum possible score
+    component_type = models.CharField(max_length=2, choices=COMPONENT_TYPES, default='WW')
+
+    def __str__(self):
+        return f"{self.name} ({self.subject.name} - {self.quarter.name})"

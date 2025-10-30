@@ -1,12 +1,12 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from .models import CustomUser, Profile
+from .models import CustomUser, Profile, Quarter, Subject, Component
 from django.core.mail import send_mail
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 import re
 
 
@@ -151,3 +151,180 @@ def test_email(request):
         fail_silently=False,
     )
     return HttpResponse("✅ Test email sent successfully! Check your Gmail inbox.")
+
+
+# ------------------- QUARTER CRUD -------------------
+
+@login_required
+def quarters_list(request):
+    quarters = Quarter.objects.filter(user=request.user).values('id', 'name')
+    return JsonResponse({'quarters': list(quarters)})
+
+@login_required
+def add_quarter(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        if name:
+            quarter = Quarter.objects.create(name=name, user=request.user)
+            return JsonResponse({'id': quarter.id, 'name': quarter.name})
+    return JsonResponse({'error': 'Invalid data'}, status=400)
+
+@login_required
+def update_quarter(request, quarter_id):
+    if request.method == 'POST':
+        quarter = get_object_or_404(Quarter, id=quarter_id, user=request.user)
+        name = request.POST.get('name')
+        if name:
+            quarter.name = name
+            quarter.save()
+            return JsonResponse({'id': quarter.id, 'name': quarter.name})
+    return JsonResponse({'error': 'Invalid data'}, status=400)
+
+@login_required
+def delete_quarter(request, quarter_id):
+    if request.method == 'POST':
+        quarter = get_object_or_404(Quarter, id=quarter_id, user=request.user)
+        quarter.delete()
+        return JsonResponse({'success': True})
+    return JsonResponse({'error': 'Invalid method'}, status=400)
+
+
+# ------------------- SUBJECT CRUD -------------------
+
+@login_required
+def subjects_list(request):
+    quarter_id = request.GET.get('quarter_id')
+    if quarter_id:
+        subjects = Subject.objects.filter(quarter_id=quarter_id).values('id', 'name', 'quarter_id')
+    else:
+        subjects = Subject.objects.all().values('id', 'name', 'quarter_id')
+    return JsonResponse({'subjects': list(subjects)})
+
+@login_required
+def add_subject(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        quarter_id = request.POST.get('quarter_id')
+        if name and quarter_id:
+            quarter = get_object_or_404(Quarter, id=quarter_id)
+            subject = Subject.objects.create(name=name, quarter=quarter)
+            return JsonResponse({'id': subject.id, 'name': subject.name, 'quarter_id': subject.quarter.id})
+    return JsonResponse({'error': 'Invalid data'}, status=400)
+
+@login_required
+def update_subject(request, subject_id):
+    if request.method == 'POST':
+        subject = get_object_or_404(Subject, id=subject_id)
+        name = request.POST.get('name')
+        if name:
+            subject.name = name
+            subject.save()
+            return JsonResponse({'id': subject.id, 'name': subject.name})
+    return JsonResponse({'error': 'Invalid data'}, status=400)
+
+@login_required
+def delete_subject(request, subject_id):
+    if request.method == 'POST':
+        subject = get_object_or_404(Subject, id=subject_id)
+        subject.delete()
+        return JsonResponse({'success': True})
+    return JsonResponse({'error': 'Invalid method'}, status=400)
+
+
+# ------------------- COMPONENT CRUD -------------------
+
+@login_required
+def components_list(request):
+    quarter_id = request.GET.get('quarter_id')
+    subject_id = request.GET.get('subject_id')
+    
+    components = Component.objects.select_related('quarter', 'subject').all()
+    
+    if quarter_id:
+        components = components.filter(quarter_id=quarter_id)
+    if subject_id:
+        components = components.filter(subject_id=subject_id)
+    
+    data = [{
+        'id': c.id,
+        'name': c.name,
+        'quarter': c.quarter.name,
+        'quarter_id': c.quarter.id,
+        'subject': c.subject.name,
+        'subject_id': c.subject.id,
+        'score': c.score,
+        'highest_score': c.highest_score,
+        'component_type': c.component_type
+    } for c in components]
+    return JsonResponse({'components': data})
+
+@login_required
+def add_component(request):
+    if request.method == 'POST':
+        quarter_id = request.POST.get('quarter_id')
+        subject_id = request.POST.get('subject_id')
+        name = request.POST.get('name')
+        score = float(request.POST.get('score', 0))
+        highest_score = float(request.POST.get('highest_score', 100))
+        component_type = request.POST.get('component_type', 'WW')
+
+        if quarter_id and subject_id and name:
+            quarter = get_object_or_404(Quarter, id=quarter_id)
+            subject = get_object_or_404(Subject, id=subject_id)
+            component = Component.objects.create(
+                quarter=quarter,
+                subject=subject,
+                name=name,
+                score=score,
+                highest_score=highest_score,
+                component_type=component_type
+            )
+            return JsonResponse({
+                'id': component.id,
+                'name': component.name,
+                'quarter': component.quarter.name,
+                'subject': component.subject.name,
+                'score': component.score,
+                'highest_score': component.highest_score,
+                'component_type': component.component_type
+            })
+    return JsonResponse({'error': 'Invalid data'}, status=400)
+
+@login_required
+def update_component(request, component_id):
+    if request.method == 'POST':
+        component = get_object_or_404(Component, id=component_id)
+        
+        name = request.POST.get('name')
+        score = request.POST.get('score')
+        highest_score = request.POST.get('highest_score')
+        component_type = request.POST.get('component_type')
+        
+        if name:
+            component.name = name
+        if score is not None:
+            component.score = float(score)
+        if highest_score is not None:
+            component.highest_score = float(highest_score)
+        if component_type:
+            component.component_type = component_type
+            
+        component.save()
+        return JsonResponse({
+            'id': component.id,
+            'name': component.name,
+            'quarter': component.quarter.name,
+            'subject': component.subject.name,
+            'score': component.score,
+            'highest_score': component.highest_score,
+            'component_type': component.component_type
+        })
+    return JsonResponse({'error': 'Invalid data'}, status=400)
+
+@login_required
+def delete_component(request, component_id):
+    if request.method == 'POST':
+        component = get_object_or_404(Component, id=component_id)
+        component.delete()
+        return JsonResponse({'success': True})
+    return JsonResponse({'error': 'Invalid method'}, status=400)

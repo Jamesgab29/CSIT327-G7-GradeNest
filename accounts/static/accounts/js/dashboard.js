@@ -535,14 +535,24 @@ async function fetchUserProfile() {
   }
 }
 
-function initializeGradeStructure(profile) {
+async function initializeGradeStructure(profile) {
+  // Load real quarters from database
+  const quartersData = await loadQuarters();
+  
   if (profile.isJHS) {
-    appState.quarters = [
-      { id: 1, name: 'First Quarter', gwa: null, marked: false, subjects: {} },
-      { id: 2, name: 'Second Quarter', gwa: null, marked: false, subjects: {} },
-      { id: 3, name: 'Third Quarter', gwa: null, marked: false, subjects: {} },
-      { id: 4, name: 'Fourth Quarter', gwa: null, marked: false, subjects: {} }
-    ];
+    // Use quarters from database only
+    if (quartersData && quartersData.length > 0) {
+      appState.quarters = quartersData.map(q => ({
+        id: q.id,
+        name: q.name,
+        gwa: null,
+        marked: false,
+        subjects: {}
+      }));
+    } else {
+      // No quarters - show empty state
+      appState.quarters = [];
+    }
     
     // Initialize subjects for each quarter
     appState.quarters.forEach(quarter => {
@@ -639,10 +649,14 @@ function renderGradeCards(profile) {
     // JHS: Show 4 quarters in 2x2 grid
     container.classList.add('jhs-layout');
     
-    appState.quarters.forEach(quarter => {
-      const card = createQuarterCard(quarter);
-      container.appendChild(card);
-    });
+    if (appState.quarters.length === 0) {
+      container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #666;"><h3 style="margin-bottom: 12px; color: #333;">No Quarters Yet</h3><p style="margin-bottom: 20px;">Click "Add Quarter" to create your first quarter and start tracking your grades!</p></div>';
+    } else {
+      appState.quarters.forEach(quarter => {
+        const card = createQuarterCard(quarter);
+        container.appendChild(card);
+      });
+    }
   } else if (profile.isSHS) {
     // SHS: Show two semester columns side by side
     container.classList.add('shs-layout');
@@ -670,6 +684,43 @@ function renderGradeCards(profile) {
       wrapper.appendChild(quartersContainer);
       container.appendChild(wrapper);
     });
+  }
+}
+
+// Update quarter card with new GWA
+function updateQuarterCard(quarter) {
+  const card = document.getElementById(`quarter-${quarter.id}`);
+  if (!card) return;
+  
+  const gwaValue = quarter.gwa ? quarter.gwa.toFixed(1) : '--';
+  
+  // Update GWA display
+  const gwaValueElement = card.querySelector('.gwa-value-mini');
+  if (gwaValueElement) {
+    gwaValueElement.textContent = gwaValue;
+  }
+  
+  const detailValue = card.querySelector('.detail-value');
+  if (detailValue) {
+    detailValue.textContent = gwaValue === '--' ? 'Not computed' : gwaValue;
+  }
+  
+  // Update progress ring
+  const progressCircle = card.querySelector('.gwa-progress-mini');
+  if (progressCircle && quarter.gwa) {
+    const circumference = 2 * Math.PI * 27;
+    const progress = (quarter.gwa / 100) * circumference;
+    const dashOffset = circumference - progress;
+    progressCircle.style.strokeDashoffset = dashOffset;
+    
+    // Update color based on grade
+    let color = '#E5E7EB';
+    if (quarter.gwa >= 90) color = '#10b981';
+    else if (quarter.gwa >= 85) color = '#38CA79';
+    else if (quarter.gwa >= 80) color = '#3b82f6';
+    else if (quarter.gwa >= 75) color = '#f59e0b';
+    else color = '#ef4444';
+    progressCircle.style.stroke = color;
   }
 }
 
@@ -906,7 +957,7 @@ function showView(viewName) {
   updateBreadcrumb();
 }
 
-function showSubjectsView(quarter) {
+async function showSubjectsView(quarter) {
   console.log('=== showSubjectsView called ===');
   console.log('Quarter:', quarter);
   
@@ -917,42 +968,84 @@ function showSubjectsView(quarter) {
   console.log('Grid element:', grid);
   grid.innerHTML = '';
   
-  console.log('JHS_SUBJECTS:', JHS_SUBJECTS);
+  // Load subjects for this specific quarter from database
+  const subjects = await loadSubjects(quarter.id);
+  console.log('Loaded subjects for quarter:', subjects);
   
-  JHS_SUBJECTS.forEach(subject => {
-    const subjectData = quarter.subjects[subject];
-    const grade = subjectData.finalGrade || null;
-    const percentage = grade ? grade : 0;
-    const hasComponents = subjectData.components && 
-      (subjectData.components.WW.items.length > 0 || 
-       subjectData.components.PT.items.length > 0 || 
-       subjectData.components.QA.items.length > 0);
+  // Setup Add Subject button listener (needs to be done when subjects view is shown)
+  const btnAddSubject = document.getElementById('btnAddSubject');
+  if (btnAddSubject) {
+    // Remove old listener by cloning
+    const newBtn = btnAddSubject.cloneNode(true);
+    btnAddSubject.parentNode.replaceChild(newBtn, btnAddSubject);
     
-    // Determine color based on grade (DepEd grading scale)
-    let progressColor = '#E5E7EB'; // Default gray for no grade
-    if (grade !== null) {
-      if (grade >= 90) {
-        progressColor = '#10b981'; // Green - Outstanding
-      } else if (grade >= 85) {
-        progressColor = '#38CA79'; // Light green - Very Satisfactory
-      } else if (grade >= 80) {
-        progressColor = '#3b82f6'; // Blue - Satisfactory
-      } else if (grade >= 75) {
-        progressColor = '#f59e0b'; // Orange - Fairly Satisfactory
-      } else {
-        progressColor = '#ef4444'; // Red - Did Not Meet Expectations
+    newBtn.addEventListener('click', () => {
+      console.log('Add Subject button clicked!');
+      const modal = document.getElementById('addSubjectModal');
+      if (modal) {
+        modal.style.display = '';
+        modal.classList.add('show');
+        console.log('Add Subject modal displayed');
       }
-    }
+    });
+  }
+  
+  if (subjects.length === 0) {
+    // Show message if no subjects
+    grid.innerHTML = '<div style="text-align: center; padding: 60px 20px; color: #666;"><h3 style="margin-bottom: 12px; color: #333;">No Subjects Yet</h3><p style="margin-bottom: 20px;">Click "Add Subject" button above to create your first subject and start tracking grades!</p></div>';
+    showView('subjects');
+    return;
+  }
+  
+  // Render subject cards from database with calculated grades
+  for (const subject of subjects) {
+    // Load components for this subject to calculate grade
+    const components = await loadComponents(quarter.id, subject.id);
+    const gradeData = calculateSubjectGrade(subject.name, components);
     
     const card = document.createElement('div');
     card.className = 'subject-card';
-    card.setAttribute('data-subject', subject);
-    console.log('Creating card for subject:', subject);
+    card.setAttribute('data-subject', subject.name);
+    
+    // Determine status badge and progress display
+    let statusBadge = '<span class="status-badge pending">No Components</span>';
+    let progressValue = '--';
+    let progressLabel = 'No grade';
+    let strokeColor = '#E5E7EB';
+    let strokeOffset = 2 * Math.PI * 52; // Full circle (no progress)
+    
+    if (gradeData.transmutedGrade !== null) {
+      progressValue = gradeData.transmutedGrade;
+      progressLabel = gradeData.transmutedGrade >= 75 ? 'Passing' : 'Needs Improvement';
+      
+      // Color based on grade
+      if (gradeData.transmutedGrade >= 90) {
+        strokeColor = '#10b981'; // Green
+        statusBadge = '<span class="status-badge completed">Outstanding</span>';
+      } else if (gradeData.transmutedGrade >= 85) {
+        strokeColor = '#38CA79'; // Light green
+        statusBadge = '<span class="status-badge completed">Very Good</span>';
+      } else if (gradeData.transmutedGrade >= 80) {
+        strokeColor = '#3b82f6'; // Blue
+        statusBadge = '<span class="status-badge in-progress">Good</span>';
+      } else if (gradeData.transmutedGrade >= 75) {
+        strokeColor = '#f59e0b'; // Orange
+        statusBadge = '<span class="status-badge in-progress">Passing</span>';
+      } else {
+        strokeColor = '#ef4444'; // Red
+        statusBadge = '<span class="status-badge pending">Failed</span>';
+      }
+      
+      // Calculate stroke offset for circular progress
+      const circumference = 2 * Math.PI * 52;
+      strokeOffset = circumference * (1 - gradeData.transmutedGrade / 100);
+    }
+    
     card.innerHTML = `
       <div class="subject-card-header">
-        <h3 class="subject-card-title">${subject}</h3>
+        <h3 class="subject-card-title">${subject.name}</h3>
         <div class="subject-card-status">
-          ${hasComponents ? '<span class="status-badge completed">Has Components</span>' : '<span class="status-badge pending">No Components</span>'}
+          ${statusBadge}
         </div>
       </div>
       <div class="subject-card-body">
@@ -961,39 +1054,31 @@ function showSubjectsView(quarter) {
             <circle class="progress-bg" cx="60" cy="60" r="52" 
                     stroke="#E5E7EB" stroke-width="8" fill="none"/>
             <circle class="progress-bar" cx="60" cy="60" r="52" 
-                    stroke="${progressColor}" stroke-width="8" fill="none"
+                    stroke="${strokeColor}" stroke-width="8" fill="none"
                     stroke-dasharray="${2 * Math.PI * 52}" 
-                    stroke-dashoffset="${2 * Math.PI * 52 * (1 - percentage / 100)}"
+                    stroke-dashoffset="${strokeOffset}"
                     transform="rotate(-90 60 60)"
                     stroke-linecap="round"/>
           </svg>
           <div class="progress-text">
-            <span class="progress-value">${grade !== null ? grade.toFixed(2) : '--'}</span>
-            <span class="progress-label">${grade !== null ? percentage.toFixed(0) + '%' : 'No grade'}</span>
+            <span class="progress-value">${progressValue}</span>
+            <span class="progress-label">${progressLabel}</span>
           </div>
         </div>
         <button class="btn-visit-subject">Visit</button>
       </div>
     `;
     
-    // Make the entire card clickable
     card.style.cursor = 'pointer';
     
-    console.log('Adding click listener to card for:', subject);
-    
-    // Add click handler to the card
     card.addEventListener('click', (e) => {
       console.log('=== CARD CLICKED ===');
       console.log('Subject:', subject);
-      console.log('Event:', e);
-      console.log('Target:', e.target);
       showSubjectDetailView(subject);
     });
     
-    // Make sure the Visit button also works and doesn't interfere
     const visitBtn = card.querySelector('.btn-visit-subject');
     if (visitBtn) {
-      console.log('Adding click listener to visit button for:', subject);
       visitBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -1003,44 +1088,299 @@ function showSubjectsView(quarter) {
       });
     }
     
-    console.log('Appending card to grid');
     grid.appendChild(card);
-  });
+  }
   
   console.log('Cards created, calling showView');
   showView('subjects');
+  
+  // Calculate and update quarter GWA in the background
+  calculateQuarterGWA(quarter.id).then(gwa => {
+    if (gwa !== null) {
+      quarter.gwa = gwa;
+      console.log('Quarter GWA updated:', gwa);
+      // Update the quarter card on dashboard if we go back
+      updateQuarterCard(quarter);
+    }
+  });
 }
 
-function showSubjectDetailView(subjectName) {
-  console.log('showSubjectDetailView called with:', subjectName);
+// ==================== GRADE CALCULATION ====================
+
+/**
+ * Calculate subject grade based on DepEd methodology
+ * @param {string} subjectName - Name of the subject
+ * @param {Array} components - Array of component objects with score, highest_score, component_type
+ * @returns {Object} Grade data with WW, PT, QA averages, initial grade, and transmuted grade
+ */
+function calculateSubjectGrade(subjectName, components) {
+  console.log('Calculating grade for:', subjectName, components);
+  
+  // Get component weights for this subject (default to standard weights if not found)
+  const weights = COMPONENT_WEIGHTS[subjectName] || { WW: 30, PT: 50, QA: 20 };
+  console.log('Using weights:', weights);
+  
+  // Separate components by type
+  const wwComponents = components.filter(c => c.component_type === 'WW');
+  const ptComponents = components.filter(c => c.component_type === 'PT');
+  const qaComponents = components.filter(c => c.component_type === 'QA');
+  
+  // Calculate average percentage for each component type
+  const calculateAverage = (componentsList) => {
+    if (componentsList.length === 0) return null;
+    
+    const total = componentsList.reduce((sum, comp) => {
+      return sum + (comp.score / comp.highest_score * 100);
+    }, 0);
+    
+    return total / componentsList.length;
+  };
+  
+  const wwAverage = calculateAverage(wwComponents);
+  const ptAverage = calculateAverage(ptComponents);
+  const qaAverage = calculateAverage(qaComponents);
+  
+  console.log('Component averages:', { wwAverage, ptAverage, qaAverage });
+  
+  // Calculate weighted grade (Initial Grade)
+  let initialGrade = null;
+  let weightedSum = 0;
+  let totalWeight = 0;
+  
+  if (wwAverage !== null) {
+    weightedSum += wwAverage * (weights.WW / 100);
+    totalWeight += weights.WW;
+  }
+  
+  if (ptAverage !== null) {
+    weightedSum += ptAverage * (weights.PT / 100);
+    totalWeight += weights.PT;
+  }
+  
+  if (qaAverage !== null) {
+    weightedSum += qaAverage * (weights.QA / 100);
+    totalWeight += weights.QA;
+  }
+  
+  // Only calculate initial grade if we have at least one component
+  if (totalWeight > 0) {
+    initialGrade = weightedSum;
+  }
+  
+  // Calculate transmuted grade using DepEd transmutation table
+  const transmutedGrade = initialGrade !== null ? transmuteGrade(initialGrade) : null;
+  
+  console.log('Final grades:', { initialGrade, transmutedGrade });
+  
+  return {
+    wwAverage,
+    ptAverage,
+    qaAverage,
+    initialGrade,
+    transmutedGrade,
+    weights
+  };
+}
+
+// Calculate Quarter GWA (average of all subject grades)
+async function calculateQuarterGWA(quarterId) {
+  console.log('Calculating quarter GWA for quarter:', quarterId);
+  
+  try {
+    // Load all subjects for this quarter
+    const subjects = await loadSubjects(quarterId);
+    console.log('Subjects in quarter:', subjects);
+    
+    if (subjects.length === 0) {
+      return null; // No subjects, no GWA
+    }
+    
+    const subjectGrades = [];
+    
+    // Calculate grade for each subject
+    for (const subject of subjects) {
+      const components = await loadComponents(quarterId, subject.id);
+      const gradeData = calculateSubjectGrade(subject.name, components);
+      
+      if (gradeData.transmutedGrade !== null) {
+        subjectGrades.push(gradeData.transmutedGrade);
+      }
+    }
+    
+    console.log('Subject grades:', subjectGrades);
+    
+    if (subjectGrades.length === 0) {
+      return null; // No grades calculated yet
+    }
+    
+    // Calculate average
+    const sum = subjectGrades.reduce((total, grade) => total + grade, 0);
+    const gwa = sum / subjectGrades.length;
+    
+    console.log('Quarter GWA:', gwa);
+    return gwa;
+  } catch (error) {
+    console.error('Error calculating quarter GWA:', error);
+    return null;
+  }
+}
+
+async function showSubjectDetailView(subject) {
+  console.log('showSubjectDetailView called with:', subject);
   console.log('Current quarter:', appState.currentQuarter);
   
-  appState.currentSubject = subjectName;
+  appState.currentSubject = subject;
   const quarter = appState.currentQuarter;
-  const subjectData = quarter.subjects[subjectName];
-  
-  console.log('Subject data:', subjectData);
   
   document.getElementById('subjectDetailTitle').textContent = 
-    `${quarter.name} - ${subjectName}`;
+    `${quarter.name} - ${subject.name}`;
   
-  // Initialize circular progress displays
-  updateGradeCircles(null, null);
+  // Load components from database for this subject and quarter
+  const components = await loadComponents(quarter.id, subject.id);
+  console.log('Loaded components for subject:', components);
   
-  // Check if this is MAPEH
-  if (subjectData.isMAPEH) {
-    console.log('Rendering MAPEH view');
-    // For MAPEH, show sub-area tabs
-    appState.currentMAPEHArea = appState.currentMAPEHArea || 'Music';
-    renderMAPEHView();
+  // Calculate grades based on components
+  const gradeData = calculateSubjectGrade(subject.name, components);
+  console.log('Calculated grade data:', gradeData);
+  
+  // Update circular progress displays with calculated grades
+  updateGradeCircles(gradeData.initialGrade, gradeData.transmutedGrade);
+  
+  // Render components in a simple table
+  const container = document.getElementById('componentsTableBody');
+  if (!container) {
+    console.error('Components table body not found!');
+    return;
+  }
+  
+  container.innerHTML = '';
+  
+  if (components.length === 0) {
+    container.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #666;">No components yet. Click "Add Component" to get started!</td></tr>';
   } else {
-    console.log('Rendering regular subject components');
-    // For regular subjects, show components directly
-    renderComponents();
+    // Group components by type for better display
+    const wwComponents = components.filter(c => c.component_type === 'WW');
+    const ptComponents = components.filter(c => c.component_type === 'PT');
+    const qaComponents = components.filter(c => c.component_type === 'QA');
+    
+    // Helper function to create component row with actions
+    const createComponentRow = (comp) => {
+      const row = document.createElement('tr');
+      const percentage = (comp.score / comp.highest_score * 100).toFixed(2);
+      row.innerHTML = `
+        <td style="padding-left: 20px;">${comp.component_type}</td>
+        <td>${comp.name}</td>
+        <td>${comp.score}</td>
+        <td>${comp.highest_score}</td>
+        <td>${percentage}%</td>
+        <td>
+          <button class="btn-edit-component" data-id="${comp.id}" style="background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-right: 6px; font-size: 12px;">Edit</button>
+          <button class="btn-delete-component" data-id="${comp.id}" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">Delete</button>
+        </td>
+      `;
+      
+      // Add event listeners
+      const editBtn = row.querySelector('.btn-edit-component');
+      const deleteBtn = row.querySelector('.btn-delete-component');
+      
+      editBtn.addEventListener('click', () => openEditComponentModal(comp));
+      deleteBtn.addEventListener('click', () => deleteComponent(comp.id));
+      
+      return row;
+    };
+    
+    // Render Written Works
+    if (wwComponents.length > 0) {
+      const headerRow = document.createElement('tr');
+      headerRow.innerHTML = '<td colspan="6" style="background: #f3f4f6; font-weight: bold; padding: 12px;">📝 Written Works (WW)</td>';
+      container.appendChild(headerRow);
+      
+      wwComponents.forEach(comp => {
+        container.appendChild(createComponentRow(comp));
+      });
+      
+      // Add WW average
+      if (gradeData.wwAverage !== null) {
+        const avgRow = document.createElement('tr');
+        avgRow.innerHTML = `
+          <td colspan="5" style="text-align: right; font-weight: bold; padding-right: 20px; background: #fafafa;">WW Average:</td>
+          <td style="font-weight: bold; background: #fafafa;">${gradeData.wwAverage.toFixed(2)}%</td>
+        `;
+        container.appendChild(avgRow);
+      }
+    }
+    
+    // Render Performance Tasks
+    if (ptComponents.length > 0) {
+      const headerRow = document.createElement('tr');
+      headerRow.innerHTML = '<td colspan="6" style="background: #f3f4f6; font-weight: bold; padding: 12px;">🎯 Performance Tasks (PT)</td>';
+      container.appendChild(headerRow);
+      
+      ptComponents.forEach(comp => {
+        container.appendChild(createComponentRow(comp));
+      });
+      
+      // Add PT average
+      if (gradeData.ptAverage !== null) {
+        const avgRow = document.createElement('tr');
+        avgRow.innerHTML = `
+          <td colspan="5" style="text-align: right; font-weight: bold; padding-right: 20px; background: #fafafa;">PT Average:</td>
+          <td style="font-weight: bold; background: #fafafa;">${gradeData.ptAverage.toFixed(2)}%</td>
+        `;
+        container.appendChild(avgRow);
+      }
+    }
+    
+    // Render Quarterly Assessment
+    if (qaComponents.length > 0) {
+      const headerRow = document.createElement('tr');
+      headerRow.innerHTML = '<td colspan="6" style="background: #f3f4f6; font-weight: bold; padding: 12px;">📊 Quarterly Assessment (QA)</td>';
+      container.appendChild(headerRow);
+      
+      qaComponents.forEach(comp => {
+        container.appendChild(createComponentRow(comp));
+      });
+      
+      // Add QA score
+      if (gradeData.qaAverage !== null) {
+        const avgRow = document.createElement('tr');
+        avgRow.innerHTML = `
+          <td colspan="5" style="text-align: right; font-weight: bold; padding-right: 20px; background: #fafafa;">QA Score:</td>
+          <td style="font-weight: bold; background: #fafafa;">${gradeData.qaAverage.toFixed(2)}%</td>
+        `;
+        container.appendChild(avgRow);
+      }
+    }
+    
+    // Add final grade summary
+    if (gradeData.initialGrade !== null) {
+      const summaryRow = document.createElement('tr');
+      summaryRow.innerHTML = `
+        <td colspan="6" style="background: #e0f2fe; padding: 16px; text-align: center;">
+          <strong style="font-size: 16px;">Initial Grade: ${gradeData.initialGrade.toFixed(2)}</strong>
+          <span style="margin: 0 20px;">|</span>
+          <strong style="font-size: 16px; color: #0369a1;">Transmuted Grade: ${gradeData.transmutedGrade}</strong>
+        </td>
+      `;
+      container.appendChild(summaryRow);
+    }
   }
   
   console.log('Calling showView with subjectDetail');
   showView('subjectDetail');
+  
+  // Setup Add Component button (needs to be done after view is shown)
+  const btnAddComponent = document.getElementById('btnAddComponent');
+  if (btnAddComponent) {
+    // Remove any existing listeners
+    const newBtn = btnAddComponent.cloneNode(true);
+    btnAddComponent.parentNode.replaceChild(newBtn, btnAddComponent);
+    // Add new listener
+    newBtn.addEventListener('click', () => {
+      console.log('Add Component button clicked!');
+      openAddComponentModal();
+    });
+  }
 }
 
 function updateGradeCircles(initialGrade, transmutedGrade) {
@@ -1920,12 +2260,137 @@ function markSchoolYearComplete() {
 document.addEventListener('DOMContentLoaded', async () => {
   setCurrentDate();
   const profile = await fetchUserProfile();
-  initializeGradeStructure(profile);
+  await initializeGradeStructure(profile);
   renderGradeCards(profile);
   updateOverallGwa(profile);
   setupProfileDropdown();
   setupYearCompleteModal();
   updateSidebarStats(profile); // Add sidebar stats update
+  await loadSubjects(); // Load subjects for dropdowns
+  await loadComponents(); // Load components
+  
+  // Setup Add Quarter button
+  const btnAddQuarter = document.getElementById('btnAddQuarter');
+  if (btnAddQuarter) {
+    btnAddQuarter.addEventListener('click', () => {
+      console.log('Add Quarter button clicked!');
+      const modal = document.getElementById('addQuarterModal');
+      if (modal) {
+        modal.style.display = '';
+        modal.classList.add('show');
+        console.log('Add Quarter modal displayed');
+      }
+    });
+  }
+  
+  // Setup modal cancel button
+  const btnCancelAddQuarter = document.getElementById('btnCancelAddQuarter');
+  if (btnCancelAddQuarter) {
+    btnCancelAddQuarter.addEventListener('click', () => {
+      const modal = document.getElementById('addQuarterModal');
+      modal.style.display = 'none';
+      modal.classList.remove('show');
+      document.getElementById('quarterNameInput').value = '';
+    });
+  }
+  
+  // Setup modal confirm button
+  const btnConfirmAddQuarter = document.getElementById('btnConfirmAddQuarter');
+  if (btnConfirmAddQuarter) {
+    btnConfirmAddQuarter.addEventListener('click', async () => {
+      const name = document.getElementById('quarterNameInput').value.trim();
+      if (!name) {
+        alert('Please enter a quarter name');
+        return;
+      }
+
+      try {
+        const csrfToken = getCSRFToken();
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('csrfmiddlewaretoken', csrfToken);
+
+        const response = await fetch('/quarters/add/', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrfToken
+          },
+          body: formData
+        });
+
+        const data = await response.json();
+        if (data.id) {
+          alert('Quarter added successfully!');
+          const modal = document.getElementById('addQuarterModal');
+          modal.style.display = 'none';
+          modal.classList.remove('show');
+          document.getElementById('quarterNameInput').value = '';
+          // Reload the page to show new quarter
+          location.reload();
+        }
+      } catch (error) {
+        console.error('Error adding quarter:', error);
+        alert('Failed to add quarter');
+      }
+    });
+  }
+
+  // Setup Add Subject Modal buttons - setup listener in showSubjectsView since button is dynamically there
+  const btnCancelAddSubject = document.getElementById('btnCancelAddSubject');
+  if (btnCancelAddSubject) {
+    btnCancelAddSubject.addEventListener('click', () => {
+      const modal = document.getElementById('addSubjectModal');
+      modal.style.display = 'none';
+      modal.classList.remove('show');
+      document.getElementById('subjectNameInput').value = '';
+    });
+  }
+  
+  const btnConfirmAddSubject = document.getElementById('btnConfirmAddSubject');
+  if (btnConfirmAddSubject) {
+    btnConfirmAddSubject.addEventListener('click', async () => {
+      const name = document.getElementById('subjectNameInput').value.trim();
+      if (!name) {
+        alert('Please enter a subject name');
+        return;
+      }
+
+      if (!appState.currentQuarter) {
+        alert('Please select a quarter first');
+        return;
+      }
+
+      try {
+        const csrfToken = getCSRFToken();
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('quarter_id', appState.currentQuarter.id);
+        formData.append('csrfmiddlewaretoken', csrfToken);
+
+        const response = await fetch('/subjects/add/', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrfToken
+          },
+          body: formData
+        });
+
+        const data = await response.json();
+        if (data.id) {
+          alert('Subject added successfully!');
+          const modal = document.getElementById('addSubjectModal');
+          modal.style.display = 'none';
+          modal.classList.remove('show');
+          document.getElementById('subjectNameInput').value = '';
+          // Reload subjects view
+          showSubjectsView(appState.currentQuarter);
+        }
+      } catch (error) {
+        console.error('Error adding subject:', error);
+        alert('Failed to add subject');
+      }
+    });
+  }
 
 document.getElementById('backToQuarters').addEventListener('click', () => {
   if (appState.currentSemester) {
@@ -1948,6 +2413,52 @@ document.getElementById('backToSubjects').addEventListener('click', () => {
     showSubjectsView(appState.currentQuarter);
   }
 });
+
+  // Setup Add Component Modal buttons (button itself is set up in showSubjectDetailView)
+  const btnCancelAddComponent = document.getElementById('btnCancelAddComponent');
+  if (btnCancelAddComponent) {
+    btnCancelAddComponent.addEventListener('click', () => {
+      document.getElementById('addComponentModal').style.display = 'none';
+    });
+  }
+  
+  const btnConfirmAddComponent = document.getElementById('btnConfirmAddComponent');
+  if (btnConfirmAddComponent) {
+    console.log('btnConfirmAddComponent found, attaching listener');
+    btnConfirmAddComponent.addEventListener('click', () => {
+      console.log('Confirm button clicked!');
+      addComponent();
+    });
+  } else {
+    console.error('btnConfirmAddComponent NOT FOUND!');
+  }
+  
+  // Setup Edit Component Modal buttons
+  const btnCancelEditComponent = document.getElementById('btnCancelEditComponent');
+  if (btnCancelEditComponent) {
+    btnCancelEditComponent.addEventListener('click', () => {
+      document.getElementById('editComponentModal').style.display = 'none';
+    });
+  }
+  
+  const btnConfirmEditComponent = document.getElementById('btnConfirmEditComponent');
+  if (btnConfirmEditComponent) {
+    btnConfirmEditComponent.addEventListener('click', updateComponent);
+  }
+  
+  // Close modals when clicking outside
+  document.getElementById('addComponentModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'addComponentModal') {
+      e.target.style.display = 'none';
+    }
+  });
+  
+  document.getElementById('editComponentModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'editComponentModal') {
+      e.target.style.display = 'none';
+    }
+  });
+
   // Component tab switching
   setupComponentTabs();
 });
@@ -2012,5 +2523,371 @@ function updateSidebarStats(profile) {
     if (goalsCount) {
       goalsCount.textContent = '0';
     }
+  }
+}
+
+// ==================== CRUD OPERATIONS ====================
+
+// Utility: Get CSRF token
+function getCSRFToken() {
+  return document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+         document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
+}
+
+// Load Quarters
+async function loadQuarters() {
+  try {
+    const response = await fetch('/quarters/list/');
+    const data = await response.json();
+    console.log('Loaded quarters:', data.quarters);
+    return data.quarters || [];
+  } catch (error) {
+    console.error('Error loading quarters:', error);
+    return [];
+  }
+}
+
+// Load Subjects
+async function loadSubjects(quarterId = null) {
+  try {
+    const url = quarterId ? `/subjects/list/?quarter_id=${quarterId}` : '/subjects/list/';
+    const response = await fetch(url);
+    const data = await response.json();
+    console.log('Loaded subjects:', data.subjects);
+    
+    // Update subject dropdown in component modal
+    const subjectSelect = document.getElementById('componentSubjectSelect');
+    if (subjectSelect) {
+      subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+      data.subjects.forEach(subject => {
+        const option = document.createElement('option');
+        option.value = subject.id;
+        option.textContent = subject.name;
+        subjectSelect.appendChild(option);
+      });
+    }
+    return data.subjects || [];
+  } catch (error) {
+    console.error('Error loading subjects:', error);
+    return [];
+  }
+}
+
+// Load Components
+async function loadComponents(quarterId = null, subjectId = null) {
+  try {
+    let url = '/components/list/';
+    const params = new URLSearchParams();
+    if (quarterId) params.append('quarter_id', quarterId);
+    if (subjectId) params.append('subject_id', subjectId);
+    if (params.toString()) url += '?' + params.toString();
+    
+    const response = await fetch(url);
+    const data = await response.json();
+    console.log('Loaded components:', data.components);
+    return data.components || [];
+  } catch (error) {
+    console.error('Error loading components:', error);
+    return [];
+  }
+}
+
+// ==================== COMPONENT CRUD OPERATIONS ====================
+
+// Open Add Component Modal
+function openAddComponentModal() {
+  console.log('Opening add component modal...');
+  const modal = document.getElementById('addComponentModal');
+  if (!modal) {
+    console.error('Add component modal not found!');
+    return;
+  }
+  
+  // Clear form
+  document.getElementById('componentNameInput').value = '';
+  document.getElementById('componentTypeSelect').value = 'WW';
+  document.getElementById('componentScoreInput').value = '';
+  document.getElementById('componentHighestInput').value = '100';
+  
+  // Simply remove display:none and let CSS handle the rest
+  modal.style.display = '';
+  modal.classList.add('show');
+  
+  console.log('Modal should be visible now');
+  console.log('Modal display:', window.getComputedStyle(modal).display);
+  console.log('Modal z-index:', window.getComputedStyle(modal).zIndex);
+}
+
+// Add Component with values
+async function addComponentWithValues(name, type, score, highest) {
+  console.log('addComponentWithValues called!');
+  console.log('Values:', { name, type, score, highest });
+  console.log('Current quarter:', appState.currentQuarter);
+  console.log('Current subject:', appState.currentSubject);
+  
+  try {
+    const csrfToken = getCSRFToken();
+    const formData = new FormData();
+    formData.append('quarter_id', appState.currentQuarter.id);
+    formData.append('subject_id', appState.currentSubject.id);
+    formData.append('name', name);
+    formData.append('component_type', type);
+    formData.append('score', score);
+    formData.append('highest_score', highest);
+    formData.append('csrfmiddlewaretoken', csrfToken);
+    
+    console.log('Sending request to /components/add/');
+    const response = await fetch('/components/add/', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken
+      },
+      body: formData
+    });
+    
+    console.log('Response received:', response);
+    const data = await response.json();
+    console.log('Response data:', data);
+    
+    if (data.id) {
+      console.log('Component added successfully!');
+      alert('Component added successfully!');
+      // Reload subject view to show new component
+      showSubjectDetailView(appState.currentSubject);
+    } else {
+      alert('Failed to add component: ' + (data.error || 'Unknown error'));
+    }
+  } catch (error) {
+    console.error('Error adding component:', error);
+    alert('Failed to add component');
+  }
+}
+
+// Add Component
+async function addComponent() {
+  console.log('addComponent function called!');
+  const name = document.getElementById('componentNameInput').value.trim();
+  const type = document.getElementById('componentTypeSelect').value;
+  const score = parseFloat(document.getElementById('componentScoreInput').value);
+  const highest = parseFloat(document.getElementById('componentHighestInput').value);
+  
+  console.log('Form values:', { name, type, score, highest });
+  
+  if (!name || isNaN(score) || isNaN(highest)) {
+    alert('Please fill in all fields correctly');
+    return;
+  }
+  
+  if (score > highest) {
+    alert('Score cannot be higher than the highest possible score');
+    return;
+  }
+  
+  console.log('Validation passed, attempting to add component...');
+  console.log('Current quarter:', appState.currentQuarter);
+  console.log('Current subject:', appState.currentSubject);
+  
+  try {
+    const csrfToken = getCSRFToken();
+    const formData = new FormData();
+    formData.append('quarter_id', appState.currentQuarter.id);
+    formData.append('subject_id', appState.currentSubject.id);
+    formData.append('name', name);
+    formData.append('component_type', type);
+    formData.append('score', score);
+    formData.append('highest_score', highest);
+    formData.append('csrfmiddlewaretoken', csrfToken);
+    
+    console.log('Sending request to /components/add/');
+    const response = await fetch('/components/add/', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken
+      },
+      body: formData
+    });
+    
+    console.log('Response received:', response);
+    const data = await response.json();
+    console.log('Response data:', data);
+    
+    if (data.id) {
+      console.log('Component added successfully!');
+      // Close modal
+      document.getElementById('addComponentModal').style.display = 'none';
+      document.getElementById('addComponentModal').classList.remove('show');
+      // Reload subject view to show new component
+      showSubjectDetailView(appState.currentSubject);
+    } else {
+      alert('Failed to add component: ' + (data.error || 'Unknown error'));
+    }
+  } catch (error) {
+    console.error('Error adding component:', error);
+    alert('Failed to add component');
+  }
+}
+async function addComponent() {
+  console.log('addComponent function called!');
+  const name = document.getElementById('componentNameInput').value.trim();
+  const type = document.getElementById('componentTypeSelect').value;
+  const score = parseFloat(document.getElementById('componentScoreInput').value);
+  const highest = parseFloat(document.getElementById('componentHighestInput').value);
+  
+  console.log('Form values:', { name, type, score, highest });
+  
+  if (!name || isNaN(score) || isNaN(highest)) {
+    alert('Please fill in all fields correctly');
+    return;
+  }
+  
+  if (score > highest) {
+    alert('Score cannot be higher than the highest possible score');
+    return;
+  }
+  
+  console.log('Validation passed, attempting to add component...');
+  console.log('Current quarter:', appState.currentQuarter);
+  console.log('Current subject:', appState.currentSubject);
+  
+  try {
+    const csrfToken = getCSRFToken();
+    const formData = new FormData();
+    formData.append('quarter_id', appState.currentQuarter.id);
+    formData.append('subject_id', appState.currentSubject.id);
+    formData.append('name', name);
+    formData.append('component_type', type);
+    formData.append('score', score);
+    formData.append('highest_score', highest);
+    formData.append('csrfmiddlewaretoken', csrfToken);
+    
+    console.log('Sending request to /components/add/');
+    const response = await fetch('/components/add/', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken
+      },
+      body: formData
+    });
+    
+    console.log('Response received:', response);
+    const data = await response.json();
+    console.log('Response data:', data);
+    
+    if (data.id) {
+      console.log('Component added successfully!');
+      // Close modal
+      document.getElementById('addComponentModal').style.display = 'none';
+      // Reload subject view to show new component
+      showSubjectDetailView(appState.currentSubject);
+    } else {
+      alert('Failed to add component: ' + (data.error || 'Unknown error'));
+    }
+  } catch (error) {
+    console.error('Error adding component:', error);
+    alert('Failed to add component');
+  }
+}
+
+// Open Edit Component Modal
+function openEditComponentModal(component) {
+  console.log('Opening edit modal for component:', component);
+  const modal = document.getElementById('editComponentModal');
+  if (!modal) {
+    console.error('Edit modal not found!');
+    return;
+  }
+  
+  // Populate form with component data
+  document.getElementById('editComponentId').value = component.id;
+  document.getElementById('editComponentNameInput').value = component.name;
+  document.getElementById('editComponentTypeSelect').value = component.component_type;
+  document.getElementById('editComponentScoreInput').value = component.score;
+  document.getElementById('editComponentHighestInput').value = component.highest_score;
+  
+  // Show modal (remove display:none and add show class)
+  modal.style.display = '';
+  modal.classList.add('show');
+  
+  console.log('Edit modal should be visible now');
+}
+
+// Update Component
+async function updateComponent() {
+  const id = document.getElementById('editComponentId').value;
+  const name = document.getElementById('editComponentNameInput').value.trim();
+  const type = document.getElementById('editComponentTypeSelect').value;
+  const score = parseFloat(document.getElementById('editComponentScoreInput').value);
+  const highest = parseFloat(document.getElementById('editComponentHighestInput').value);
+  
+  if (!name || isNaN(score) || isNaN(highest)) {
+    alert('Please fill in all fields correctly');
+    return;
+  }
+  
+  if (score > highest) {
+    alert('Score cannot be higher than the highest possible score');
+    return;
+  }
+  
+  try {
+    const csrfToken = getCSRFToken();
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('component_type', type);
+    formData.append('score', score);
+    formData.append('highest_score', highest);
+    formData.append('csrfmiddlewaretoken', csrfToken);
+    
+    const response = await fetch(`/components/update/${id}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken
+      },
+      body: formData
+    });
+    
+    const data = await response.json();
+    if (data.id) {
+      // Close modal
+      document.getElementById('editComponentModal').style.display = 'none';
+      document.getElementById('editComponentModal').classList.remove('show');
+      // Reload subject view to show updated component
+      showSubjectDetailView(appState.currentSubject);
+    } else {
+      alert('Failed to update component: ' + (data.error || 'Unknown error'));
+    }
+  } catch (error) {
+    console.error('Error updating component:', error);
+    alert('Failed to update component');
+  }
+}
+
+// Delete Component
+async function deleteComponent(componentId) {
+  if (!confirm('Are you sure you want to delete this component? This action cannot be undone.')) {
+    return;
+  }
+  
+  try {
+    const csrfToken = getCSRFToken();
+    const response = await fetch(`/components/delete/${componentId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: `csrfmiddlewaretoken=${csrfToken}`
+    });
+    
+    const data = await response.json();
+    if (data.success) {
+      // Reload subject view to remove deleted component
+      showSubjectDetailView(appState.currentSubject);
+    } else {
+      alert('Failed to delete component: ' + (data.error || 'Unknown error'));
+    }
+  } catch (error) {
+    console.error('Error deleting component:', error);
+    alert('Failed to delete component');
   }
 }

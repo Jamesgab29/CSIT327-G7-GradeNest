@@ -53,13 +53,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "GradeNest.wsgi.application"
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default=os.getenv("DATABASE_URL"),
-        conn_max_age=600,
-        ssl_require=True
-    )
-}
+# Use SQLite for local development, Supabase for production
+USE_LOCAL_DB = os.getenv("USE_LOCAL_DB", "False").lower() == "true"
+
+if USE_LOCAL_DB:
+    # Local SQLite database for testing
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db_local.sqlite3",
+        }
+    }
+else:
+    # Supabase PostgreSQL for production
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=os.getenv("DATABASE_URL"),
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

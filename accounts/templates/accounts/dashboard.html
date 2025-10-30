@@ -6,12 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard - GradeNest</title>
   <link rel="icon" type="image/png" href="{% static 'accounts/img/gradenest-logo.png' %}" />
-  <link rel="stylesheet" href="{% static 'accounts/css/dashboard.css' %}?v=2.0" />
-  <link rel="stylesheet" href="{% static 'accounts/css/dashboard-compact.css' %}?v=2.0" />
+  <link rel="stylesheet" href="{% static 'accounts/css/dashboard.css' %}?v=3.0" />
+  <link rel="stylesheet" href="{% static 'accounts/css/dashboard-compact.css' %}?v=3.0" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
-  <script src="{% static 'accounts/js/dashboard.js' %}?v=4.1" defer></script>
+  <script src="{% static 'accounts/js/dashboard.js' %}?v=15.0" defer></script>
 </head>
 <body>
 
@@ -138,7 +138,15 @@
         <!-- Left Column: Quarter Cards -->
         <div class="quarters-grid-compact" id="quartersContainer">
           <!-- Quarter cards will be dynamically generated here -->
-          <!-- Grid layout: 2x2 for quarters -->
+        </div>
+
+        <!-- Add Quarter Button (Floating) -->
+        <button class="btn-add-floating" id="btnAddQuarter" title="Add Quarter">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
         </div>
 
         <!-- Right Column: Overall GWA Card -->
@@ -181,6 +189,12 @@
           Back to Quarters
         </button>
         <h2 id="subjectsViewTitle">First Quarter - Subjects</h2>
+        <button id="btnAddSubject" class="btn-add" style="background: #38CA79; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-left: auto;">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 3.33334V12.6667M3.33334 8H12.6667" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Add Subject
+        </button>
       </div>
       <div class="grade-legend">
         <span class="legend-title">Grade Scale:</span>
@@ -246,7 +260,12 @@
           <div class="section-header">
             <h3>Grade Components</h3>
             <div class="grade-info">
-              <span class="info-text">Component weights are based on DepEd standards</span>
+              <button id="btnAddComponent" class="btn-add-component" style="background: #38CA79; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 3.33334V12.6667M3.33334 8H12.6667" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Add Component
+              </button>
             </div>
           </div>
           
@@ -270,11 +289,11 @@
             <table class="components-table" id="componentsTable">
               <thead>
                 <tr>
-                  <th>Item Name</th>
+                  <th>Type</th>
+                  <th>Name</th>
                   <th>Score</th>
-                  <th>Highest Possible Score</th>
-                  <th>Percentage Score (%)</th>
-                  <th>PS</th>
+                  <th>Highest Score</th>
+                  <th>Percentage</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -303,6 +322,85 @@
     <div class="modal-footer">
       <button class="btn-modal-cancel" id="btnCancelYearComplete">Cancel</button>
       <button class="btn-modal-confirm" id="btnConfirmYearComplete">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Quarter Modal -->
+<div class="modal-overlay" id="addQuarterModal" style="display: none;">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3 class="modal-title">Add New Quarter</h3>
+    </div>
+    <div class="modal-body">
+      <input type="text" id="quarterNameInput" placeholder="Enter quarter name (e.g., 1st Quarter)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" id="btnCancelAddQuarter">Cancel</button>
+      <button class="btn-modal-confirm" id="btnConfirmAddQuarter">Add Quarter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Subject Modal -->
+<div class="modal-overlay" id="addSubjectModal" style="display: none;">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3 class="modal-title">Add New Subject</h3>
+    </div>
+    <div class="modal-body">
+      <input type="text" id="subjectNameInput" placeholder="Enter subject name (e.g., Mathematics)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" id="btnCancelAddSubject">Cancel</button>
+      <button class="btn-modal-confirm" id="btnConfirmAddSubject">Add Subject</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Component Modal -->
+<div class="modal-overlay" id="addComponentModal" style="display: none;">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3 class="modal-title">Add Grade Component</h3>
+    </div>
+    <div class="modal-body">
+      <input type="text" id="componentNameInput" placeholder="Component name (e.g., Quiz 1)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+      <select id="componentTypeSelect" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px;">
+        <option value="WW">Written Works</option>
+        <option value="PT">Performance Tasks</option>
+        <option value="QA">Quarterly Assessment</option>
+      </select>
+      <input type="number" id="componentScoreInput" placeholder="Your score" step="0.01" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
+      <input type="number" id="componentHighestInput" placeholder="Highest possible score" step="0.01" value="100" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" id="btnCancelAddComponent">Cancel</button>
+      <button class="btn-modal-confirm" id="btnConfirmAddComponent">Add Component</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Component Modal -->
+<div class="modal-overlay" id="editComponentModal" style="display: none;">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3 class="modal-title">Edit Component</h3>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editComponentId">
+      <input type="text" id="editComponentNameInput" placeholder="Component name" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+      <select id="editComponentTypeSelect" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px;">
+        <option value="WW">Written Works</option>
+        <option value="PT">Performance Tasks</option>
+        <option value="QA">Quarterly Assessment</option>
+      </select>
+      <input type="number" id="editComponentScoreInput" placeholder="Your score" step="0.01" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
+      <input type="number" id="editComponentHighestInput" placeholder="Highest possible score" step="0.01" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" id="btnCancelEditComponent">Cancel</button>
+      <button class="btn-modal-confirm" id="btnConfirmEditComponent">Save Changes</button>
     </div>
   </div>
 </div>
