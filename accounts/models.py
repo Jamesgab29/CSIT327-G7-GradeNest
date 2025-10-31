@@ -58,10 +58,12 @@ class Profile(models.Model):
 # ---------------- QUARTER MODEL ----------------
 class Quarter(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='quarters', null=True, blank=True)
-    name = models.CharField(max_length=50)  # e.g., "1st Quarter", "2nd Quarter"
+    name = models.CharField(max_length=50)  # e.g., "First Quarter", "Second Quarter"
+    semester = models.CharField(max_length=50, blank=True, null=True)  # e.g., "First Semester", "Second Semester" (for SHS)
 
     def __str__(self):
-        return f"{self.name} ({self.user.email if self.user else 'No User'})"
+        semester_info = f" - {self.semester}" if self.semester else ""
+        return f"{self.name}{semester_info} ({self.user.email if self.user else 'No User'})"
 
 
 # ---------------- SUBJECT MODEL ----------------

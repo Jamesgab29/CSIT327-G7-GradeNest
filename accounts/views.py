@@ -109,9 +109,367 @@ def education_level(request):
         profile.school_year = school_year
         profile.save()
 
+        # Auto-provision quarters and subjects based on education level
+        provision_academic_structure(request.user, grade_level, strand)
+
         return redirect("accounts:dashboard")
 
     return render(request, "accounts/education-level.html")
+
+
+def provision_academic_structure(user, grade_level, strand):
+    """
+    Automatically create quarters and subjects for a user based on their education level.
+    JHS: 4 quarters with 8 standard subjects each
+    SHS: 4 quarters (2 per semester) with strand-specific subjects
+    """
+    # Prevent duplicate provisioning
+    if Quarter.objects.filter(user=user).exists():
+        print(f"Academic structure already exists for user {user.email}")
+        return
+    
+    # JHS Subjects (Grades 7-10)
+    JHS_SUBJECTS = [
+        'Filipino',
+        'English',
+        'Mathematics',
+        'Science',
+        'Araling Panlipunan',
+        'Edukasyon sa Pagpapakatao',
+        'MAPEH',
+        'Technology and Livelihood Education'
+    ]
+    
+    # SHS Subjects by Strand, Grade, Semester, and Quarter
+    SHS_SUBJECTS = {
+        'STEM': {
+            'Grade 11': {
+                'First Semester': {
+                    'First Quarter': [
+                        'Oral Communication in Context',
+                        'Komunikasyon at Pananaliksik sa Wika at Kulturang Pilipino',
+                        'General Mathematics',
+                        'Earth and Life Science',
+                        'Introduction to Philosophy of the Human Person',
+                        'Physical Education & Health 1',
+                        'Pre-Calculus',
+                        'General Biology 1'
+                    ],
+                    'Second Quarter': [
+                        'Reading and Writing Skills',
+                        'Pagbasa at Pagsusuri ng Iba\'t Ibang Teksto Tungo sa Pananaliksik',
+                        'Statistics and Probability',
+                        'Physical Science',
+                        'Personal Development',
+                        'Physical Education & Health 2',
+                        'English for Academic and Professional Purposes',
+                        'General Chemistry 1'
+                    ]
+                },
+                'Second Semester': {
+                    'First Quarter': [
+                        '21st Century Literature from the Philippines and the World',
+                        'Understanding Culture, Society, and Politics',
+                        'Practical Research 1 (Qualitative)',
+                        'Practical Research 2 (Quantitative)',
+                        'Empowerment Technologies',
+                        'Basic Calculus',
+                        'General Biology 2',
+                        'General Physics 1'
+                    ],
+                    'Second Quarter': [
+                        'Contemporary Philippine Arts from the Regions',
+                        'Media and Information Literacy',
+                        'Filipino sa Piling Larangan',
+                        'Buffer Subject / Elective',
+                        'General Chemistry 2'
+                    ]
+                }
+            },
+            'Grade 12': {
+                'First Semester': {
+                    'First Quarter': [
+                        'Entrepreneurship',
+                        'Physical Education & Health 3',
+                        'General Physics 2',
+                        'Disaster Readiness and Risk Reduction'
+                    ],
+                    'Second Quarter': [
+                        'Inquiries, Investigations, and Immersion',
+                        'Physical Education & Health 3 (Cont.)'
+                    ]
+                },
+                'Second Semester': {
+                    'First Quarter': [
+                        'Physical Education & Health 4',
+                        'Work Immersion / Research Project (Part 1)'
+                    ],
+                    'Second Quarter': [
+                        'Work Immersion / Research Project (Part 2)'
+                    ]
+                }
+            }
+        },
+        'ABM': {
+            'Grade 11': {
+                'First Semester': {
+                    'First Quarter': [
+                        'Oral Communication in Context',
+                        'Komunikasyon at Pananaliksik sa Wika at Kulturang Pilipino',
+                        'General Mathematics',
+                        'Earth and Life Science',
+                        'Introduction to Philosophy of the Human Person',
+                        'Physical Education & Health 1',
+                        'English for Academic and Professional Purposes',
+                        'Fundamentals of Accountancy, Business & Mgt 1'
+                    ],
+                    'Second Quarter': [
+                        'Reading and Writing Skills',
+                        'Pagbasa at Pagsusuri ng Iba\'t Ibang Teksto Tungo sa Pananaliksik',
+                        'Statistics and Probability',
+                        'Physical Science',
+                        'Personal Development',
+                        'Physical Education & Health 2',
+                        'Practical Research 1 (Qualitative)',
+                        'Business Mathematics'
+                    ]
+                },
+                'Second Semester': {
+                    'First Quarter': [
+                        '21st Century Literature from the Philippines and the World',
+                        'Understanding Culture, Society, and Politics',
+                        'Media and Information Literacy',
+                        'Practical Research 2 (Quantitative)',
+                        'Empowerment Technologies',
+                        'Organization and Management',
+                        'Principles of Marketing',
+                        'Applied Economics'
+                    ],
+                    'Second Quarter': [
+                        'Contemporary Philippine Arts from the Regions',
+                        'Filipino sa Piling Larangan',
+                        'Buffer Subject / Elective',
+                        'Buffer Subject / Elective',
+                        'Fundamentals of Accountancy, Business & Mgt 1 (Cont.)'
+                    ]
+                }
+            },
+            'Grade 12': {
+                'First Semester': {
+                    'First Quarter': [
+                        'Entrepreneurship',
+                        'Physical Education & Health 3',
+                        'Fundamentals of Accountancy, Business & Mgt 2',
+                        'Business Finance'
+                    ],
+                    'Second Quarter': [
+                        'Inquiries, Investigations, and Immersion',
+                        'Physical Education & Health 3 (Cont.)',
+                        'Business Finance (Cont.)',
+                        'Business Ethics and Social Responsibility'
+                    ]
+                },
+                'Second Semester': {
+                    'First Quarter': [
+                        'Physical Education & Health 4',
+                        'Work Immersion / Business Enterprise Simulation (Part 1)'
+                    ],
+                    'Second Quarter': [
+                        'Physical Education & Health 4 (Cont.)',
+                        'Work Immersion / Business Enterprise Simulation (Part 2)'
+                    ]
+                }
+            }
+        },
+        'HUMSS': {
+            'Grade 11': {
+                'First Semester': {
+                    'First Quarter': [
+                        'Oral Communication in Context',
+                        'Komunikasyon at Pananaliksik sa Wika at Kulturang Pilipino',
+                        'General Mathematics',
+                        'Earth and Life Science',
+                        'Introduction to Philosophy of the Human Person',
+                        'Physical Education & Health 1',
+                        'English for Academic and Professional Purposes',
+                        'Philippine Politics and Governance'
+                    ],
+                    'Second Quarter': [
+                        'Reading and Writing Skills',
+                        'Pagbasa at Pagsusuri ng Iba\'t Ibang Teksto Tungo sa Pananaliksik',
+                        'Statistics and Probability',
+                        'Physical Science',
+                        'Personal Development',
+                        'Physical Education & Health 2',
+                        'Practical Research 1 (Qualitative)',
+                        'Disciplines and Ideas in the Social Sciences'
+                    ]
+                },
+                'Second Semester': {
+                    'First Quarter': [
+                        '21st Century Literature from the Philippines and the World',
+                        'Understanding Culture, Society, and Politics',
+                        'Media and Information Literacy',
+                        'Practical Research 2 (Quantitative)',
+                        'Empowerment Technologies',
+                        'Disciplines and Ideas in the Applied Social Sciences',
+                        'Introduction to World Religions and Belief Systems',
+                        'Creative Writing'
+                    ],
+                    'Second Quarter': [
+                        'Contemporary Philippine Arts from the Regions',
+                        'Filipino sa Piling Larangan',
+                        'Buffer Subject / Elective',
+                        'Buffer Subject / Elective',
+                        'Introduction to World Religions and Belief Systems (Cont.)'
+                    ]
+                }
+            },
+            'Grade 12': {
+                'First Semester': {
+                    'First Quarter': [
+                        'Entrepreneurship',
+                        'Physical Education & Health 3',
+                        'Community Engagement, Solidarity, and Citizenship',
+                        'Creative Non-Fiction'
+                    ],
+                    'Second Quarter': [
+                        'Inquiries, Investigations, and Immersion',
+                        'Physical Education & Health 3 (Cont.)',
+                        'Community Engagement, Solidarity, and Citizenship (Cont.)',
+                        'Trends, Networks, and Critical Thinking in the 21st Century Culture'
+                    ]
+                },
+                'Second Semester': {
+                    'First Quarter': [
+                        'Physical Education & Health 4',
+                        'Work Immersion / Research (Part 1)'
+                    ],
+                    'Second Quarter': [
+                        'Physical Education & Health 4 (Cont.)',
+                        'Work Immersion / Research (Part 2)'
+                    ]
+                }
+            }
+        },
+        'GAS': {
+            'Grade 11': {
+                'First Semester': {
+                    'First Quarter': [
+                        'Oral Communication in Context',
+                        'Komunikasyon at Pananaliksik sa Wika at Kulturang Pilipino',
+                        'General Mathematics',
+                        'Earth and Life Science',
+                        'Introduction to Philosophy of the Human Person',
+                        'Physical Education & Health 1',
+                        'English for Academic and Professional Purposes',
+                        'Humanities 1'
+                    ],
+                    'Second Quarter': [
+                        'Reading and Writing Skills',
+                        'Pagbasa at Pagsusuri ng Iba\'t Ibang Teksto Tungo sa Pananaliksik',
+                        'Statistics and Probability',
+                        'Physical Science',
+                        'Personal Development',
+                        'Physical Education & Health 2',
+                        'Practical Research 1 (Qualitative)',
+                        'Social Science 1'
+                    ]
+                },
+                'Second Semester': {
+                    'First Quarter': [
+                        '21st Century Literature from the Philippines and the World',
+                        'Understanding Culture, Society, and Politics',
+                        'Media and Information Literacy',
+                        'Practical Research 2 (Quantitative)',
+                        'Empowerment Technologies',
+                        'Organization and Management',
+                        'Disaster Readiness and Risk Reduction',
+                        'Elective 1'
+                    ],
+                    'Second Quarter': [
+                        'Contemporary Philippine Arts from the Regions',
+                        'Filipino sa Piling Larangan',
+                        'Buffer Subject / Elective',
+                        'Buffer Subject / Elective',
+                        'Elective 1 (Cont.)'
+                    ]
+                }
+            },
+            'Grade 12': {
+                'First Semester': {
+                    'First Quarter': [
+                        'Entrepreneurship',
+                        'Physical Education & Health 3',
+                        'Humanities 2',
+                        'Applied Economics'
+                    ],
+                    'Second Quarter': [
+                        'Inquiries, Investigations, and Immersion',
+                        'Physical Education & Health 3 (Cont.)',
+                        'Humanities 2 (Cont.)',
+                        'Applied Economics (Cont.)'
+                    ]
+                },
+                'Second Semester': {
+                    'First Quarter': [
+                        'Physical Education & Health 4',
+                        'Elective 2 (Part 1)',
+                        'Work Immersion / Research / Career Advocacy (Part 1)'
+                    ],
+                    'Second Quarter': [
+                        'Physical Education & Health 4 (Cont.)',
+                        'Elective 2 (Part 2)',
+                        'Work Immersion / Research / Career Advocacy (Part 2)'
+                    ]
+                }
+            }
+        }
+    }
+    
+    # Check if user is JHS
+    is_jhs = grade_level in ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10']
+    
+    if is_jhs:
+        # Create 4 quarters for JHS
+        quarter_names = ['First Quarter', 'Second Quarter', 'Third Quarter', 'Fourth Quarter']
+        
+        for quarter_name in quarter_names:
+            quarter = Quarter.objects.create(name=quarter_name, user=user)
+            
+            # Add 8 standard JHS subjects to each quarter
+            for subject_name in JHS_SUBJECTS:
+                Subject.objects.create(name=subject_name, quarter=quarter)
+    
+    else:  # SHS (Grade 11 or 12)
+        # For SHS, create 4 quarters organized by semester
+        # First Semester: Quarter 1 & 2
+        # Second Semester: Quarter 3 & 4
+        
+        semesters = ['First Semester', 'Second Semester']
+        quarter_names_per_semester = ['First Quarter', 'Second Quarter']
+        
+        # Get strand-specific subjects
+        strand_subjects = SHS_SUBJECTS.get(strand, SHS_SUBJECTS['STEM'])  # Default to STEM if strand not found
+        grade_subjects = strand_subjects.get(grade_level, {})
+        
+        for semester_name in semesters:
+            semester_subjects = grade_subjects.get(semester_name, {})
+            
+            for quarter_name in quarter_names_per_semester:
+                # Create quarter with semester reference
+                quarter = Quarter.objects.create(
+                    name=quarter_name,
+                    semester=semester_name,
+                    user=user
+                )
+                
+                # Add subjects for this specific quarter
+                quarter_subjects = semester_subjects.get(quarter_name, [])
+                for subject_name in quarter_subjects:
+                    Subject.objects.create(name=subject_name, quarter=quarter)
+        
+        print(f"Provisioned {Quarter.objects.filter(user=user).count()} quarters with subjects for SHS user {user.email}")
 
 
 # ---------------- DASHBOARD ----------------
@@ -157,7 +515,7 @@ def test_email(request):
 
 @login_required
 def quarters_list(request):
-    quarters = Quarter.objects.filter(user=request.user).values('id', 'name')
+    quarters = Quarter.objects.filter(user=request.user).values('id', 'name', 'semester')
     return JsonResponse({'quarters': list(quarters)})
 
 @login_required

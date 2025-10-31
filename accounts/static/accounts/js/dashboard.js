@@ -617,25 +617,53 @@ async function initializeGradeStructure(profile) {
       });
     });
   } else if (profile.isSHS) {
-    // Initialize SHS structure with semesters
-    appState.semesters = [
-      {
-        name: 'First Semester',
-        quarters: [
-          { id: 1, name: 'First Quarter', gwa: null, marked: false, subjects: {} },
-          { id: 2, name: 'Second Quarter', gwa: null, marked: false, subjects: {} }
-        ],
-        finalGrade: null
-      },
-      {
-        name: 'Second Semester',
-        quarters: [
-          { id: 3, name: 'First Quarter', gwa: null, marked: false, subjects: {} },
-          { id: 4, name: 'Second Quarter', gwa: null, marked: false, subjects: {} }
-        ],
-        finalGrade: null
-      }
-    ];
+    // For SHS, load quarters from database and organize by semester
+    console.log('SHS: Loading quarters from database:', quartersData);
+    
+    if (quartersData && quartersData.length > 0) {
+      // Group quarters by semester
+      const firstSemesterQuarters = quartersData.filter(q => q.semester === 'First Semester');
+      const secondSemesterQuarters = quartersData.filter(q => q.semester === 'Second Semester');
+      
+      console.log('First Semester quarters:', firstSemesterQuarters);
+      console.log('Second Semester quarters:', secondSemesterQuarters);
+      
+      appState.semesters = [
+        {
+          name: 'First Semester',
+          quarters: firstSemesterQuarters.map(q => ({
+            id: q.id,
+            name: q.name,
+            semester: q.semester,
+            gwa: null,
+            marked: false,
+            subjects: {}
+          })),
+          finalGrade: null
+        },
+        {
+          name: 'Second Semester',
+          quarters: secondSemesterQuarters.map(q => ({
+            id: q.id,
+            name: q.name,
+            semester: q.semester,
+            gwa: null,
+            marked: false,
+            subjects: {}
+          })),
+          finalGrade: null
+        }
+      ];
+      
+      console.log('Initialized SHS semesters:', appState.semesters);
+    } else {
+      // No quarters - empty state
+      console.log('No quarters found for SHS user');
+      appState.semesters = [
+        { name: 'First Semester', quarters: [], finalGrade: null },
+        { name: 'Second Semester', quarters: [], finalGrade: null }
+      ];
+    }
   }
 }
 
@@ -661,7 +689,16 @@ function renderGradeCards(profile) {
     // SHS: Show two semester columns side by side
     container.classList.add('shs-layout');
     
+    console.log('Rendering SHS semesters:', appState.semesters);
+    
+    if (!appState.semesters || appState.semesters.length === 0) {
+      container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #666;"><h3 style="margin-bottom: 12px; color: #333;">No Semesters Yet</h3><p>Please register or reload the page.</p></div>';
+      return;
+    }
+    
     appState.semesters.forEach((semester, semIndex) => {
+      console.log(`Rendering ${semester.name} with ${semester.quarters.length} quarters`);
+      
       // Create semester wrapper
       const wrapper = document.createElement('div');
       wrapper.className = 'semester-wrapper';
@@ -676,10 +713,19 @@ function renderGradeCards(profile) {
       const quartersContainer = document.createElement('div');
       quartersContainer.className = 'semester-quarters';
 
-      semester.quarters.forEach(quarter => {
-        const card = createQuarterCard(quarter, semester);
-        quartersContainer.appendChild(card);
-      });
+      if (semester.quarters.length === 0) {
+        // Show empty state for this semester
+        const emptyState = document.createElement('div');
+        emptyState.style.cssText = 'text-align: center; padding: 40px 20px; color: #999; font-size: 14px;';
+        emptyState.textContent = 'No quarters yet';
+        quartersContainer.appendChild(emptyState);
+      } else {
+        semester.quarters.forEach(quarter => {
+          console.log('Creating card for quarter:', quarter);
+          const card = createQuarterCard(quarter, semester);
+          quartersContainer.appendChild(card);
+        });
+      }
 
       wrapper.appendChild(quartersContainer);
       container.appendChild(wrapper);
@@ -733,6 +779,8 @@ function createQuarterCard(quarter, semester = null) {
   const statusText = quarter.marked ? 'Completed' : 'In Progress';
   const statusClass = quarter.marked ? 'status-completed' : 'status-progress';
   
+  console.log(`Creating quarter card - ID: ${quarter.id}, Name: ${quarter.name}, GWA: ${gwaValue}`);
+  
   // Calculate progress for mini ring
   const circumference = 2 * Math.PI * 27; // radius = 27 for 60px circle
   const progress = quarter.gwa ? (quarter.gwa / 100) * circumference : 0;
@@ -740,6 +788,8 @@ function createQuarterCard(quarter, semester = null) {
   
   // Count subjects - ensure it's a valid positive number
   const subjectCount = quarter.subjects && Object.keys(quarter.subjects).length > 0 ? Object.keys(quarter.subjects).length : 8;
+  
+  console.log(`Quarter ${quarter.name} has ${subjectCount} subjects in state`);
   
   // Create subject dots (max 5 dots)
   const dotsCount = Math.min(Math.max(subjectCount, 0), 5);
@@ -790,41 +840,16 @@ function createQuarterCard(quarter, semester = null) {
 
 // ==================== VIEW NAVIGATION ====================
 
-function showShsSubjectsView(semester, quarter) {
+async function showShsSubjectsView(semester, quarter) {
+  console.log('=== showShsSubjectsView called ===');
+  console.log('Semester:', semester);
+  console.log('Quarter:', quarter);
+  
   appState.currentSemester = semester;
   appState.currentQuarter = quarter;
 
-  // Get subjects for this specific quarter within the semester
-  const profile = window.userProfile;
-  const strand = profile.strand || 'STEM';
-  const gradeLevel = profile.gradeLevel || 'Grade 11';
-  
-  // Determine quarter name based on quarter.id
-  // For First Semester: id 1 = Quarter 1, id 2 = Quarter 2
-  // For Second Semester: id 3 = Quarter 1, id 4 = Quarter 2
-  const quarterName = (quarter.id === 1 || quarter.id === 3) ? 'Quarter 1' : 'Quarter 2';
-  const quarterSubjects = SHS_SUBJECTS[strand]?.[gradeLevel]?.[semester.name]?.[quarterName] || [];
-
-  // Initialize subjects in quarter if not already initialized
-  if (!quarter.subjects || Object.keys(quarter.subjects).length === 0) {
-    quarter.subjects = {};
-    quarterSubjects.forEach(subject => {
-      quarter.subjects[subject] = {
-        isMAPEH: false,
-        components: {
-          WW: { items: [], weight: getShsComponentWeights(subject).WW },
-          PT: { items: [], weight: getShsComponentWeights(subject).PT },
-          QA: { items: [], weight: getShsComponentWeights(subject).QA }
-        },
-        initialGrade: null,
-        transmutedGrade: null,
-        finalGrade: null
-      };
-    });
-  }
-
   // Update view title
-  const displayQuarterName = (quarter.id === 1 || quarter.id === 3) ? '1st Quarter' : '2nd Quarter';
+  const displayQuarterName = quarter.name || 'Quarter';
   document.getElementById('subjectsViewTitle').textContent = `${semester.name} - ${displayQuarterName}`;
   
   // Add/Update quarter switching buttons
@@ -847,8 +872,7 @@ function showShsSubjectsView(semester, quarter) {
       btn.classList.add('active');
     }
     
-    const btnLabel = (q.id === semester.quarters[0].id) ? '1st Quarter' : '2nd Quarter';
-    btn.textContent = btnLabel;
+    btn.textContent = q.name || 'Quarter';
     
     btn.addEventListener('click', () => {
       showShsSubjectsView(semester, q);
@@ -863,33 +887,84 @@ function showShsSubjectsView(semester, quarter) {
   const grid = document.getElementById('subjectsGrid');
   grid.innerHTML = '';
   
-  quarterSubjects.forEach(subject => {
-    const subjectData = quarter.subjects[subject];
-    const grade = subjectData.finalGrade || null;
-    const percentage = grade ? grade : 0;
-    const hasComponents = subjectData.components && 
-      (subjectData.components.WW.items.length > 0 || 
-       subjectData.components.PT.items.length > 0 || 
-       subjectData.components.QA.items.length > 0);
+  // Load subjects for this specific quarter from database
+  const subjects = await loadSubjects(quarter.id);
+  console.log('Loaded subjects for SHS quarter:', subjects);
+  
+  // Setup Add Subject button listener
+  const btnAddSubject = document.getElementById('btnAddSubject');
+  if (btnAddSubject) {
+    // Remove old listener by cloning
+    const newBtn = btnAddSubject.cloneNode(true);
+    btnAddSubject.parentNode.replaceChild(newBtn, btnAddSubject);
     
-    // Determine color based on grade
-    let progressColor = '#E5E7EB';
-    if (grade !== null) {
-      if (grade >= 90) progressColor = '#10b981';
-      else if (grade >= 85) progressColor = '#38CA79';
-      else if (grade >= 80) progressColor = '#3b82f6';
-      else if (grade >= 75) progressColor = '#f59e0b';
-      else progressColor = '#ef4444';
-    }
+    newBtn.addEventListener('click', () => {
+      console.log('Add Subject button clicked!');
+      const modal = document.getElementById('addSubjectModal');
+      if (modal) {
+        modal.style.display = '';
+        modal.classList.add('show');
+        console.log('Add Subject modal displayed');
+      }
+    });
+  }
+  
+  if (subjects.length === 0) {
+    // Show message if no subjects
+    grid.innerHTML = '<div style="text-align: center; padding: 60px 20px; color: #666;"><h3 style="margin-bottom: 12px; color: #333;">No Subjects Yet</h3><p style="margin-bottom: 20px;">Click "Add Subject" button above to create your first subject and start tracking grades!</p></div>';
+    showView('subjects');
+    return;
+  }
+  
+  // Render subject cards from database with calculated grades
+  for (const subject of subjects) {
+    // Load components for this subject to calculate grade
+    const components = await loadComponents(quarter.id, subject.id);
+    const gradeData = calculateSubjectGrade(subject.name, components);
     
     const card = document.createElement('div');
     card.className = 'subject-card';
-    card.setAttribute('data-subject', subject);
+    card.setAttribute('data-subject', subject.name);
+    
+    // Determine status badge and progress display
+    let statusBadge = '<span class="status-badge pending">No Components</span>';
+    let progressValue = '--';
+    let progressLabel = 'No grade';
+    let strokeColor = '#E5E7EB';
+    let strokeOffset = 2 * Math.PI * 52; // Full circle (no progress)
+    
+    if (gradeData.transmutedGrade !== null) {
+      progressValue = gradeData.transmutedGrade;
+      progressLabel = gradeData.transmutedGrade >= 75 ? 'Passing' : 'Needs Improvement';
+      
+      // Color based on grade
+      if (gradeData.transmutedGrade >= 90) {
+        strokeColor = '#10b981'; // Green
+        statusBadge = '<span class="status-badge completed">Outstanding</span>';
+      } else if (gradeData.transmutedGrade >= 85) {
+        strokeColor = '#38CA79'; // Light green
+        statusBadge = '<span class="status-badge completed">Very Good</span>';
+      } else if (gradeData.transmutedGrade >= 80) {
+        strokeColor = '#3b82f6'; // Blue
+        statusBadge = '<span class="status-badge in-progress">Good</span>';
+      } else if (gradeData.transmutedGrade >= 75) {
+        strokeColor = '#f59e0b'; // Orange
+        statusBadge = '<span class="status-badge in-progress">Passing</span>';
+      } else {
+        strokeColor = '#ef4444'; // Red
+        statusBadge = '<span class="status-badge pending">Failed</span>';
+      }
+      
+      // Calculate stroke offset for circular progress
+      const circumference = 2 * Math.PI * 52;
+      strokeOffset = circumference * (1 - gradeData.transmutedGrade / 100);
+    }
+    
     card.innerHTML = `
       <div class="subject-card-header">
-        <h3 class="subject-card-title">${subject}</h3>
+        <h3 class="subject-card-title">${subject.name}</h3>
         <div class="subject-card-status">
-          ${hasComponents ? '<span class="status-badge completed">Has Components</span>' : '<span class="status-badge pending">No Components</span>'}
+          ${statusBadge}
         </div>
       </div>
       <div class="subject-card-body">
@@ -898,15 +973,15 @@ function showShsSubjectsView(semester, quarter) {
             <circle class="progress-bg" cx="60" cy="60" r="52" 
                     stroke="#E5E7EB" stroke-width="8" fill="none"/>
             <circle class="progress-bar" cx="60" cy="60" r="52" 
-                    stroke="${progressColor}" stroke-width="8" fill="none"
+                    stroke="${strokeColor}" stroke-width="8" fill="none"
                     stroke-dasharray="${2 * Math.PI * 52}" 
-                    stroke-dashoffset="${2 * Math.PI * 52 * (1 - percentage / 100)}"
+                    stroke-dashoffset="${strokeOffset}"
                     transform="rotate(-90 60 60)"
                     stroke-linecap="round"/>
           </svg>
           <div class="progress-text">
-            <span class="progress-value">${grade !== null ? grade.toFixed(2) : '--'}</span>
-            <span class="progress-label">${grade !== null ? percentage.toFixed(0) + '%' : 'No grade'}</span>
+            <span class="progress-value">${progressValue}</span>
+            <span class="progress-label">${progressLabel}</span>
           </div>
         </div>
         <button class="btn-visit-subject">Visit</button>
@@ -914,7 +989,10 @@ function showShsSubjectsView(semester, quarter) {
     `;
     
     card.style.cursor = 'pointer';
-    card.addEventListener('click', () => {
+    
+    card.addEventListener('click', (e) => {
+      console.log('=== SHS CARD CLICKED ===');
+      console.log('Subject object:', subject);
       showSubjectDetailView(subject);
     });
     
@@ -923,14 +1001,25 @@ function showShsSubjectsView(semester, quarter) {
       visitBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        console.log('=== SHS VISIT BUTTON CLICKED ===');
+        console.log('Subject object:', subject);
         showSubjectDetailView(subject);
       });
     }
     
     grid.appendChild(card);
-  });
-
+  }
+  
+  console.log('SHS cards created, calling showView');
   showView('subjects');
+  
+  // Calculate and update quarter GWA in the background
+  calculateQuarterGWA(quarter.id).then(gwa => {
+    if (gwa !== null) {
+      quarter.gwa = gwa;
+      console.log('Quarter GWA updated:', gwa);
+    }
+  });
 }
 
 function showView(viewName) {
@@ -1436,9 +1525,47 @@ function updateGradeCircles(initialGrade, transmutedGrade) {
   }
 }
 
-function showDashboardView() {
+async function showDashboardView() {
   appState.currentQuarter = null;
   appState.currentSubject = null;
+  
+  // Recalculate GWAs when returning to dashboard
+  const profile = window.userProfile;
+  
+  if (profile.isJHS && appState.quarters && appState.quarters.length > 0) {
+    console.log('Recalculating JHS quarter GWAs...');
+    for (const quarter of appState.quarters) {
+      const gwa = await calculateQuarterGWA(quarter.id);
+      if (gwa !== null) {
+        quarter.gwa = gwa;
+        console.log(`Quarter ${quarter.name} GWA: ${gwa}`);
+      }
+    }
+  } else if (profile.isSHS && appState.semesters && appState.semesters.length > 0) {
+    console.log('Recalculating SHS quarter GWAs...');
+    for (const semester of appState.semesters) {
+      for (const quarter of semester.quarters) {
+        const gwa = await calculateQuarterGWA(quarter.id);
+        if (gwa !== null) {
+          quarter.gwa = gwa;
+          console.log(`${semester.name} - ${quarter.name} GWA: ${gwa}`);
+        }
+      }
+      
+      // Calculate semester final grade
+      const q1 = semester.quarters[0];
+      const q2 = semester.quarters[1];
+      if (q1 && q2 && q1.gwa && q2.gwa) {
+        semester.finalGrade = (q1.gwa + q2.gwa) / 2;
+        console.log(`${semester.name} final grade: ${semester.finalGrade}`);
+      }
+    }
+  }
+  
+  // Re-render dashboard with updated GWAs
+  renderGradeCards(profile);
+  updateOverallGwa(profile);
+  
   showView('dashboard');
 }
 
@@ -1468,11 +1595,10 @@ function updateBreadcrumb() {
     const quarterItem = document.createElement('span');
     quarterItem.className = 'breadcrumb-item';
     
-    // Display quarter name based on semester structure
+    // Display quarter name - use the actual quarter name from the object
     if (appState.currentSemester) {
-      // For SHS: show "First Semester - First Quarter" format
-      const quarterName = (appState.currentQuarter.id === 1 || appState.currentQuarter.id === 3) ? 'First Quarter' : 'Second Quarter';
-      quarterItem.textContent = quarterName;
+      // For SHS: show semester name and quarter name
+      quarterItem.textContent = `${appState.currentSemester.name} - ${appState.currentQuarter.name}`;
     } else {
       // For JHS: show regular quarter name
       quarterItem.textContent = appState.currentQuarter.name;
@@ -2261,6 +2387,37 @@ document.addEventListener('DOMContentLoaded', async () => {
   setCurrentDate();
   const profile = await fetchUserProfile();
   await initializeGradeStructure(profile);
+  
+  // Calculate all quarter GWAs before rendering
+  if (profile.isJHS && appState.quarters.length > 0) {
+    for (const quarter of appState.quarters) {
+      const gwa = await calculateQuarterGWA(quarter.id);
+      if (gwa !== null) {
+        quarter.gwa = gwa;
+        console.log(`Quarter ${quarter.name} GWA calculated:`, gwa);
+      }
+    }
+  } else if (profile.isSHS && appState.semesters && appState.semesters.length > 0) {
+    // Calculate GWA for all SHS quarters
+    for (const semester of appState.semesters) {
+      for (const quarter of semester.quarters) {
+        const gwa = await calculateQuarterGWA(quarter.id);
+        if (gwa !== null) {
+          quarter.gwa = gwa;
+          console.log(`SHS ${semester.name} - ${quarter.name} GWA calculated:`, gwa);
+        }
+      }
+      
+      // Calculate semester final grade (average of two quarters)
+      const q1 = semester.quarters[0];
+      const q2 = semester.quarters[1];
+      if (q1 && q2 && q1.gwa && q2.gwa) {
+        semester.finalGrade = (q1.gwa + q2.gwa) / 2;
+        console.log(`${semester.name} final grade:`, semester.finalGrade);
+      }
+    }
+  }
+  
   renderGradeCards(profile);
   updateOverallGwa(profile);
   setupProfileDropdown();
@@ -2687,6 +2844,19 @@ async function addComponent() {
   console.log('Current quarter:', appState.currentQuarter);
   console.log('Current subject:', appState.currentSubject);
   
+  // Check if currentQuarter and currentSubject have id property
+  if (!appState.currentQuarter || !appState.currentQuarter.id) {
+    console.error('ERROR: Current quarter is missing or has no id!', appState.currentQuarter);
+    alert('Error: No quarter selected. Please go back and select a quarter first.');
+    return;
+  }
+  
+  if (!appState.currentSubject || !appState.currentSubject.id) {
+    console.error('ERROR: Current subject is missing or has no id!', appState.currentSubject);
+    alert('Error: No subject selected. Please go back and select a subject first.');
+    return;
+  }
+  
   try {
     const csrfToken = getCSRFToken();
     const formData = new FormData();
@@ -2698,7 +2868,12 @@ async function addComponent() {
     formData.append('highest_score', highest);
     formData.append('csrfmiddlewaretoken', csrfToken);
     
-    console.log('Sending request to /components/add/');
+    console.log('Sending request to /components/add/ with data:', {
+      quarter_id: appState.currentQuarter.id,
+      subject_id: appState.currentSubject.id,
+      name, type, score, highest
+    });
+    
     const response = await fetch('/components/add/', {
       method: 'POST',
       headers: {
@@ -2707,7 +2882,15 @@ async function addComponent() {
       body: formData
     });
     
-    console.log('Response received:', response);
+    console.log('Response received:', response.status, response.statusText);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Server error response:', errorText);
+      alert(`Failed to add component: Server returned ${response.status}`);
+      return;
+    }
+    
     const data = await response.json();
     console.log('Response data:', data);
     
@@ -2717,74 +2900,13 @@ async function addComponent() {
       document.getElementById('addComponentModal').style.display = 'none';
       document.getElementById('addComponentModal').classList.remove('show');
       // Reload subject view to show new component
-      showSubjectDetailView(appState.currentSubject);
+      await showSubjectDetailView(appState.currentSubject);
     } else {
       alert('Failed to add component: ' + (data.error || 'Unknown error'));
     }
   } catch (error) {
     console.error('Error adding component:', error);
-    alert('Failed to add component');
-  }
-}
-async function addComponent() {
-  console.log('addComponent function called!');
-  const name = document.getElementById('componentNameInput').value.trim();
-  const type = document.getElementById('componentTypeSelect').value;
-  const score = parseFloat(document.getElementById('componentScoreInput').value);
-  const highest = parseFloat(document.getElementById('componentHighestInput').value);
-  
-  console.log('Form values:', { name, type, score, highest });
-  
-  if (!name || isNaN(score) || isNaN(highest)) {
-    alert('Please fill in all fields correctly');
-    return;
-  }
-  
-  if (score > highest) {
-    alert('Score cannot be higher than the highest possible score');
-    return;
-  }
-  
-  console.log('Validation passed, attempting to add component...');
-  console.log('Current quarter:', appState.currentQuarter);
-  console.log('Current subject:', appState.currentSubject);
-  
-  try {
-    const csrfToken = getCSRFToken();
-    const formData = new FormData();
-    formData.append('quarter_id', appState.currentQuarter.id);
-    formData.append('subject_id', appState.currentSubject.id);
-    formData.append('name', name);
-    formData.append('component_type', type);
-    formData.append('score', score);
-    formData.append('highest_score', highest);
-    formData.append('csrfmiddlewaretoken', csrfToken);
-    
-    console.log('Sending request to /components/add/');
-    const response = await fetch('/components/add/', {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': csrfToken
-      },
-      body: formData
-    });
-    
-    console.log('Response received:', response);
-    const data = await response.json();
-    console.log('Response data:', data);
-    
-    if (data.id) {
-      console.log('Component added successfully!');
-      // Close modal
-      document.getElementById('addComponentModal').style.display = 'none';
-      // Reload subject view to show new component
-      showSubjectDetailView(appState.currentSubject);
-    } else {
-      alert('Failed to add component: ' + (data.error || 'Unknown error'));
-    }
-  } catch (error) {
-    console.error('Error adding component:', error);
-    alert('Failed to add component');
+    alert('Failed to add component: ' + error.message);
   }
 }
 

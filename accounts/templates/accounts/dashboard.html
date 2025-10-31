@@ -6,12 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard - GradeNest</title>
   <link rel="icon" type="image/png" href="{% static 'accounts/img/gradenest-logo.png' %}" />
-  <link rel="stylesheet" href="{% static 'accounts/css/dashboard.css' %}?v=3.0" />
-  <link rel="stylesheet" href="{% static 'accounts/css/dashboard-compact.css' %}?v=3.0" />
+  <link rel="stylesheet" href="{% static 'accounts/css/dashboard.css' %}?v={{ CACHE_VERSION }}" />
+  <link rel="stylesheet" href="{% static 'accounts/css/dashboard-compact.css' %}?v={{ CACHE_VERSION }}" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
-  <script src="{% static 'accounts/js/dashboard.js' %}?v=15.0" defer></script>
+  <script src="{% static 'accounts/js/dashboard.js' %}?v={{ CACHE_VERSION }}" defer></script>
 </head>
 <body>
 
@@ -140,15 +140,6 @@
           <!-- Quarter cards will be dynamically generated here -->
         </div>
 
-        <!-- Add Quarter Button (Floating) -->
-        <button class="btn-add-floating" id="btnAddQuarter" title="Add Quarter">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-        </button>
-        </div>
-
         <!-- Right Column: Overall GWA Card -->
         <div class="overall-gwa-compact">
           <div class="gwa-card-header">
@@ -177,6 +168,14 @@
           <span class="completion-hint hidden" id="buttonHint">All quarters completed</span>
         </div>
       </div>
+
+      <!-- Add Quarter Button (Floating) -->
+      <button class="btn-add-floating" id="btnAddQuarter" title="Add Quarter">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
     </div>
 
     <!-- Subjects View -->
