@@ -168,14 +168,6 @@
           <span class="completion-hint hidden" id="buttonHint">All quarters completed</span>
         </div>
       </div>
-
-      <!-- Add Quarter Button (Floating) -->
-      <button class="btn-add-floating" id="btnAddQuarter" title="Add Quarter">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-      </button>
     </div>
 
     <!-- Subjects View -->
@@ -188,23 +180,35 @@
           Back to Quarters
         </button>
         <h2 id="subjectsViewTitle">First Quarter - Subjects</h2>
-        <button id="btnAddSubject" class="btn-add" style="background: #38CA79; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-left: auto;">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M8 3.33334V12.6667M3.33334 8H12.6667" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          Add Subject
-        </button>
       </div>
-      <div class="grade-legend">
-        <span class="legend-title">Grade Scale:</span>
-        <div class="legend-items">
-          <span class="legend-item"><span class="legend-color" style="background-color: #10b981;"></span>90-100 Outstanding</span>
-          <span class="legend-item"><span class="legend-color" style="background-color: #38CA79;"></span>85-89 Very Satisfactory</span>
-          <span class="legend-item"><span class="legend-color" style="background-color: #3b82f6;"></span>80-84 Satisfactory</span>
-          <span class="legend-item"><span class="legend-color" style="background-color: #f59e0b;"></span>75-79 Fairly Satisfactory</span>
-          <span class="legend-item"><span class="legend-color" style="background-color: #ef4444;"></span>Below 75 Did Not Meet</span>
+      
+      <!-- FIX: Add grade interpretation legend -->
+      <div class="grade-legend" style="background: #f9fafb; padding: 16px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #e5e7eb;">
+        <span style="font-weight: 600; color: #374151; margin-right: 16px;">Grade Interpretation:</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px;">
+          <span style="display: flex; align-items: center; gap: 6px; font-size: 14px;">
+            <span style="width: 12px; height: 12px; border-radius: 3px; background: #10b981;"></span>
+            <span style="color: #374151;">90-100 Outstanding</span>
+          </span>
+          <span style="display: flex; align-items: center; gap: 6px; font-size: 14px;">
+            <span style="width: 12px; height: 12px; border-radius: 3px; background: #38CA79;"></span>
+            <span style="color: #374151;">85-89 Very Satisfactory</span>
+          </span>
+          <span style="display: flex; align-items: center; gap: 6px; font-size: 14px;">
+            <span style="width: 12px; height: 12px; border-radius: 3px; background: #3b82f6;"></span>
+            <span style="color: #374151;">80-84 Satisfactory</span>
+          </span>
+          <span style="display: flex; align-items: center; gap: 6px; font-size: 14px;">
+            <span style="width: 12px; height: 12px; border-radius: 3px; background: #f59e0b;"></span>
+            <span style="color: #374151;">75-79 Fairly Satisfactory</span>
+          </span>
+          <span style="display: flex; align-items: center; gap: 6px; font-size: 14px;">
+            <span style="width: 12px; height: 12px; border-radius: 3px; background: #ef4444;"></span>
+            <span style="color: #374151;">Below 75 Did Not Meet</span>
+          </span>
         </div>
       </div>
+      
       <div class="subjects-grid" id="subjectsGrid"></div>
     </div>
 
@@ -243,7 +247,6 @@
                           stroke-dasharray="339.29" 
                           stroke-dashoffset="339.29"
                           stroke-linecap="round"/>
-                </svg>
                 </svg>
                 <div class="grade-circle-value" id="transmutedGradeDisplay">--</div>
                 <div class="grade-circle-label">Final</div>
@@ -325,38 +328,6 @@
   </div>
 </div>
 
-<!-- Add Quarter Modal -->
-<div class="modal-overlay" id="addQuarterModal" style="display: none;">
-  <div class="modal-container">
-    <div class="modal-header">
-      <h3 class="modal-title">Add New Quarter</h3>
-    </div>
-    <div class="modal-body">
-      <input type="text" id="quarterNameInput" placeholder="Enter quarter name (e.g., 1st Quarter)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
-    </div>
-    <div class="modal-footer">
-      <button class="btn-modal-cancel" id="btnCancelAddQuarter">Cancel</button>
-      <button class="btn-modal-confirm" id="btnConfirmAddQuarter">Add Quarter</button>
-    </div>
-  </div>
-</div>
-
-<!-- Add Subject Modal -->
-<div class="modal-overlay" id="addSubjectModal" style="display: none;">
-  <div class="modal-container">
-    <div class="modal-header">
-      <h3 class="modal-title">Add New Subject</h3>
-    </div>
-    <div class="modal-body">
-      <input type="text" id="subjectNameInput" placeholder="Enter subject name (e.g., Mathematics)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
-    </div>
-    <div class="modal-footer">
-      <button class="btn-modal-cancel" id="btnCancelAddSubject">Cancel</button>
-      <button class="btn-modal-confirm" id="btnConfirmAddSubject">Add Subject</button>
-    </div>
-  </div>
-</div>
-
 <!-- Add Component Modal -->
 <div class="modal-overlay" id="addComponentModal" style="display: none;">
   <div class="modal-container">
@@ -370,8 +341,8 @@
         <option value="PT">Performance Tasks</option>
         <option value="QA">Quarterly Assessment</option>
       </select>
-      <input type="number" id="componentScoreInput" placeholder="Your score" step="0.01" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
-      <input type="number" id="componentHighestInput" placeholder="Highest possible score" step="0.01" value="100" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
+      <input type="number" id="componentScoreInput" placeholder="Your score" step="0.01" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
+      <input type="number" id="componentHighestInput" placeholder="Highest possible score" step="0.01" value="100" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
     </div>
     <div class="modal-footer">
       <button class="btn-modal-cancel" id="btnCancelAddComponent">Cancel</button>
@@ -394,8 +365,8 @@
         <option value="PT">Performance Tasks</option>
         <option value="QA">Quarterly Assessment</option>
       </select>
-      <input type="number" id="editComponentScoreInput" placeholder="Your score" step="0.01" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
-      <input type="number" id="editComponentHighestInput" placeholder="Highest possible score" step="0.01" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
+      <input type="number" id="editComponentScoreInput" placeholder="Your score" step="0.01" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
+      <input type="number" id="editComponentHighestInput" placeholder="Highest possible score" step="0.01" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
     </div>
     <div class="modal-footer">
       <button class="btn-modal-cancel" id="btnCancelEditComponent">Cancel</button>
