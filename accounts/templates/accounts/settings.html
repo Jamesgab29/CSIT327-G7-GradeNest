@@ -1,0 +1,287 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings - GradeNest</title>
+  <link rel="icon" type="image/png" href="{% static 'accounts/img/gradenest-logo.png' %}" />
+  <link rel="stylesheet" href="{% static 'accounts/css/dashboard.css' %}?v={{ CACHE_VERSION }}" />
+  <link rel="stylesheet" href="{% static 'accounts/css/dashboard-compact.css' %}?v={{ CACHE_VERSION }}" />
+  <link rel="stylesheet" href="{% static 'accounts/css/settings.css' %}?v={{ CACHE_VERSION }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
+  <script src="{% static 'accounts/js/dashboard.js' %}?v={{ CACHE_VERSION }}" defer></script>
+  <script src="{% static 'accounts/js/settings.js' %}?v={{ CACHE_VERSION }}" defer></script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo-section">
+    <img src="{% static 'accounts/img/gradenest-logo.png' %}" alt="GradeNest Logo" class="logo-img" />
+    <span class="logo-text">GradeNest</span>
+  </div>
+
+  <div class="profile-section">
+    <span class="profile-name" id="topbarProfileName">{{ user.full_name|default:"User" }}</span>
+    <div class="profile-icon-wrapper" id="profileDropdownToggle">
+      <img src="{% static 'accounts/img/profile-icon.png' %}" alt="Profile" class="profile-icon" />
+    </div>
+    
+    <div class="profile-dropdown" id="profileDropdown">
+      <a href="#" class="dropdown-item" id="settingsLink">Settings</a>
+      <a href="{% url 'accounts:logout' %}" class="dropdown-item logout-item">Logout</a>
+    </div>
+  </div>
+</div>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="user-profile-card">
+      <div class="user-avatar">
+        <img src="{% static 'accounts/img/profile-icon.png' %}" alt="Profile" />
+      </div>
+      <div class="user-info">
+        <span class="user-name">{{ user.first_name }}</span>
+        <span class="user-level">{{ profile.grade_level|default:"Grade 7" }}</span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="nav-menu">
+    <div class="nav-section">
+      <span class="nav-section-label">Main</span>
+      <a href="{% url 'accounts:dashboard' %}" class="nav-item" data-page="dashboard">
+        <div class="nav-item-content">
+          <img src="{% static 'accounts/img/home-icon.png' %}" alt="Home" class="nav-icon" />
+          <span class="nav-label">Dashboard</span>
+        </div>
+        <span class="nav-indicator"></span>
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <span class="nav-section-label">Academics</span>
+      <a href="#" class="nav-item" data-page="school-year" id="schoolYearLink">
+        <div class="nav-item-content">
+          <img src="{% static 'accounts/img/sy-icon.png' %}" alt="School Year" class="nav-icon" />
+          <span class="nav-label">School Years</span>
+        </div>
+        <span class="nav-badge">{{ profile.school_year|default:"2024-25" }}</span>
+      </a>
+      <a href="#" class="nav-item" data-page="goals" id="goalsLink">
+        <div class="nav-item-content">
+          <img src="{% static 'accounts/img/goals-icon.png' %}" alt="Goals" class="nav-icon" />
+          <span class="nav-label">My Goals</span>
+        </div>
+        <span class="nav-count" id="goalsCount">0</span>
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <span class="nav-section-label">Account</span>
+      <a href="#" class="nav-item active" data-page="settings" id="navSettingsLink">
+        <div class="nav-item-content">
+          <img src="{% static 'accounts/img/settings-icon.png' %}" alt="Settings" class="nav-icon" />
+          <span class="nav-label">Settings</span>
+        </div>
+        <span class="nav-indicator"></span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="quick-stats">
+      <div class="stat-item">
+        <span class="stat-value" id="sidebarGwa">--</span>
+        <span class="stat-label">Current GWA</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value" id="sidebarProgress">0%</span>
+        <span class="stat-label">Year Progress</span>
+      </div>
+    </div>
+    <a href="{% url 'accounts:logout' %}" class="btn-logout">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      <span>Logout</span>
+    </a>
+  </div>
+</aside>
+
+<main class="main-content">
+  <div class="content-wrapper">
+
+    <!-- Breadcrumb Navigation -->
+    <div class="breadcrumb-nav" id="breadcrumbNav">
+      <span class="breadcrumb-item active" data-level="settings">Settings</span>
+    </div>
+
+    <!-- Settings View -->
+    <div id="settingsView" class="view-container active">
+      
+      <!-- Settings Header -->
+      <div class="settings-header">
+        <h1 class="settings-title">Settings</h1>
+        <p class="settings-subtitle">Manage your account preferences and configurations</p>
+      </div>
+
+      <!-- Settings Grid -->
+      <div class="settings-grid">
+        
+        <!-- Profile Card -->
+        <a href="{% url 'accounts:profile' %}" class="settings-card" id="profileCard">
+          <div class="settings-card-icon profile-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <path d="M16 16a6 6 0 100-12 6 6 0 000 12zM6 28a10 10 0 0120 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="settings-card-content">
+            <h3 class="settings-card-title">Profile</h3>
+            <p class="settings-card-description">Manage your personal and academic information</p>
+          </div>
+          <div class="settings-card-arrow">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M7.5 15l5-5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </a>
+
+        {% comment %} <!-- Notifications Card (Placeholder) -->
+        <div class="settings-card disabled" title="Coming Soon">
+          <div class="settings-card-icon notifications-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <path d="M24 11a8 8 0 00-16 0c0 7-3 9-3 9h22s-3-2-3-9zM18.73 24a2 2 0 01-3.46 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="settings-card-content">
+            <h3 class="settings-card-title">Notifications</h3>
+            <p class="settings-card-description">Configure your notification preferences</p>
+          </div>
+          <span class="coming-soon-badge">Coming Soon</span>
+        </div>
+
+        <!-- Privacy Card (Placeholder) -->
+        <div class="settings-card disabled" title="Coming Soon">
+          <div class="settings-card-icon privacy-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <path d="M16 4l8 3v7c0 5.523-3.134 10-8 13-4.866-3-8-7.477-8-13V7l8-3z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="settings-card-content">
+            <h3 class="settings-card-title">Privacy & Security</h3>
+            <p class="settings-card-description">Control your privacy and security settings</p>
+          </div>
+          <span class="coming-soon-badge">Coming Soon</span>
+        </div>
+
+        <!-- Appearance Card (Placeholder) -->
+        <div class="settings-card disabled" title="Coming Soon">
+          <div class="settings-card-icon appearance-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <path d="M16 4v24M4 16h24M16 4a12 12 0 0112 12 12 12 0 01-12 12A12 12 0 014 16 12 12 0 0116 4z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="settings-card-content">
+            <h3 class="settings-card-title">Appearance</h3>
+            <p class="settings-card-description">Customize theme and display preferences</p>
+          </div>
+          <span class="coming-soon-badge">Coming Soon</span>
+        </div>
+
+        <!-- Data & Storage Card (Placeholder) -->
+        <div class="settings-card disabled" title="Coming Soon">
+          <div class="settings-card-icon storage-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <path d="M28 8H4a2 2 0 00-2 2v12a2 2 0 002 2h24a2 2 0 002-2V10a2 2 0 00-2-2zM6 16h.01M10 16h.01M6 20h.01M10 20h.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="settings-card-content">
+            <h3 class="settings-card-title">Data & Storage</h3>
+            <p class="settings-card-description">Manage your data and storage options</p>
+          </div>
+          <span class="coming-soon-badge">Coming Soon</span>
+        </div>
+
+        <!-- Help & Support Card (Placeholder) -->
+        <div class="settings-card disabled" title="Coming Soon">
+          <div class="settings-card-icon support-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <circle cx="16" cy="16" r="12" stroke="currentColor" stroke-width="2.5"/>
+              <path d="M12 12a4 4 0 017.5 2c0 2-2.5 3-2.5 3M16 22h.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="settings-card-content">
+            <h3 class="settings-card-title">Help & Support</h3>
+            <p class="settings-card-description">Get help and contact support</p>
+          </div>
+          <span class="coming-soon-badge">Coming Soon</span>
+        </div>
+
+      </div>
+
+      <!-- Account Actions Section -->
+      <div class="account-actions">
+        <h2 class="section-title">Account Actions</h2>
+        <div class="action-cards">
+          
+          <!-- Export Data Card -->
+          <div class="action-card disabled">
+            <div class="action-card-content">
+              <div class="action-icon export-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5-5 5 5M12 5v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="action-info">
+                <h4 class="action-title">Export Your Data</h4>
+                <p class="action-description">Download a copy of your academic records</p>
+              </div>
+            </div>
+            <span class="coming-soon-badge">Coming Soon</span>
+          </div>
+
+          <!-- Delete Account Card -->
+          <div class="action-card disabled">
+            <div class="action-card-content">
+              <div class="action-icon delete-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="action-info">
+                <h4 class="action-title">Delete Account</h4>
+                <p class="action-description">Permanently delete your account and data</p>
+              </div> {% endcomment %}
+            </div>
+            <span class="coming-soon-badge">Coming Soon</span>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+<script id="user-profile-data" type="application/json">
+{
+  "gradeLevel": "{{ profile.grade_level|default:'Grade 7' }}",
+  "strand": "{{ profile.strand|default:'' }}",
+  "schoolYear": "{{ profile.school_year|default:'Not set' }}",
+  "isJHS": {{ isJHS|yesno:"true,false" }},
+  "isSHS": {{ isSHS|yesno:"true,false" }}
+}
+</script>
+<script>
+  window.userProfile = JSON.parse(document.getElementById('user-profile-data').textContent);
+</script>
+
+</body>
+</html>

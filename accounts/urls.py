@@ -14,6 +14,10 @@ urlpatterns = [
     # Core flow
     path("education-level/", views.education_level, name="education_level"),
     path("dashboard/", views.dashboard, name="dashboard"),
+    
+    # Settings & Profile
+    path("settings/", views.settings, name="settings"),
+    path("settings/profile/", views.profile, name="profile"),
 
     # ✅ Forgot Password Flow (Gmail)
     path(

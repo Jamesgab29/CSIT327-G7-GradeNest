@@ -116,7 +116,7 @@ def education_level(request):
 
     return render(request, "accounts/education-level.html")
 
-
+# ---------------- DASHBOARD ----------------
 def provision_academic_structure(user, grade_level, strand):
     """
     Automatically create quarters and subjects for a user based on their education level.
@@ -477,14 +477,13 @@ def provision_academic_structure(user, grade_level, strand):
 def dashboard(request):
     profile = Profile.objects.get(user=request.user)
     
-    # Determine if JHS or SHS
     isJHS = profile.grade_level in ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10']
     isSHS = profile.grade_level in ['Grade 11', 'Grade 12']
-    
+
     return render(request, "accounts/dashboard.html", {
-        'profile': profile,  # Pass the full profile
-        'isJHS': isJHS,      # Pass as a boolean
-        'isSHS': isSHS       # Pass as a boolean
+        'profile': profile,
+        'isJHS': isJHS,
+        'isSHS': isSHS,
     })
 
 
@@ -492,6 +491,33 @@ def dashboard(request):
 def landing_page(request):
     return render(request, "accounts/landing-page.html")
 
+# ---------------- SETTINGS PAGE ----------------
+@login_required
+def settings(request):
+    profile = Profile.objects.get(user=request.user)
+    
+    isJHS = profile.grade_level in ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10']
+    isSHS = profile.grade_level in ['Grade 11', 'Grade 12']
+
+    return render(request, "accounts/settings.html", {
+        'profile': profile,
+        'isJHS': isJHS,
+        'isSHS': isSHS,
+    })
+
+# ---------------- PROFILE PAGE ----------------
+@login_required
+def profile(request):
+    profile = Profile.objects.get(user=request.user)
+    
+    isJHS = profile.grade_level in ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10']
+    isSHS = profile.grade_level in ['Grade 11', 'Grade 12']
+
+    return render(request, "accounts/profile.html", {
+        'profile': profile,
+        'isJHS': isJHS,
+        'isSHS': isSHS,
+    })
 
 # ---------------- LOGOUT ----------------
 def user_logout(request):

@@ -2620,7 +2620,72 @@ document.getElementById('backToSubjects').addEventListener('click', () => {
   setupComponentTabs();
 });
 
-// Component tabs functionality
+// ========== SPA NAVIGATION: SIDEBAR SETTINGS BUTTON ==========
+
+// Utility to load a page's main content into .main-content .content-wrapper
+async function loadMainContent(url, breadcrumbHtml, callback) {
+  const mainContent = document.querySelector('.main-content .content-wrapper');
+  if (!mainContent) return;
+
+  try {
+    const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+    const html = await response.text();
+
+    // Parse and extract the .main-content .content-wrapper from the fetched HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    let newContent = tempDiv.querySelector('.main-content .content-wrapper');
+    if (!newContent) {
+      // fallback: use the whole HTML if selector fails
+      newContent = tempDiv;
+    }
+    mainContent.innerHTML = newContent.innerHTML;
+
+    // Update breadcrumb if provided
+    if (breadcrumbHtml) {
+      const breadcrumb = document.getElementById('breadcrumbNav');
+      if (breadcrumb) breadcrumb.innerHTML = breadcrumbHtml;
+    }
+
+    // Run callback (e.g., initializeSettingsPage)
+    if (typeof callback === 'function') callback();
+
+  } catch (error) {
+    mainContent.innerHTML = '<div style="padding:32px;color:#ef4444;">Failed to load content.</div>';
+  }
+}
+
+// Handle sidebar Settings click
+document.addEventListener('DOMContentLoaded', function () {
+  const navSettingsLink = document.getElementById('navSettingsLink');
+  if (navSettingsLink) {
+    navSettingsLink.addEventListener('click', function (e) {
+      e.preventDefault();
+
+      // Remove 'active' from all sidebar nav-items, add to Settings
+      document.querySelectorAll('.sidebar .nav-item').forEach(item => item.classList.remove('active'));
+      navSettingsLink.classList.add('active');
+
+      // Load settings.html main content
+      loadMainContent(
+        '/settings/',
+        '<span class="breadcrumb-item active" data-level="settings">Settings</span>',
+        function () {
+          // After loading, attach settings.js if not already loaded
+          if (!window.settingsJsLoaded) {
+            const script = document.createElement('script');
+            script.src = '/static/accounts/js/settings.js';
+            script.onload = () => { window.settingsJsLoaded = true; };
+            document.body.appendChild(script);
+          } else if (typeof initializeSettingsPage === 'function') {
+            initializeSettingsPage();
+          }
+        }
+      );
+    });
+  }
+});
+
 let activeComponentTab = 'WW'; // Default to Written Works
 
 function setupComponentTabs() {
