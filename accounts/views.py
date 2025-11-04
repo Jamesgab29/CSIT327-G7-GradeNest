@@ -491,6 +491,19 @@ def dashboard(request):
 def landing_page(request):
     return render(request, "accounts/landing-page.html")
 
+# ---------------- GOAL PAGE ----------------
+def goal(request):
+    profile = Profile.objects.get(user=request.user)
+    
+    isJHS = profile.grade_level in ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10']
+    isSHS = profile.grade_level in ['Grade 11', 'Grade 12']
+
+    return render(request, "accounts/goal.html", {
+        'profile': profile,
+        'isJHS': isJHS,
+        'isSHS': isSHS,
+    })
+
 # ---------------- SETTINGS PAGE ----------------
 @login_required
 def settings(request):

@@ -71,7 +71,7 @@ const COMPONENT_NAMES = {
   QA: 'Quarterly Assessment'
 };
 
-// CORRECTED: Subjects are DIFFERENT per quarter within a semester
+// Subjects are DIFFERENT per quarter within a semester
 const SHS_SUBJECTS = {
   STEM: {
     "Grade 11": {
@@ -2655,36 +2655,96 @@ async function loadMainContent(url, breadcrumbHtml, callback) {
   }
 }
 
-// Handle sidebar Settings click
 document.addEventListener('DOMContentLoaded', function () {
   const navSettingsLink = document.getElementById('navSettingsLink');
+  const goalsLink = document.getElementById('goalsLink');
+
   if (navSettingsLink) {
     navSettingsLink.addEventListener('click', function (e) {
       e.preventDefault();
 
-      // Remove 'active' from all sidebar nav-items, add to Settings
-      document.querySelectorAll('.sidebar .nav-item').forEach(item => item.classList.remove('active'));
+      document.querySelectorAll('.sidebar .nav-item')
+        .forEach(item => item.classList.remove('active'));
       navSettingsLink.classList.add('active');
 
-      // Load settings.html main content
       loadMainContent(
         '/settings/',
         '<span class="breadcrumb-item active" data-level="settings">Settings</span>',
         function () {
-          // After loading, attach settings.js if not already loaded
-          if (!window.settingsJsLoaded) {
-            const script = document.createElement('script');
-            script.src = '/static/accounts/js/settings.js';
-            script.onload = () => { window.settingsJsLoaded = true; };
-            document.body.appendChild(script);
-          } else if (typeof initializeSettingsPage === 'function') {
-            initializeSettingsPage();
-          }
+          ensureSettingsAssetsLoaded();
+        }
+      );
+    });
+  }
+
+  if (goalsLink) {
+    goalsLink.addEventListener('click', function (e) {
+      e.preventDefault();
+
+      document.querySelectorAll('.sidebar .nav-item')
+        .forEach(item => item.classList.remove('active'));
+      goalsLink.classList.add('active');
+
+      loadMainContent(
+        '/goal/',
+        '<span class="breadcrumb-item active" data-level="goals">My Goals</span>',
+        function () {
+          ensureGoalsAssetsLoaded();
         }
       );
     });
   }
 });
+
+function ensureSettingsAssetsLoaded() {
+  if (!window.settingsCssLoaded) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = '/static/accounts/css/settings.css';
+    document.head.appendChild(link);
+    window.settingsCssLoaded = true;
+  }
+    initializeSettingsPage();
+}
+
+function ensureGoalsAssetsLoaded() {
+  if (!window.goalsJsLoaded) {
+    const script = document.createElement('script');
+    script.src = '/static/accounts/js/goal.js';
+    script.onload = () => { window.goalsJsLoaded = true; };
+    document.body.appendChild(script);
+  } else if (typeof initializeGoalsPage === 'function') {
+    initializeGoalsPage();
+  }
+
+  if (!window.goalsCssLoaded) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = '/static/accounts/css/goal.css';
+    document.head.appendChild(link);
+    window.goalsCssLoaded = true;
+  }
+}
+
+function loadMainContent(url, breadcrumbHtml, callback) {
+  fetch(url)
+    .then(response => response.text())
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const newContent =
+        doc.querySelector('.main-content')?.innerHTML || doc.body.innerHTML;
+      document.querySelector('.main-content').innerHTML = newContent;
+
+      const breadcrumbContainer = document.getElementById('breadcrumb');
+      if (breadcrumbContainer) {
+        breadcrumbContainer.innerHTML = breadcrumbHtml;
+      }
+
+      if (typeof callback === 'function') callback();
+    })
+    .catch(err => console.error('Error loading content:', err));
+}
 
 let activeComponentTab = 'WW'; // Default to Written Works
 

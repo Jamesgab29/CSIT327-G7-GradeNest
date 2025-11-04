@@ -14,7 +14,8 @@ urlpatterns = [
     # Core flow
     path("education-level/", views.education_level, name="education_level"),
     path("dashboard/", views.dashboard, name="dashboard"),
-    
+    path("goal/", views.goal, name="goal"),
+
     # Settings & Profile
     path("settings/", views.settings, name="settings"),
     path("settings/profile/", views.profile, name="profile"),
