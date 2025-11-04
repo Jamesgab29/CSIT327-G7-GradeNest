@@ -1,0 +1,274 @@
+/* =========================================
+   SETTINGS PAGE - GRADE NEST DESIGN SYSTEM
+   ========================================= */
+
+:root {
+  --primary-green: #38CA79;
+  --primary-green-light: #4FD889;
+  --primary-green-dark: #2BA564;
+  --primary-green-subtle: #E8F7EF;
+
+  --neutral-50: #F9FAFB;
+  --neutral-100: #F3F4F6;
+  --neutral-200: #E5E7EB;
+  --neutral-300: #D1D5DB;
+  --neutral-400: #9CA3AF;
+  --neutral-500: #6B7280;
+  --neutral-600: #4B5563;
+  --neutral-700: #374151;
+  --neutral-800: #1F2937;
+  --neutral-900: #111827;
+
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.08);
+
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+}
+
+/* =========================================
+   BASE LAYOUT
+   ========================================= */
+
+.main-content {
+  background: var(--neutral-50);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.content-wrapper {
+  padding: 40px 60px;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   BREADCRUMB NAV
+   ========================================= */
+
+.breadcrumb-nav {
+  font-size: 14px;
+  color: var(--neutral-500);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb-item.active {
+  font-weight: 600;
+  color: var(--primary-green-dark);
+}
+
+/* =========================================
+   SETTINGS HEADER
+   ========================================= */
+
+.settings-header {
+  margin-bottom: 30px;
+}
+
+.settings-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--neutral-900);
+  margin-bottom: 8px;
+}
+
+.settings-subtitle {
+  color: var(--neutral-500);
+  font-size: 15.5px;
+}
+
+/* =========================================
+   SETTINGS GRID
+   ========================================= */
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  margin-top: 30px;
+}
+
+/* =========================================
+   SETTINGS CARD
+   ========================================= */
+
+.settings-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 22px 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  text-decoration: none;
+  color: var(--neutral-800);
+  transition: all var(--transition-base);
+  border: 1.5px solid var(--neutral-100);
+}
+
+.settings-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-green-subtle);
+}
+
+.settings-card-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-green-subtle);
+  color: var(--primary-green-dark);
+  flex-shrink: 0;
+  transition: background var(--transition-fast);
+}
+
+.settings-card:hover .settings-card-icon {
+  background: var(--primary-green-light);
+  color: white;
+}
+
+.settings-card-content {
+  flex: 1;
+}
+
+.settings-card-title {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--neutral-900);
+}
+
+.settings-card-description {
+  font-size: 14.5px;
+  color: var(--neutral-500);
+  line-height: 1.4;
+}
+
+.settings-card-arrow {
+  color: var(--neutral-400);
+  flex-shrink: 0;
+  transition: transform var(--transition-base);
+}
+
+.settings-card:hover .settings-card-arrow {
+  transform: translateX(5px);
+  color: var(--primary-green);
+}
+
+/* =========================================
+   DISABLED (COMING SOON) CARDS
+   ========================================= */
+
+.settings-card.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  position: relative;
+}
+
+.coming-soon-badge {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: var(--neutral-200);
+  color: var(--neutral-700);
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  padding: 4px 10px;
+}
+
+/* =========================================
+   ACCOUNT ACTIONS SECTION
+   ========================================= */
+
+.account-actions {
+  margin-top: 60px;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--neutral-900);
+  margin-bottom: 18px;
+}
+
+.action-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.action-card {
+  background: white;
+  border: 1.5px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all var(--transition-base);
+}
+
+.action-card-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.action-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--neutral-100);
+  color: var(--primary-green);
+  flex-shrink: 0;
+}
+
+.action-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--neutral-900);
+}
+
+.action-description {
+  font-size: 14px;
+  color: var(--neutral-500);
+}
+
+@media (max-width: 1024px) {
+  .content-wrapper {
+    padding: 30px 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .settings-title {
+    font-size: 26px;
+  }
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+  .content-wrapper {
+  padding: 40px 60px 40px 280px;
+  animation: fadeIn 0.4s ease-in-out;
+  }
+}

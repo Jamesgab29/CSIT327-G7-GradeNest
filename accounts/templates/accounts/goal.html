@@ -1,0 +1,369 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Goals - GradeNest</title>
+  <link rel="icon" type="image/png" href="{% static 'accounts/img/gradenest-logo.png' %}" />
+  <link rel="stylesheet" href="{% static 'accounts/css/dashboard.css' %}?v={{ CACHE_VERSION }}" />
+  <link rel="stylesheet" href="{% static 'accounts/css/dashboard-compact.css' %}?v={{ CACHE_VERSION }}" />
+  <link rel="stylesheet" href="{% static 'accounts/css/goal.css' %}?v={{ CACHE_VERSION }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
+  <script src="{% static 'accounts/js/dashboard.js' %}?v={{ CACHE_VERSION }}" defer></script>
+  {% comment %} <script src="{% static 'accounts/js/goal.js' %}?v={{ CACHE_VERSION }}" defer></script> {% endcomment %}
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo-section">
+    <img src="{% static 'accounts/img/gradenest-logo.png' %}" alt="GradeNest Logo" class="logo-img" />
+    <span class="logo-text">GradeNest</span>
+  </div>
+
+  <div class="profile-section">
+    <span class="profile-name" id="topbarProfileName">{{ user.full_name|default:"User" }}</span>
+    <div class="profile-icon-wrapper" id="profileDropdownToggle">
+      <img src="{% static 'accounts/img/profile-icon.png' %}" alt="Profile" class="profile-icon" />
+    </div>
+    
+    <div class="profile-dropdown" id="profileDropdown">
+      <a href="#" class="dropdown-item" id="settingsLink">Settings</a>
+      <a href="{% url 'accounts:logout' %}" class="dropdown-item logout-item">Logout</a>
+    </div>
+  </div>
+</div>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="user-profile-card">
+      <div class="user-avatar">
+        <img src="{% static 'accounts/img/profile-icon.png' %}" alt="Profile" />
+      </div>
+      <div class="user-info">
+        <span class="user-name">{{ user.first_name }}</span>
+        <span class="user-level">{{ profile.grade_level|default:"Grade 7" }}</span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="nav-menu">
+    <div class="nav-section">
+      <span class="nav-section-label">Main</span>
+      <a href="{% url 'accounts:dashboard' %}" class="nav-item" data-page="dashboard">
+        <div class="nav-item-content">
+          <img src="{% static 'accounts/img/home-icon.png' %}" alt="Home" class="nav-icon" />
+          <span class="nav-label">Dashboard</span>
+        </div>
+        <span class="nav-indicator"></span>
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <span class="nav-section-label">Academics</span>
+      <a href="#" class="nav-item" data-page="school-year" id="schoolYearLink">
+        <div class="nav-item-content">
+          <img src="{% static 'accounts/img/sy-icon.png' %}" alt="School Year" class="nav-icon" />
+          <span class="nav-label">School Years</span>
+        </div>
+        <span class="nav-badge">{{ profile.school_year|default:"2024-25" }}</span>
+      </a>
+      <a href="#" class="nav-item active" data-page="goals" id="goalsLink">
+        <div class="nav-item-content">
+          <img src="{% static 'accounts/img/goals-icon.png' %}" alt="Goals" class="nav-icon" />
+          <span class="nav-label">My Goals</span>
+        </div>
+        <span class="nav-count" id="goalsCount">0</span>
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <span class="nav-section-label">Account</span>
+      <a href="#" class="nav-item" data-page="settings" id="navSettingsLink">
+        <div class="nav-item-content">
+          <img src="{% static 'accounts/img/settings-icon.png' %}" alt="Settings" class="nav-icon" />
+          <span class="nav-label">Settings</span>
+        </div>
+        <span class="nav-indicator"></span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="quick-stats">
+      <div class="stat-item">
+        <span class="stat-value" id="sidebarGwa">--</span>
+        <span class="stat-label">Current GWA</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value" id="sidebarProgress">0%</span>
+        <span class="stat-label">Year Progress</span>
+      </div>
+    </div>
+    <a href="{% url 'accounts:logout' %}" class="btn-logout">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      <span>Logout</span>
+    </a>
+  </div>
+</aside>
+
+<main class="main-content">
+  <div class="content-wrapper">
+
+    <!-- Goals Header -->
+    <div class="goals-header">
+      <div class="goals-header-left">
+        <h1 class="goals-title">My Goals</h1>
+        <p class="goals-subtitle">Track and achieve your academic and personal milestones</p>
+      </div>
+      <button class="btn-add-goal" id="btnAddGoal">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Add New Goal
+      </button>
+    </div>
+
+    <!-- Goals Stats -->
+    <div class="goals-stats">
+      <div class="stat-card">
+        <div class="stat-icon active">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value" id="activeGoalsCount">0</span>
+          <span class="stat-label">Active Goals</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon completed">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M22 4L12 14.01l-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value" id="completedGoalsCount">0</span>
+          <span class="stat-label">Completed</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon overdue">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value" id="overdueGoalsCount">0</span>
+          <span class="stat-label">Overdue</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter and Sort Controls -->
+    <div class="goals-controls">
+      <div class="filter-group">
+        <label for="categoryFilter" class="control-label">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Filter by Category
+        </label>
+        <select id="categoryFilter" class="control-select">
+          <option value="all">All Categories</option>
+          <option value="Academic">Academic</option>
+          <option value="Personal">Personal</option>
+          <option value="Health">Health</option>
+          <option value="Career">Career</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="sortOrder" class="control-label">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 8h10M3 4h10M3 12h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Sort by
+        </label>
+        <select id="sortOrder" class="control-select">
+          <option value="date-asc">Target Date (Nearest)</option>
+          <option value="date-desc">Target Date (Farthest)</option>
+          <option value="created-desc">Recently Added</option>
+          <option value="created-asc">Oldest First</option>
+        </select>
+      </div>
+      <div class="goals-count-display">
+        <span id="filteredCount">0</span> goals displayed
+      </div>
+    </div>
+
+    <!-- Goals List -->
+    <div class="goals-section">
+      <h2 class="section-title">Active Goals</h2>
+      <div class="goals-grid" id="activeGoalsList">
+        <!-- Active goals will be inserted here -->
+      </div>
+    </div>
+
+    <div class="goals-section">
+      <h2 class="section-title">Completed Goals</h2>
+      <div class="goals-grid" id="completedGoalsList">
+        <!-- Completed goals will be inserted here -->
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Add/Edit Goal Modal -->
+<div class="modal-overlay" id="goalModal">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modalTitle">Add New Goal</h3>
+      <button class="btn-close-modal" id="btnCloseModal">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="goalForm">
+        <input type="hidden" id="goalId" />
+        
+        <div class="form-group">
+          <label class="form-label" for="goalTitle">
+            Title <span class="required-mark">*</span>
+          </label>
+          <input 
+            type="text" 
+            id="goalTitle" 
+            class="form-input" 
+            placeholder="e.g., Achieve 95% GWA this quarter"
+            required
+          />
+          <span class="form-error" id="titleError"></span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="goalDescription">
+            Description
+          </label>
+          <textarea 
+            id="goalDescription" 
+            class="form-textarea" 
+            rows="4"
+            placeholder="Describe your goal in detail..."
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="goalCategory">
+              Category <span class="required-mark">*</span>
+            </label>
+            <select id="goalCategory" class="form-select" required>
+              <option value="">Select Category</option>
+              <option value="Academic">Academic</option>
+              <option value="Personal">Personal</option>
+              <option value="Health">Health</option>
+              <option value="Career">Career</option>
+              <option value="Other">Other</option>
+            </select>
+            <span class="form-error" id="categoryError"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="goalTargetDate">
+              Target Date <span class="required-mark">*</span>
+            </label>
+            <input 
+              type="date" 
+              id="goalTargetDate" 
+              class="form-input"
+              required
+            />
+            <span class="form-error" id="dateError"></span>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" id="btnCancelGoal">Cancel</button>
+          <button type="submit" class="btn-save" id="btnSaveGoal">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M13.333 4L6 11.333 2.667 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Save Goal
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-container delete-modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Delete Goal</h3>
+    </div>
+    <div class="modal-body">
+      <div class="delete-warning">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="22" stroke="#ef4444" stroke-width="3"/>
+          <path d="M24 14v14M24 34h.02" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <p class="delete-message">Are you sure you want to delete this goal?</p>
+      <p class="delete-submessage">This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" id="btnCancelDelete">Cancel</button>
+      <button class="btn-modal-delete" id="btnConfirmDelete">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 011.334-1.334h2.666a1.333 1.333 0 011.334 1.334V4m2 0v9.333a1.333 1.333 0 01-1.334 1.334H4.667a1.333 1.333 0 01-1.334-1.334V4h9.334z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Delete Goal
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Success Toast -->
+<div class="toast success" id="successToast">
+  <div class="toast-icon">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <path d="M16.667 5L7.5 14.167 3.333 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div class="toast-content">
+    <p class="toast-title">Success!</p>
+    <p class="toast-message" id="successMessage"></p>
+  </div>
+</div>
+
+<!-- Error Toast -->
+<div class="toast error" id="errorToast">
+  <div class="toast-icon">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <path d="M10 6v4M10 14h.01M19 10a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div class="toast-content">
+    <p class="toast-title">Error</p>
+    <p class="toast-message" id="errorMessage"></p>
+  </div>
+</div>
+
+</body>
+</html>
