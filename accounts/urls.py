@@ -71,4 +71,10 @@ urlpatterns = [
     path("components/add/", views.add_component, name="add_component"),
     path("components/update/<int:component_id>/", views.update_component, name="update_component"),
     path("components/delete/<int:component_id>/", views.delete_component, name="delete_component"),
+    
+    # Profile API endpoints
+    path("api/profile/update-personal/", views.update_personal_info, name="update_personal_info"),
+    path("api/profile/update-academic/", views.update_academic_info, name="update_academic_info"),
+    path("api/profile/update-password/", views.update_password, name="update_password"),
+    path("api/profile/confirm-progression/", views.confirm_progression, name="confirm_progression"),
 ]

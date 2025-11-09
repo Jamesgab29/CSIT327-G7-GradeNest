@@ -8,6 +8,7 @@ from .models import CustomUser, Profile, Quarter, Subject, Component
 from django.core.mail import send_mail
 from django.http import HttpResponse, JsonResponse
 import re
+import json
 
 
 # ---------------- REGISTER ----------------
@@ -725,3 +726,148 @@ def delete_component(request, component_id):
         component.delete()
         return JsonResponse({'success': True})
     return JsonResponse({'error': 'Invalid method'}, status=400)
+
+
+# ------------------- PROFILE API ENDPOINTS -------------------
+
+@login_required
+def update_personal_info(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            first_name = data.get('first_name', '').strip()
+            last_name = data.get('last_name', '').strip()
+            email = data.get('email', '').strip()
+            
+            # Validation
+            if not first_name or not last_name or not email:
+                return JsonResponse({'error': 'All fields are required.'}, status=400)
+            
+            try:
+                validate_email(email)
+            except ValidationError:
+                return JsonResponse({'error': 'Invalid email format.'}, status=400)
+            
+            # Check if email is already taken by another user
+            if CustomUser.objects.filter(email=email).exclude(id=request.user.id).exists():
+                return JsonResponse({'error': 'Email is already taken.'}, status=400)
+            
+            # Update user info
+            user = request.user
+            user.first_name = first_name
+            user.last_name = last_name
+            user.email = email
+            user.full_name = f"{first_name} {last_name}"
+            user.save()
+            
+            return JsonResponse({'success': True, 'message': 'Personal information updated successfully!'})
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON data.'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method.'}, status=405)
+
+
+@login_required
+def update_academic_info(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            grade_level = data.get('grade_level', '').strip()
+            strand = data.get('strand', None)
+            
+            # Validation
+            if not grade_level:
+                return JsonResponse({'error': 'School level is required.'}, status=400)
+            
+            # Get or create profile
+            profile, created = Profile.objects.get_or_create(user=request.user)
+            
+            # Update profile
+            profile.grade_level = grade_level
+            profile.strand = strand
+            profile.save()
+            
+            # Check if progression is needed (simplified logic)
+            progression_required = False
+            completed_year = ""
+            next_level = ""
+            
+            return JsonResponse({
+                'success': True, 
+                'message': 'Academic information updated successfully!',
+                'progression_required': progression_required,
+                'completed_year': completed_year,
+                'next_level': next_level
+            })
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON data.'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method.'}, status=405)
+
+
+@login_required
+def update_password(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            current_password = data.get('current_password', '')
+            new_password = data.get('new_password', '')
+            
+            # Validation
+            if not current_password or not new_password:
+                return JsonResponse({'error': 'Both current and new passwords are required.'}, status=400)
+            
+            # Check current password
+            user = request.user
+            if not user.check_password(current_password):
+                return JsonResponse({'error': 'Current password is incorrect.'}, status=400)
+            
+            # Validate new password strength
+            if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,}$', new_password):
+                return JsonResponse({'error': 'Password must be at least 8 characters long and contain uppercase, lowercase, and numeric characters.'}, status=400)
+            
+            # Update password
+            user.set_password(new_password)
+            user.save()
+            
+            return JsonResponse({'success': True, 'message': 'Password updated successfully!'})
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON data.'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method.'}, status=405)
+
+
+@login_required
+def confirm_progression(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            next_level = data.get('next_level', '').strip()
+            
+            # Validation
+            if not next_level:
+                return JsonResponse({'error': 'Next level is required.'}, status=400)
+            
+            # Get or create profile
+            profile, created = Profile.objects.get_or_create(user=request.user)
+            
+            # Update profile
+            profile.grade_level = next_level
+            profile.save()
+            
+            return JsonResponse({
+                'success': True, 
+                'message': f'Level updated to {next_level} successfully!'
+            })
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON data.'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method.'}, status=405)
