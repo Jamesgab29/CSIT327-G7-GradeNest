@@ -784,15 +784,42 @@ def update_academic_info(request):
             # Get or create profile
             profile, created = Profile.objects.get_or_create(user=request.user)
             
+            # Store the previous grade level for progression check
+            previous_grade_level = profile.grade_level
+            
             # Update profile
             profile.grade_level = grade_level
             profile.strand = strand
             profile.save()
             
-            # Check if progression is needed (simplified logic)
+            # Check if progression is needed
             progression_required = False
             completed_year = ""
             next_level = ""
+            
+            # Define grade progression logic
+            grade_progression = {
+                'Grade 7': 'Grade 8',
+                'Grade 8': 'Grade 9',
+                'Grade 9': 'Grade 10',
+                'Grade 10': 'Grade 11',
+                'Grade 11': 'Grade 12'
+                # Note: Grade 12 is the final level, no progression after that
+            }
+            
+            # Check if the user has progressed to a new grade level
+            if previous_grade_level and previous_grade_level != grade_level:
+                # If the user has manually changed to a higher grade level,
+                # we don't need to show the progression modal
+                pass
+            elif previous_grade_level and previous_grade_level in grade_progression:
+                # Check if user has completed a school year and should progress
+                expected_next_level = grade_progression.get(previous_grade_level)
+                if expected_next_level and grade_level == expected_next_level:
+                    # User has progressed to the next level
+                    completed_year = previous_grade_level
+                    next_level = expected_next_level
+                    progression_required = True
             
             return JsonResponse({
                 'success': True, 
