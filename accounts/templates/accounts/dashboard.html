@@ -351,6 +351,39 @@
   </div>
 </div>
 
+<!-- MAPEH Sub-Area Selection Modal -->
+<div class="modal-overlay" id="mapehSubAreaModal" style="display: none;">
+  <div class="modal-container" style="max-width: 500px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Select MAPEH Sub-Area</h3>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom: 20px; color: #666;">Please select which MAPEH sub-area this component belongs to:</p>
+      <div class="mapeh-sub-area-options" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="mapeh-sub-area-option" data-area="Music" style="padding: 20px; border: 2px solid #e5e7eb; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s;">
+          <div style="font-size: 24px; margin-bottom: 8px;">🎵</div>
+          <div style="font-weight: bold;">Music</div>
+        </div>
+        <div class="mapeh-sub-area-option" data-area="Arts" style="padding: 20px; border: 2px solid #e5e7eb; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s;">
+          <div style="font-size: 24px; margin-bottom: 8px;">🎨</div>
+          <div style="font-weight: bold;">Arts</div>
+        </div>
+        <div class="mapeh-sub-area-option" data-area="Physical Education" style="padding: 20px; border: 2px solid #e5e7eb; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s;">
+          <div style="font-size: 24px; margin-bottom: 8px;">🏃</div>
+          <div style="font-weight: bold;">Physical Education</div>
+        </div>
+        <div class="mapeh-sub-area-option" data-area="Health" style="padding: 20px; border: 2px solid #e5e7eb; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s;">
+          <div style="font-size: 24px; margin-bottom: 8px;">❤️</div>
+          <div style="font-weight: bold;">Health</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" id="btnCancelMapehSubArea">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- Edit Component Modal -->
 <div class="modal-overlay" id="editComponentModal" style="display: none;">
   <div class="modal-container">

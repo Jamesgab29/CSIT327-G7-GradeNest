@@ -1316,6 +1316,8 @@ async function calculateQuarterGWA(quarterId) {
 
 async function showSubjectDetailView(subject) {
   console.log('showSubjectDetailView called with:', subject);
+  console.log('Subject name:', subject.name);
+  console.log('Is subject MAPEH?', subject.name === 'MAPEH');
   console.log('Current quarter:', appState.currentQuarter);
   
   appState.currentSubject = subject;
@@ -1584,6 +1586,8 @@ function updateBreadcrumb() {
     dashItem.classList.add('active');
     return;
   }
+}
+
   
   // Quarter/Subjects breadcrumb
   if (appState.currentQuarter) {
@@ -1630,7 +1634,6 @@ function updateBreadcrumb() {
     subjectItem.textContent = appState.currentSubject;
     breadcrumb.appendChild(subjectItem);
   }
-}
 
 // ==================== MAPEH HANDLING ====================
 
@@ -2878,26 +2881,71 @@ async function loadComponents(quarterId = null, subjectId = null) {
 
 // Open Add Component Modal
 function openAddComponentModal() {
-  console.log('Opening add component modal...');
-  const modal = document.getElementById('addComponentModal');
-  if (!modal) {
-    console.error('Add component modal not found!');
-    return;
+  try {
+    console.log('Opening add component modal...');
+    console.log('Current subject:', appState.currentSubject);
+    
+    // Hide both modals first to ensure only one is shown
+    const regularModal = document.getElementById('addComponentModal');
+    const mapehModal = document.getElementById('mapehSubAreaModal');
+    
+    if (regularModal) {
+      regularModal.style.display = 'none';
+      regularModal.classList.remove('show');
+    }
+    
+    if (mapehModal) {
+      mapehModal.style.display = 'none';
+      mapehModal.classList.remove('show');
+    }
+    
+    // Check if current subject is MAPEH
+    if (appState.currentSubject && appState.currentSubject.name === 'MAPEH') {
+      console.log('Current subject is MAPEH, showing sub-area selection modal');
+      // Show MAPEH sub-area selection modal instead
+      if (mapehModal) {
+        console.log('MAPEH modal found, showing it');
+        
+        // Clear any previous selections
+        document.querySelectorAll('.mapeh-sub-area-option').forEach(option => {
+          option.classList.remove('selected');
+        });
+        
+        // Attach event listeners to MAPEH sub-area options
+        attachMapehSubAreaEventListeners();
+        
+        // Show the modal using the same approach as other modals
+        mapehModal.style.display = '';
+        mapehModal.classList.add('show');
+        
+        console.log('MAPEH modal should be visible now');
+        return;
+      } else {
+        console.error('MAPEH modal not found!');
+      }
+    }
+    
+    console.log('Showing regular add component modal');
+    // Regular component modal for non-MAPEH subjects
+    if (!regularModal) {
+      console.error('Add component modal not found!');
+      return;
+    }
+    
+    // Clear form
+    document.getElementById('componentNameInput').value = '';
+    document.getElementById('componentTypeSelect').value = 'WW';
+    document.getElementById('componentScoreInput').value = '';
+    document.getElementById('componentHighestInput').value = '100';
+    
+    // Show the modal using the same approach as other modals
+    regularModal.style.display = '';
+    regularModal.classList.add('show');
+    
+    console.log('Regular modal should be visible now');
+  } catch (error) {
+    console.error('Error in openAddComponentModal:', error);
   }
-  
-  // Clear form
-  document.getElementById('componentNameInput').value = '';
-  document.getElementById('componentTypeSelect').value = 'WW';
-  document.getElementById('componentScoreInput').value = '';
-  document.getElementById('componentHighestInput').value = '100';
-  
-  // Simply remove display:none and let CSS handle the rest
-  modal.style.display = '';
-  modal.classList.add('show');
-  
-  console.log('Modal should be visible now');
-  console.log('Modal display:', window.getComputedStyle(modal).display);
-  console.log('Modal z-index:', window.getComputedStyle(modal).zIndex);
 }
 
 // Add Component with values
@@ -2945,7 +2993,7 @@ async function addComponentWithValues(name, type, score, highest) {
   }
 }
 
-// Add Component
+// Modify the addComponent function to handle MAPEH components
 async function addComponent() {
   console.log('addComponent function called!');
   const name = document.getElementById('componentNameInput').value.trim();
@@ -2987,7 +3035,14 @@ async function addComponent() {
     const formData = new FormData();
     formData.append('quarter_id', appState.currentQuarter.id);
     formData.append('subject_id', appState.currentSubject.id);
-    formData.append('name', name);
+    
+    // If this is a MAPEH component, prefix the name with the sub-area
+    if (appState.currentSubject.name === 'MAPEH' && appState.currentMAPEHArea) {
+      formData.append('name', `${appState.currentMAPEHArea} - ${name}`);
+    } else {
+      formData.append('name', name);
+    }
+    
     formData.append('component_type', type);
     formData.append('score', score);
     formData.append('highest_score', highest);
@@ -2996,7 +3051,8 @@ async function addComponent() {
     console.log('Sending request to /components/add/ with data:', {
       quarter_id: appState.currentQuarter.id,
       subject_id: appState.currentSubject.id,
-      name, type, score, highest
+      name: appState.currentSubject.name === 'MAPEH' && appState.currentMAPEHArea ? `${appState.currentMAPEHArea} - ${name}` : name,
+      type, score, highest
     });
     
     const response = await fetch('/components/add/', {
@@ -3035,6 +3091,101 @@ async function addComponent() {
   }
 }
 
+// Open regular add component modal (without MAPEH check)
+function openRegularAddComponentModal() {
+  console.log('Opening regular add component modal...');
+  const modal = document.getElementById('addComponentModal');
+  if (!modal) {
+    console.error('Add component modal not found!');
+    return;
+  }
+  
+  // Clear form
+  document.getElementById('componentNameInput').value = '';
+  document.getElementById('componentTypeSelect').value = 'WW';
+  document.getElementById('componentScoreInput').value = '';
+  document.getElementById('componentHighestInput').value = '100';
+  
+  // Simply remove display:none and let CSS handle the rest
+  modal.style.display = '';
+  modal.classList.add('show');
+  
+  console.log('Modal should be visible now');
+}
+
+// Attach event listeners to MAPEH sub-area options
+function attachMapehSubAreaEventListeners() {
+  console.log('Attaching MAPEH sub-area event listeners');
+  
+  // Add click listeners to MAPEH sub-area options
+  document.querySelectorAll('.mapeh-sub-area-option').forEach(option => {
+    // Remove any existing event listeners by cloning
+    const newOption = option.cloneNode(true);
+    option.parentNode.replaceChild(newOption, option);
+    
+    // Add click listener
+    newOption.addEventListener('click', function() {
+      console.log('MAPEH sub-area clicked:', this.getAttribute('data-area'));
+      
+      // Add selected class to clicked option
+      this.classList.add('selected');
+      
+      // Get the selected area
+      const selectedArea = this.getAttribute('data-area');
+      console.log('Selected MAPEH area:', selectedArea);
+      
+      // Store the selected area in appState
+      appState.currentMAPEHArea = selectedArea;
+      
+      // Close the MAPEH modal
+      const mapehModal = document.getElementById('mapehSubAreaModal');
+      mapehModal.style.display = 'none';
+      mapehModal.classList.remove('show');
+      
+      // Open the regular add component modal
+      openRegularAddComponentModal();
+    });
+  });
+  
+  // Cancel button for MAPEH modal
+  const cancelBtn = document.getElementById('btnCancelMapehSubArea');
+  if (cancelBtn) {
+    // Remove existing listener by cloning
+    const newCancelBtn = cancelBtn.cloneNode(true);
+    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+    
+    // Add new listener
+    newCancelBtn.addEventListener('click', function() {
+      console.log('MAPEH modal cancel button clicked');
+      const mapehModal = document.getElementById('mapehSubAreaModal');
+      mapehModal.style.display = 'none';
+      mapehModal.classList.remove('show');
+    });
+  }
+}
+
+// Open regular add component modal (without MAPEH check)
+function openRegularAddComponentModal() {
+  console.log('Opening regular add component modal...');
+  const modal = document.getElementById('addComponentModal');
+  if (!modal) {
+    console.error('Add component modal not found!');
+    return;
+  }
+  
+  // Clear form
+  document.getElementById('componentNameInput').value = '';
+  document.getElementById('componentTypeSelect').value = 'WW';
+  document.getElementById('componentScoreInput').value = '';
+  document.getElementById('componentHighestInput').value = '100';
+  
+  // Show the modal using a simple approach
+  modal.style.display = 'flex';
+  modal.classList.add('show');
+  
+  console.log('Modal should be visible now');
+}
+
 // Open Edit Component Modal
 function openEditComponentModal(component) {
   console.log('Opening edit modal for component:', component);
@@ -3050,13 +3201,12 @@ function openEditComponentModal(component) {
   document.getElementById('editComponentTypeSelect').value = component.component_type;
   document.getElementById('editComponentScoreInput').value = component.score;
   document.getElementById('editComponentHighestInput').value = component.highest_score;
+}
+
   
   // Show modal (remove display:none and add show class)
   modal.style.display = '';
   modal.classList.add('show');
-  
-  console.log('Edit modal should be visible now');
-}
 
 // Update Component
 async function updateComponent() {
