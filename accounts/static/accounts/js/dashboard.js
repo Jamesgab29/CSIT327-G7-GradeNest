@@ -546,7 +546,9 @@ async function initializeGradeStructure(profile) {
         id: q.id,
         name: q.name,
         gwa: null,
-        marked: false,
+        // reflect backend completion status
+        marked: q.is_completed === true,
+        is_completed: q.is_completed === true,
         subjects: {}
       }));
     } else {
@@ -636,7 +638,8 @@ async function initializeGradeStructure(profile) {
             name: q.name,
             semester: q.semester,
             gwa: null,
-            marked: false,
+            marked: q.is_completed === true,
+            is_completed: q.is_completed === true,
             subjects: {}
           })),
           finalGrade: null
@@ -648,7 +651,8 @@ async function initializeGradeStructure(profile) {
             name: q.name,
             semester: q.semester,
             gwa: null,
-            marked: false,
+            marked: q.is_completed === true,
+            is_completed: q.is_completed === true,
             subjects: {}
           })),
           finalGrade: null
@@ -1297,12 +1301,12 @@ async function calculateQuarterGWA(quarterId) {
     }
     
     console.log('Subject grades:', subjectGrades);
-    
-    if (subjectGrades.length === 0) {
-      return null; // No grades calculated yet
+    // New rule: GWA is computed only if ALL required subject grades are present
+    if (subjectGrades.length !== subjects.length) {
+      return null; // Missing or invalid grades for one or more subjects
     }
     
-    // Calculate average
+    // Calculate average across all subjects
     const sum = subjectGrades.reduce((total, grade) => total + grade, 0);
     const gwa = sum / subjectGrades.length;
     
@@ -1346,16 +1350,20 @@ async function showSubjectDetailView(subject) {
   
   container.innerHTML = '';
   
-  if (components.length === 0) {
-    container.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #666;">No components yet. Click "Add Component" to get started!</td></tr>';
+  // Only render the active tab's components to keep sections separate
+  const activeType = activeComponentTab || 'WW';
+  const typeLabels = { WW: '📝 Written Works (WW)', PT: '🎯 Performance Tasks (PT)', QA: '📊 Quarterly Assessment (QA)' };
+  const filtered = components.filter(c => c.component_type === activeType);
+
+  // Header row for the active type
+  const headerRow = document.createElement('tr');
+  headerRow.innerHTML = `<td colspan="6" style="background: #f3f4f6; font-weight: bold; padding: 12px;">${typeLabels[activeType]}</td>`;
+  container.appendChild(headerRow);
+
+  if (filtered.length === 0) {
+    container.innerHTML += '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #666;">No components yet. Click "Add Component" to get started!</td></tr>';
   } else {
-    // Group components by type for better display
-    const wwComponents = components.filter(c => c.component_type === 'WW');
-    const ptComponents = components.filter(c => c.component_type === 'PT');
-    const qaComponents = components.filter(c => c.component_type === 'QA');
-    
-    // Helper function to create component row with actions
-    const createComponentRow = (comp) => {
+    const createComponentRow = (comp, disableActions=false) => {
       const row = document.createElement('tr');
       const percentage = (comp.score / comp.highest_score * 100).toFixed(2);
       row.innerHTML = `
@@ -1365,95 +1373,29 @@ async function showSubjectDetailView(subject) {
         <td>${comp.highest_score}</td>
         <td>${percentage}%</td>
         <td>
-          <button class="btn-edit-component" data-id="${comp.id}" style="background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-right: 6px; font-size: 12px;">Edit</button>
-          <button class="btn-delete-component" data-id="${comp.id}" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">Delete</button>
+          <button class="btn-edit-component" data-id="${comp.id}" style="background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-right: 6px; font-size: 12px;" ${disableActions ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Edit</button>
+          <button class="btn-delete-component" data-id="${comp.id}" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;" ${disableActions ? 'disabled style=\"opacity:0.5;cursor:not-allowed;\"' : ''}>Delete</button>
         </td>
       `;
-      
-      // Add event listeners
-      const editBtn = row.querySelector('.btn-edit-component');
-      const deleteBtn = row.querySelector('.btn-delete-component');
-      
-      editBtn.addEventListener('click', () => openEditComponentModal(comp));
-      deleteBtn.addEventListener('click', () => deleteComponent(comp.id));
-      
+      if (!disableActions) {
+        row.querySelector('.btn-edit-component').addEventListener('click', () => openEditComponentModal(comp));
+        row.querySelector('.btn-delete-component').addEventListener('click', () => deleteComponent(comp.id));
+      }
       return row;
     };
-    
-    // Render Written Works
-    if (wwComponents.length > 0) {
-      const headerRow = document.createElement('tr');
-      headerRow.innerHTML = '<td colspan="6" style="background: #f3f4f6; font-weight: bold; padding: 12px;">📝 Written Works (WW)</td>';
-      container.appendChild(headerRow);
-      
-      wwComponents.forEach(comp => {
-        container.appendChild(createComponentRow(comp));
-      });
-      
-      // Add WW average
-      if (gradeData.wwAverage !== null) {
-        const avgRow = document.createElement('tr');
-        avgRow.innerHTML = `
-          <td colspan="5" style="text-align: right; font-weight: bold; padding-right: 20px; background: #fafafa;">WW Average:</td>
-          <td style="font-weight: bold; background: #fafafa;">${gradeData.wwAverage.toFixed(2)}%</td>
-        `;
-        container.appendChild(avgRow);
-      }
-    }
-    
-    // Render Performance Tasks
-    if (ptComponents.length > 0) {
-      const headerRow = document.createElement('tr');
-      headerRow.innerHTML = '<td colspan="6" style="background: #f3f4f6; font-weight: bold; padding: 12px;">🎯 Performance Tasks (PT)</td>';
-      container.appendChild(headerRow);
-      
-      ptComponents.forEach(comp => {
-        container.appendChild(createComponentRow(comp));
-      });
-      
-      // Add PT average
-      if (gradeData.ptAverage !== null) {
-        const avgRow = document.createElement('tr');
-        avgRow.innerHTML = `
-          <td colspan="5" style="text-align: right; font-weight: bold; padding-right: 20px; background: #fafafa;">PT Average:</td>
-          <td style="font-weight: bold; background: #fafafa;">${gradeData.ptAverage.toFixed(2)}%</td>
-        `;
-        container.appendChild(avgRow);
-      }
-    }
-    
-    // Render Quarterly Assessment
-    if (qaComponents.length > 0) {
-      const headerRow = document.createElement('tr');
-      headerRow.innerHTML = '<td colspan="6" style="background: #f3f4f6; font-weight: bold; padding: 12px;">📊 Quarterly Assessment (QA)</td>';
-      container.appendChild(headerRow);
-      
-      qaComponents.forEach(comp => {
-        container.appendChild(createComponentRow(comp));
-      });
-      
-      // Add QA score
-      if (gradeData.qaAverage !== null) {
-        const avgRow = document.createElement('tr');
-        avgRow.innerHTML = `
-          <td colspan="5" style="text-align: right; font-weight: bold; padding-right: 20px; background: #fafafa;">QA Score:</td>
-          <td style="font-weight: bold; background: #fafafa;">${gradeData.qaAverage.toFixed(2)}%</td>
-        `;
-        container.appendChild(avgRow);
-      }
-    }
-    
-    // Add final grade summary
-    if (gradeData.initialGrade !== null) {
-      const summaryRow = document.createElement('tr');
-      summaryRow.innerHTML = `
-        <td colspan="6" style="background: #e0f2fe; padding: 16px; text-align: center;">
-          <strong style="font-size: 16px;">Initial Grade: ${gradeData.initialGrade.toFixed(2)}</strong>
-          <span style="margin: 0 20px;">|</span>
-          <strong style="font-size: 16px; color: #0369a1;">Transmuted Grade: ${gradeData.transmutedGrade}</strong>
-        </td>
+
+    const finalized = appState.yearFinalized === true;
+    filtered.forEach(comp => container.appendChild(createComponentRow(comp, finalized)));
+
+    // Add type average row
+    const typeAverage = activeType === 'WW' ? gradeData.wwAverage : activeType === 'PT' ? gradeData.ptAverage : gradeData.qaAverage;
+    if (typeAverage !== null && typeAverage !== undefined) {
+      const avgRow = document.createElement('tr');
+      avgRow.innerHTML = `
+        <td colspan="5" style="text-align: right; font-weight: bold; padding-right: 20px; background: #fafafa;">Average:</td>
+        <td style="font-weight: bold; background: #fafafa;">${typeAverage.toFixed(2)}%</td>
       `;
-      container.appendChild(summaryRow);
+      container.appendChild(avgRow);
     }
   }
   
@@ -1469,9 +1411,23 @@ async function showSubjectDetailView(subject) {
     // Add new listener
     newBtn.addEventListener('click', () => {
       console.log('Add Component button clicked!');
+      // Respect finalization: prevent adding when finalized
+      if (appState.yearFinalized === true) return;
       openAddComponentModal();
     });
+    // Disable button when finalized
+    if (appState.yearFinalized === true) {
+      newBtn.disabled = true;
+      newBtn.style.opacity = '0.6';
+      newBtn.style.cursor = 'not-allowed';
+    }
   }
+
+  // Ensure component tabs reflect active selection and will re-render this view
+  document.querySelectorAll('.component-tab').forEach(tab => {
+    if (tab.dataset.component === activeComponentTab) tab.classList.add('active');
+    else tab.classList.remove('active');
+  });
 }
 
 function updateGradeCircles(initialGrade, transmutedGrade) {
@@ -1631,7 +1587,10 @@ function updateBreadcrumb() {
     
     const subjectItem = document.createElement('span');
     subjectItem.className = 'breadcrumb-item active';
-    subjectItem.textContent = appState.currentSubject;
+    // Ensure we show the subject's name, not [object Object]
+    subjectItem.textContent = (typeof appState.currentSubject === 'object' && appState.currentSubject !== null)
+      ? (appState.currentSubject.name || '')
+      : (appState.currentSubject || '');
     breadcrumb.appendChild(subjectItem);
   }
 
@@ -2245,25 +2204,44 @@ function updateOverallGwa(profile) {
     remarkElement.style.opacity = '0.6';
   }
   
-  // Check if all quarters/semesters are marked as complete
+  // Determine completion: quarters considered complete when GWA is computed
   const allQuarters = profile.isSHS
-    ? appState.semesters.flatMap(s => s.quarters)
-    : appState.quarters;
-  const allQuartersCompleted = allQuarters.every(q => q.marked);
-  
-  // Update hint text and button state based on completion status
-  if (allQuartersCompleted && hasGwa) {
-    buttonHint.textContent = 'All quarters completed';
-    buttonHint.classList.remove('hidden');
+    ? (appState.semesters.flatMap(s => s.quarters) || [])
+    : (appState.quarters || []);
+  const allQuartersCompleted = allQuarters.length > 0 && allQuarters.every(q => typeof q.gwa === 'number' && !isNaN(q.gwa));
+
+  // Update current/most recent completed term label
+  const termLabelEl = document.getElementById('currentTermLabel');
+  if (termLabelEl) {
+    let recent = null;
+    const list = profile.isSHS ? allQuarters : appState.quarters;
+    if (list && list.length) {
+      // find last quarter with a computed gwa
+      for (let i = list.length - 1; i >= 0; i--) {
+        if (typeof list[i].gwa === 'number') { recent = list[i]; break; }
+      }
+    }
+    termLabelEl.textContent = recent ? `Viewing: ${recent.name}` : '';
+  }
+
+  // Update hint text and button state based on completion status and finalization
+  const finalized = appState.yearFinalized === true;
+  buttonHint.classList.remove('hidden');
+  if (finalized) {
+    buttonHint.textContent = 'School year finalized';
     markDoneBtn.disabled = true;
     markDoneBtn.style.opacity = '0.6';
     markDoneBtn.style.cursor = 'not-allowed';
-  } else {
-    buttonHint.textContent = 'All quarters not yet completed';
-    buttonHint.classList.remove('hidden');
+  } else if (allQuartersCompleted) {
+    buttonHint.textContent = 'All terms completed. You can finalize.';
     markDoneBtn.disabled = false;
     markDoneBtn.style.opacity = '1';
     markDoneBtn.style.cursor = 'pointer';
+  } else {
+    buttonHint.textContent = 'All terms must be completed to finalize.';
+    markDoneBtn.disabled = true;
+    markDoneBtn.style.opacity = '0.6';
+    markDoneBtn.style.cursor = 'not-allowed';
   }
   
   // Update quarter cards if on dashboard
@@ -2310,15 +2288,31 @@ function setupYearCompleteModal() {
   
   // Show modal when Mark Year Complete button is clicked
   markDoneBtn.addEventListener('click', () => {
-    // Check if all quarters are completed
-    const allQuartersCompleted = appState.quarters.every(q => q.marked);
-    
+    // Determine completion based on GWA presence
+    const profile = window.userProfile;
+    const allQuarters = profile.isSHS
+      ? (appState.semesters.flatMap(s => s.quarters) || [])
+      : (appState.quarters || []);
+    const allQuartersCompleted = allQuarters.length > 0 && allQuarters.every(q => typeof q.gwa === 'number' && !isNaN(q.gwa));
+
+    const titleEl = modal.querySelector('.modal-title');
+    const messageEl = modal.querySelector('.modal-message');
+    const warningEl = modal.querySelector('.modal-warning');
+
     if (!allQuartersCompleted) {
-      // Show warning modal
+      // Error modal
+      if (titleEl) titleEl.textContent = '⚠️ Cannot Finalize';
+      if (messageEl) messageEl.textContent = 'All terms must be completed before marking the School Year as done.';
+      if (warningEl) warningEl.textContent = '';
+      btnConfirm.style.display = 'none';
       modal.classList.add('show');
     } else {
-      // If all quarters are complete, mark directly
-      markSchoolYearComplete();
+      // Confirmation modal
+      if (titleEl) titleEl.textContent = '✅ Confirm Year Completion';
+      if (messageEl) messageEl.textContent = 'Are you sure you want to finalize this school year? This will prevent further editing.';
+      if (warningEl) warningEl.textContent = 'This action cannot be undone.';
+      btnConfirm.style.display = '';
+      modal.classList.add('show');
     }
   });
   
@@ -2352,18 +2346,17 @@ function markSchoolYearComplete() {
   const markDoneBtn = document.getElementById('markDoneBtn');
   const buttonHint = document.getElementById('buttonHint');
   const remarkElement = document.getElementById('overallRemark');
-  
-  // Mark all quarters as complete
-  appState.quarters.forEach(q => q.marked = true);
-  
-  // Save to localStorage
-  localStorage.setItem('gradeData', JSON.stringify(appState));
+
+  // Finalize the school year in app state
+  appState.yearFinalized = true;
+  try { localStorage.setItem('gradeData', JSON.stringify(appState)); } catch (e) {}
   
   // Update UI
   markDoneBtn.disabled = true;
   markDoneBtn.style.opacity = '0.6';
   markDoneBtn.style.cursor = 'not-allowed';
   buttonHint.classList.remove('hidden');
+  buttonHint.textContent = 'School year finalized';
   
   // Update remark message
   if (appState.overallGwa > 0) {
@@ -2425,7 +2418,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   updateOverallGwa(profile);
   setupProfileDropdown();
   setupYearCompleteModal();
-  updateSidebarStats(profile); // Add sidebar stats update
+  updateSidebarStats(profile); // Initial sidebar stats
+  await refreshYearProgress(); // Fetch backend quarter statuses and update progress
   await loadSubjects(); // Load subjects for dropdowns
   await loadComponents(); // Load components
   
@@ -2603,7 +2597,10 @@ document.getElementById('backToSubjects').addEventListener('click', () => {
   
   const btnConfirmEditComponent = document.getElementById('btnConfirmEditComponent');
   if (btnConfirmEditComponent) {
-    btnConfirmEditComponent.addEventListener('click', updateComponent);
+    btnConfirmEditComponent.addEventListener('click', async () => {
+      await updateComponent();
+      await refreshYearProgress();
+    });
   }
   
   // Close modals when clicking outside
@@ -2777,7 +2774,12 @@ function switchComponentTab(componentType) {
   if (appState.currentSubject === 'MAPEH') {
     renderMAPEHAreaComponents();
   } else {
-    renderComponents();
+    // If we're in subject detail view (backend-driven), re-render that view
+    if (appState.currentView === 'subjectDetail' && appState.currentSubject) {
+      showSubjectDetailView(appState.currentSubject);
+    } else {
+      renderComponents();
+    }
   }
 }
 
@@ -2795,14 +2797,15 @@ function updateSidebarStats(profile) {
       sidebarGwa.textContent = '--';
     }
     
-    // Calculate year progress based on completed quarters
+    // Calculate year progress based on backend-computed quarter completion
     const allQuarters = profile.isSHS
-      ? appState.semesters.flatMap(s => s.quarters)
-      : appState.quarters;
-    const completedQuarters = allQuarters.filter(q => q.marked).length;
-    const totalQuarters = allQuarters.length || 4;
+      ? (appState.semesters.flatMap(s => s.quarters) || [])
+      : (appState.quarters || []);
+    const completedQuarters = allQuarters.filter(q => q.is_completed === true || q.marked === true).length;
+    const totalQuarters = 4; // Always 4 per school year
     const progress = Math.round((completedQuarters / totalQuarters) * 100);
-    sidebarProgress.textContent = `${progress}%`;
+    appState.yearProgress = progress;
+    sidebarProgress.textContent = `${isFinite(progress) ? progress : 0}%`;
     
     // Update goals count (placeholder - integrate with actual goals system)
     if (goalsCount) {
@@ -2938,8 +2941,8 @@ function openAddComponentModal() {
     document.getElementById('componentScoreInput').value = '';
     document.getElementById('componentHighestInput').value = '100';
     
-    // Show the modal using the same approach as other modals
-    regularModal.style.display = '';
+    // Show the modal consistently
+    regularModal.style.display = 'flex';
     regularModal.classList.add('show');
     
     console.log('Regular modal should be visible now');
@@ -3005,6 +3008,14 @@ async function addComponent() {
   
   if (!name || isNaN(score) || isNaN(highest)) {
     alert('Please fill in all fields correctly');
+    return;
+  }
+  if (score < 0 || highest < 0) {
+    alert('Scores cannot be negative');
+    return;
+  }
+  if (highest === 0) {
+    alert('Highest possible score must be greater than zero');
     return;
   }
   
@@ -3082,6 +3093,7 @@ async function addComponent() {
       document.getElementById('addComponentModal').classList.remove('show');
       // Reload subject view to show new component
       await showSubjectDetailView(appState.currentSubject);
+      await refreshYearProgress();
     } else {
       alert('Failed to add component: ' + (data.error || 'Unknown error'));
     }
@@ -3279,12 +3291,52 @@ async function deleteComponent(componentId) {
     const data = await response.json();
     if (data.success) {
       // Reload subject view to remove deleted component
-      showSubjectDetailView(appState.currentSubject);
+      await showSubjectDetailView(appState.currentSubject);
+      await refreshYearProgress();
     } else {
       alert('Failed to delete component: ' + (data.error || 'Unknown error'));
     }
   } catch (error) {
     console.error('Error deleting component:', error);
     alert('Failed to delete component');
+  }
+}
+
+// Refresh year progress from backend quarters status and update UI
+async function refreshYearProgress() {
+  try {
+    const quartersData = await loadQuarters();
+    if (!quartersData || quartersData.length === 0) {
+      document.getElementById('sidebarProgress').textContent = '0%';
+      return;
+    }
+    // Update appState quarters completion flags
+    const profile = window.userProfile;
+    if (profile.isSHS) {
+      // Map by id for quick update
+      const byId = Object.fromEntries(quartersData.map(q => [q.id, q]));
+      (appState.semesters || []).forEach(sem => {
+        (sem.quarters || []).forEach(q => {
+          const backend = byId[q.id];
+          if (backend) {
+            q.is_completed = backend.is_completed === true;
+            q.marked = backend.is_completed === true;
+          }
+        });
+      });
+    } else {
+      appState.quarters = quartersData.map(q => ({
+        id: q.id,
+        name: q.name,
+        gwa: (appState.quarters.find(x => x.id === q.id) || {}).gwa || null,
+        marked: q.is_completed === true,
+        is_completed: q.is_completed === true,
+        subjects: (appState.quarters.find(x => x.id === q.id) || {}).subjects || {}
+      }));
+    }
+    // Update sidebar now
+    updateSidebarStats(profile);
+  } catch (e) {
+    console.error('Failed to refresh year progress:', e);
   }
 }

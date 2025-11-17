@@ -458,6 +458,8 @@ function showFieldError(fieldId, message) {
     const errorSpan = document.getElementById(`${fieldId}Error`);
     
     input.classList.add('error');
+    const group = input.closest('.form-group');
+    if (group) group.classList.add('has-error');
     errorSpan.textContent = message;
 }
 
@@ -467,6 +469,9 @@ function clearFormErrors(form) {
     
     const errors = form.querySelectorAll('.form-error');
     errors.forEach(error => error.textContent = '');
+
+    const groups = form.querySelectorAll('.form-group.has-error');
+    groups.forEach(group => group.classList.remove('has-error'));
 }
 
 function showSuccessToast(message) {
