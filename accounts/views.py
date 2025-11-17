@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from .models import CustomUser, Profile, Quarter, Subject, Component
 from django.core.mail import send_mail
 from django.http import HttpResponse, JsonResponse
+from django.db.models import F
 import re
 import json
 
@@ -555,8 +556,31 @@ def test_email(request):
 
 @login_required
 def quarters_list(request):
-    quarters = Quarter.objects.filter(user=request.user).values('id', 'name', 'semester')
-    return JsonResponse({'quarters': list(quarters)})
+    quarters = Quarter.objects.filter(user=request.user).order_by('id')
+    data = []
+    for q in quarters:
+        subjects = Subject.objects.filter(quarter=q).values_list('id', flat=True)
+        is_completed = True
+        for sid in subjects:
+            has_ww = Component.objects.filter(
+                quarter=q, subject_id=sid, component_type='WW', score__gte=0, highest_score__gt=0
+            ).filter(score__lte=F('highest_score')).exists()
+            has_pt = Component.objects.filter(
+                quarter=q, subject_id=sid, component_type='PT', score__gte=0, highest_score__gt=0
+            ).filter(score__lte=F('highest_score')).exists()
+            has_qa = Component.objects.filter(
+                quarter=q, subject_id=sid, component_type='QA', score__gte=0, highest_score__gt=0
+            ).filter(score__lte=F('highest_score')).exists()
+            if not (has_ww and has_pt and has_qa):
+                is_completed = False
+                break
+        data.append({
+            'id': q.id,
+            'name': q.name,
+            'semester': q.semester,
+            'is_completed': is_completed
+        })
+    return JsonResponse({'quarters': data})
 
 @login_required
 def add_quarter(request):
@@ -661,10 +685,23 @@ def add_component(request):
     if request.method == 'POST':
         quarter_id = request.POST.get('quarter_id')
         subject_id = request.POST.get('subject_id')
-        name = request.POST.get('name')
-        score = float(request.POST.get('score', 0))
-        highest_score = float(request.POST.get('highest_score', 100))
-        component_type = request.POST.get('component_type', 'WW')
+        name = (request.POST.get('name') or '').strip()
+        component_type = (request.POST.get('component_type') or 'WW').strip()
+
+        # Validate numeric inputs safely
+        try:
+            score = float(request.POST.get('score', '0'))
+            highest_score = float(request.POST.get('highest_score', '100'))
+        except (TypeError, ValueError):
+            return JsonResponse({'error': 'Score and Highest Score must be numeric values.'}, status=400)
+
+        # Business validation
+        if score < 0 or highest_score < 0:
+            return JsonResponse({'error': 'Scores cannot be negative.'}, status=400)
+        if highest_score == 0:
+            return JsonResponse({'error': 'Highest Score must be greater than zero.'}, status=400)
+        if score > highest_score:
+            return JsonResponse({'error': 'Score cannot exceed Highest Score.'}, status=400)
 
         if quarter_id and subject_id and name:
             quarter = get_object_or_404(Quarter, id=quarter_id)
@@ -700,10 +737,29 @@ def update_component(request, component_id):
         
         if name:
             component.name = name
+        # Validate numeric fields when provided
         if score is not None:
-            component.score = float(score)
+            try:
+                score_val = float(score)
+            except (TypeError, ValueError):
+                return JsonResponse({'error': 'Score must be a numeric value.'}, status=400)
+            if score_val < 0:
+                return JsonResponse({'error': 'Score cannot be negative.'}, status=400)
+            # If highest_score also provided below, full comparison done after parsing both
+            component.score = score_val
         if highest_score is not None:
-            component.highest_score = float(highest_score)
+            try:
+                hps_val = float(highest_score)
+            except (TypeError, ValueError):
+                return JsonResponse({'error': 'Highest Score must be a numeric value.'}, status=400)
+            if hps_val < 0:
+                return JsonResponse({'error': 'Highest Score cannot be negative.'}, status=400)
+            if hps_val == 0:
+                return JsonResponse({'error': 'Highest Score must be greater than zero.'}, status=400)
+            component.highest_score = hps_val
+        # Ensure score does not exceed highest_score after potential updates
+        if component.score is not None and component.highest_score is not None and component.score > component.highest_score:
+            return JsonResponse({'error': 'Score cannot exceed Highest Score.'}, status=400)
         if component_type:
             component.component_type = component_type
             

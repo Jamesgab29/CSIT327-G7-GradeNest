@@ -41,7 +41,7 @@
         <img src="{% static 'accounts/img/profile-icon.png' %}" alt="Profile" />
       </div>
       <div class="user-info">
-        <span class="user-name">{{ user.first_name }}</span>
+        <span class="user-name">{{ user.full_name|default:"User" }}</span>
         <span class="user-level">{{ profile.grade_level|default:"Grade 7" }}</span>
       </div>
     </div>
@@ -124,13 +124,14 @@
       <!-- Compact Header -->
       <div class="dashboard-header-compact">
         <div class="welcome-section">
-          <h1 class="welcome-text">Welcome back, <span class="user-highlight">{{ user.first_name }}</span>! 👋</h1>
+          <h1 class="welcome-text">Welcome back, <span class="user-highlight">{{ user.full_name|default:"User" }}</span>! 👋</h1>
           <p class="date-badge" id="currentDate"></p>
         </div>
         <div class="school-year-pill">
           <span class="sy-icon">📅</span>
           <span class="sy-text">{{ profile.school_year|default:"2024-2025" }}</span>
         </div>
+        <div id="currentTermLabel" style="margin-top:8px;color:#374151;font-size:14px;"></div>
       </div>
 
       <!-- Main Dashboard Grid -->

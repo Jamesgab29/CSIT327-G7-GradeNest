@@ -202,6 +202,17 @@
     box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
 }
 
+/* Unified error styling across sections */
+.form-group.has-error .form-label {
+    color: #b91c1c;
+}
+
+.form-group.has-error .form-input,
+.form-group.has-error .form-select {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
+}
+
 .form-error {
     display: block;
     font-size: 13px;
