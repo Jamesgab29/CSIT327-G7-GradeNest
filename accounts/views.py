@@ -754,8 +754,6 @@ def update_personal_info(request):
             
             # Update user info
             user = request.user
-            user.first_name = first_name
-            user.last_name = last_name
             user.email = email
             user.full_name = f"{first_name} {last_name}"
             user.save()

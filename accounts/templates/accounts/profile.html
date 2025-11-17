@@ -174,7 +174,7 @@
                   id="firstName" 
                   name="firstName" 
                   class="form-input"
-                  value="{{ user.first_name }}"
+                  value="{{ user.first_name|default:user.full_name|default:'' }}"
                   required
                 />
                 <span class="form-error" id="firstNameError"></span>
@@ -191,7 +191,7 @@
                   id="lastName" 
                   name="lastName" 
                   class="form-input"
-                  value="{{ user.last_name }}"
+                  value="{{ user.last_name|default:'' }}"
                   required
                 />
                 <span class="form-error" id="lastNameError"></span>
