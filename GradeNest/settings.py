@@ -117,6 +117,7 @@ LOGOUT_REDIRECT_URL = "accounts:login"
 LOGIN_URL = "accounts:login"
 
 # SendGrid email configuration for password reset (with SendGrid SMTP settings)
+SENDGRID_API_KEY= os.getenv("SENDGRID_API_KEY") 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.sendgrid.net"
 EMAIL_PORT = 2525
