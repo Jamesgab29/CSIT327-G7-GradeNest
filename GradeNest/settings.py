@@ -117,14 +117,13 @@ LOGOUT_REDIRECT_URL = "accounts:login"
 LOGIN_URL = "accounts:login"
 
 # SendGrid email configuration for password reset (with SendGrid SMTP settings)
-SENDGRID_API_KEY= os.getenv("SENDGRID_API_KEY") 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.sendgrid.net"
 EMAIL_PORT = 2525
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "apikey"  # Use 'apikey' for SendGrid SMTP
-EMAIL_HOST_PASSWORD = os.getenv("SENDGRID_API_KEY")  # Fetch the API key from the .env file
-DEFAULT_FROM_EMAIL = "gradeneste@gmail.com"  # Replace with your verified SendGrid sender email
+EMAIL_HOST_USER = "apikey"  # SendGrid requires "apikey" as the user
+EMAIL_HOST_PASSWORD = os.getenv("SENDGRID_API_KEY")  # Your SendGrid API Key from .env
+DEFAULT_FROM_EMAIL = os.getenv("SENDGRID_SENDER_EMAIL")  # Use your verified SendGrid email
 
 SECURE_SSL_REDIRECT = False  # Disable SSL redirect for local development
 
