@@ -32,7 +32,7 @@ INSTALLED_APPS = [
 # Middleware configuration
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # <-- WhiteNoise for static files
+    "whitenoise.middleware.WhiteNoiseMiddleware",  
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -127,7 +127,8 @@ EMAIL_HOST_USER = "apikey"  # SendGrid requires "apikey" as the user
 EMAIL_HOST_PASSWORD = os.getenv("SENDGRID_API_KEY")  # Your SendGrid API Key from .env
 DEFAULT_FROM_EMAIL = os.getenv("SENDGRID_SENDER_EMAIL")  # Use your verified SendGrid email
 
-SECURE_SSL_REDIRECT = False  # Disable SSL redirect for local development
+# For local development, don't force SSL
+SECURE_SSL_REDIRECT = False if not os.getenv("DJANGO_SECURE_SSL_REDIRECT", "True").lower() == "true" else True
 
 # For production (on Render), you can set this to True in the environment
 if os.getenv("DJANGO_SECURE_SSL_REDIRECT", "True").lower() == "true":
