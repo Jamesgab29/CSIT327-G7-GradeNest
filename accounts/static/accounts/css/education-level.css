@@ -323,7 +323,7 @@ body::after {
     height: 100%;
     background: var(--gradient-primary);
     transition: left 0.4s ease;
-    z-index: 0;
+    z-index: -1; /* ensure overlay stays behind text */
 }
 
 .level-btn span {
@@ -414,6 +414,25 @@ body::after {
     background: white;
     color: var(--neutral-700);
     padding: 12px;
+}
+
+/* Inline error styling to match profile/settings */
+.input-group.has-error label {
+    color: #b91c1c;
+}
+
+.form-select.error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
+}
+
+.form-error {
+    display: block;
+    font-size: 13px;
+    color: #ef4444;
+    margin-top: 6px;
+    min-height: 18px;
+    font-weight: 500;
 }
 
 /* Hide strand group initially */

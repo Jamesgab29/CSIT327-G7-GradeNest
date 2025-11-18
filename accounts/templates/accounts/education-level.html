@@ -38,11 +38,11 @@
 
         <!-- ✅ JHS / SHS Buttons -->
         <div class="level-buttons">
-          <button type="button" class="level-btn" data-level="jhs">Junior High School</button>
-          <button type="button" class="level-btn" data-level="shs">Senior High School</button>
+          <button type="button" class="level-btn" data-level="jhs"><span>Junior High School</span></button>
+          <button type="button" class="level-btn" data-level="shs"><span>Senior High School</span></button>
         </div>
 
-        <form id="educationForm" method="POST" action="{% url 'accounts:education_level' %}">
+        <form id="educationForm" method="POST" action="{% url 'accounts:education_level' %}" novalidate>
           {% csrf_token %}
 
           <!-- Grade Level -->
@@ -57,6 +57,7 @@
               <option value="Grade 11">Grade 11</option>
               <option value="Grade 12">Grade 12</option>
             </select>
+            <span class="form-error" id="gradeLevelError"></span>
           </div>
 
           <!-- ✅ School Year (added with 5 options) -->
@@ -70,6 +71,7 @@
               <option value="2027-2028">2027–2028</option>
               <option value="2028-2029">2028–2029</option>
             </select>
+            <span class="form-error" id="schoolYearError"></span>
           </div>
 
           <!-- Strand -->
@@ -82,6 +84,7 @@
               <option value="ABM">ABM</option>
               <option value="HUMSS">HUMSS</option>
             </select>
+            <span class="form-error" id="strandError"></span>
           </div>
 
           <button type="submit" class="get-started-btn">Get Started</button>

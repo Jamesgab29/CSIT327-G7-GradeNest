@@ -15,13 +15,13 @@
     <header class="site-header">
         <div class="logo">
             <img src="{% static 'accounts/img/gradenest-logo.png' %}" alt="GradeNest Logo" class="logo-img">
-            <span>  GradeNest</span>
+            <span>GradeNest</span>
         </div>
         <nav>
             <ul class="nav-links">
                 <li><a href="#home" class="active">Home</a></li>
                 <li><a href="#features">Features</a></li>
-                <li><a href="#contact">Contact</a></li>
+                <li><a href="#team">Team</a></li>
                 <li><a href="{% url 'accounts:login' %}">Login</a></li>
                 <li><a href="{% url 'accounts:register' %}" class="btn-signup">Sign Up</a></li>
             </ul>
@@ -34,10 +34,42 @@
                 <div class="hero-content">
                     <div class="hero-text">
                         <h1><span class="brand-highlight">GradeNest</span>, Your Academic Compass</h1>
-                        <p>With GradeNest, you're no longer lost in the dark about your grades. Giving you real-time insights, transparent tracking, and so much more.</p>
+                        <p>Transform your academic journey with real-time grade insights, transparent tracking, and powerful analytics designed for students who want to excel.</p>
+                        <div class="hero-cta">
+                            <a href="{% url 'accounts:register' %}" class="btn-primary">Get Started Free</a>
+                            <a href="#features" class="btn-secondary">Learn More</a>
+                        </div>
+                        <div class="hero-stats">
+                            <div class="stat-item">
+                                <span class="stat-number">⚡</span>
+                                <span class="stat-label">Lightning Fast</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">🎯</span>
+                                <span class="stat-label">Goal Focused</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">24/7</span>
+                                <span class="stat-label">Grade Tracking</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="hero-image">
-                        <img src="{% static 'accounts/img/landing-img.png' %}" alt="Education Level" class="hero-img">
+                        <div class="image-wrapper">
+                            <img src="{% static 'accounts/img/landing-img.png' %}" alt="Education Level" class="hero-img">
+                            <div class="floating-card card-1">
+                                <div class="card-icon">📊</div>
+                                <div class="card-text">Real-time Updates</div>
+                            </div>
+                            <div class="floating-card card-2">
+                                <div class="card-icon">🎯</div>
+                                <div class="card-text">Goal Tracking</div>
+                            </div>
+                            <div class="floating-card card-3">
+                                <div class="card-icon">📈</div>
+                                <div class="card-text">Progress Analytics</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -45,19 +77,35 @@
 
         <section id="features" class="features">
             <div class="container">
-                <h2>Packed with <span class="highlight">Features</span></h2>
+                <div class="section-header">
+                    <span class="section-tag">Features</span>
+                    <h2>Packed with <span class="highlight">Powerful Tools</span></h2>
+                    <p class="section-description">Everything you need to stay on top of your academic performance</p>
+                </div>
                 <div class="features-grid">
                     <div class="feature-card">
-                        <img src="{% static 'accounts/img/calculation-img.png' %}" alt="Automatic Grade Calculation" class="feature-img">
+                        <div class="feature-icon-wrapper">
+                            <img src="{% static 'accounts/img/calculation-img.png' %}" alt="Automatic Grade Calculation" class="feature-img">
+                        </div>
                         <h3>Automatic Grade Calculation</h3>
+                        <p>Let GradeNest do the math. Instant, accurate grade calculations save you time and reduce errors.</p>
+                        <div class="feature-badge">Smart</div>
                     </div>
                     <div class="feature-card">
-                        <img src="{% static 'accounts/img/progress-img.png' %}" alt="Track Your Progress" class="feature-img">
+                        <div class="feature-icon-wrapper">
+                            <img src="{% static 'accounts/img/progress-img.png' %}" alt="Track Your Progress" class="feature-img">
+                        </div>
                         <h3>Track Your Progress</h3>
+                        <p>Visualize your academic journey with beautiful charts and insights that motivate improvement.</p>
+                        <div class="feature-badge">Insightful</div>
                     </div>
                     <div class="feature-card">
-                        <img src="{% static 'accounts/img/goal-img.png' %}" alt="Set Academic Goals" class="feature-img">
+                        <div class="feature-icon-wrapper">
+                            <img src="{% static 'accounts/img/goal-img.png' %}" alt="Set Academic Goals" class="feature-img">
+                        </div>
                         <h3>Set Academic Goals</h3>
+                        <p>Define your targets and watch as GradeNest helps you achieve them with personalized recommendations.</p>
+                        <div class="feature-badge">Motivating</div>
                     </div>
                 </div>
             </div>
@@ -65,23 +113,81 @@
 
         <section id="team" class="team-section">
             <div class="container">
-                <h2>Project Managers</h2>
-                <div class="team-grid">
-                    <div class="team-member"><div class="avatar"></div></div>
-                    <div class="team-member"><div class="avatar"></div></div>
-                    <div class="team-member"><div class="avatar"></div></div>
-                    <div class="team-member"><div class="avatar"></div></div>
+                <div class="section-header">
+                    <span class="section-tag">Our Team</span>
+                    <h2>Meet the <span class="highlight">Minds Behind GradeNest</span></h2>
+                    <p class="section-description">A dedicated team committed to transforming academic success</p>
+                </div>
+                
+                <div class="team-category">
+                    <h3 class="category-title">Project Managers</h3>
+                    <div class="team-grid">
+                        <div class="team-member">
+                            <div class="avatar"></div>
+                            <div class="member-info">
+                                <h4>Manager Name</h4>
+                                <p>Project Lead</p>
+                            </div>
+                        </div>
+                        <div class="team-member">
+                            <div class="avatar"></div>
+                            <div class="member-info">
+                                <h4>Manager Name</h4>
+                                <p>Product Manager</p>
+                            </div>
+                        </div>
+                        <div class="team-member">
+                            <div class="avatar"></div>
+                            <div class="member-info">
+                                <h4>Manager Name</h4>
+                                <p>Operations</p>
+                            </div>
+                        </div>
+                        <div class="team-member">
+                            <div class="avatar"></div>
+                            <div class="member-info">
+                                <h4>Manager Name</h4>
+                                <p>Strategy</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="team-category">
+                    <h3 class="category-title">Project Developers</h3>
+                    <div class="team-grid">
+                        <div class="team-member">
+                            <div class="avatar"></div>
+                            <div class="member-info">
+                                <h4>Developer Name</h4>
+                                <p>Lead Developer</p>
+                            </div>
+                        </div>
+                        <div class="team-member">
+                            <div class="avatar"></div>
+                            <div class="member-info">
+                                <h4>Developer Name</h4>
+                                <p>Frontend Developer</p>
+                            </div>
+                        </div>
+                        <div class="team-member">
+                            <div class="avatar"></div>
+                            <div class="member-info">
+                                <h4>Developer Name</h4>
+                                <p>Backend Developer</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <section id="developers" class="team-section">
+        <section class="cta-section">
             <div class="container">
-                <h2>Project Developers</h2>
-                <div class="team-grid">
-                    <div class="team-member"><div class="avatar"></div></div>
-                    <div class="team-member"><div class="avatar"></div></div>
-                    <div class="team-member"><div class="avatar"></div></div>
+                <div class="cta-content">
+                    <h2>Ready to Transform Your Academic Journey?</h2>
+                    <p>Start tracking your grades and achieving your academic goals today</p>
+                    <a href="{% url 'accounts:register' %}" class="btn-primary btn-large">Start Your Journey Today</a>
                 </div>
             </div>
         </section>
@@ -90,19 +196,34 @@
     <footer class="site-footer">
         <div class="container">
             <div class="footer-content">
-                <div class="logo">
-                    <img src="{% static 'accounts/img/gradenest-logo.png' %}" alt="GradeNest Logo" class="logo-img">
-                    <span>GradeNest</span>
+                <div class="footer-brand">
+                    <div class="logo">
+                        <img src="{% static 'accounts/img/gradenest-logo.png' %}" alt="GradeNest Logo" class="logo-img">
+                        <span>GradeNest</span>
+                    </div>
+                    <p class="footer-tagline">Your academic compass for success</p>
                 </div>
                 <nav class="footer-nav">
-                    <ul class="nav-links">
-                        <li><a href="#home" class="active">Home</a></li>
-                        <li><a href="#features">Features</a></li>
-                        <li><a href="#contact">Contact</a></li>
-                        <li><a href="{% url 'accounts:login' %}">Login</a></li>
-                        <li><a href="{% url 'accounts:register' %}">Sign Up</a></li>
-                    </ul>
+                    <div class="footer-column">
+                        <h4>Product</h4>
+                        <ul>
+                            <li><a href="#features">Features</a></li>
+                            <li><a href="{% url 'accounts:register' %}">Sign Up</a></li>
+                            <li><a href="{% url 'accounts:login' %}">Login</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Company</h4>
+                        <ul>
+                            <li><a href="#team">Our Team</a></li>
+                            <li><a href="#home">About</a></li>
+                        </ul>
+                    </div>
+
                 </nav>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 GradeNest. All rights reserved.</p>
             </div>
         </div>
     </footer>
