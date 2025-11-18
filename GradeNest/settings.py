@@ -12,7 +12,7 @@ if os.environ.get("RENDER", "") != "true":
 
 # Django settings
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "unsafe-dev-key")  # Use the secret key from .env
-DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() == "true"
+DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() == "false"
 
 # Set the allowed hosts for production (use your actual production URL)
 ALLOWED_HOSTS = [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()]
