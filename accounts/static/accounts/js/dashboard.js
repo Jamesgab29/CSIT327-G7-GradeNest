@@ -790,14 +790,8 @@ function createQuarterCard(quarter, semester = null) {
   const progress = quarter.gwa ? (quarter.gwa / 100) * circumference : 0;
   const dashOffset = circumference - progress;
   
-  // Count subjects - ensure it's a valid positive number
-  const subjectCount = quarter.subjects && Object.keys(quarter.subjects).length > 0 ? Object.keys(quarter.subjects).length : 8;
-  
-  console.log(`Quarter ${quarter.name} has ${subjectCount} subjects in state`);
-  
-  // Create subject dots (max 5 dots)
-  const dotsCount = Math.min(Math.max(subjectCount, 0), 5);
-  const subjectDots = dotsCount > 0 ? Array.from({length: dotsCount}, () => '<span class="subject-dot"></span>').join('') : '';
+  // We'll fetch actual subjects per quarter and update after render
+  const initialSubjectCountText = '-- subjects';
   
   card.innerHTML = `
     <div class="quarter-header-compact">
@@ -827,8 +821,8 @@ function createQuarterCard(quarter, semester = null) {
     </div>
     
     <div class="quarter-subjects-preview">
-      <span class="subject-count">${subjectCount} subjects</span>
-      ${subjectDots}
+      <span class="subject-count">${initialSubjectCountText}</span>
+      <div class="subject-dots"></div>
     </div>
   `;
 
@@ -839,7 +833,29 @@ function createQuarterCard(quarter, semester = null) {
       showSubjectsView(quarter);
     }
   });
+
+  // After rendering, load the real subject count for this quarter
+  fetchAndSetQuarterSubjectCount(quarter, card);
   return card;
+}
+
+// Update subject count and dots for a quarter card using backend data
+async function fetchAndSetQuarterSubjectCount(quarter, cardEl) {
+  try {
+    const subjects = await loadSubjects(quarter.id);
+    const count = Array.isArray(subjects) ? subjects.length : 0;
+    const countEl = cardEl.querySelector('.subject-count');
+    if (countEl) countEl.textContent = `${count} ${count === 1 ? 'subject' : 'subjects'}`;
+    const dotsEl = cardEl.querySelector('.subject-dots');
+    if (dotsEl) {
+      const dotsCount = Math.min(Math.max(count, 0), 5);
+      dotsEl.innerHTML = dotsCount > 0
+        ? Array.from({ length: dotsCount }, () => '<span class="subject-dot"></span>').join('')
+        : '';
+    }
+  } catch (e) {
+    console.error('Failed to set quarter subject count', e);
+  }
 }
 
 // ==================== VIEW NAVIGATION ====================
@@ -3338,5 +3354,22 @@ async function refreshYearProgress() {
     updateSidebarStats(profile);
   } catch (e) {
     console.error('Failed to refresh year progress:', e);
+  }
+}
+
+// Helper: get SHS subject list for a specific term
+function getShsSubjectsForTerm(gradeLevel, strand, semesterName, quarterName) {
+  try {
+    const strandMap = SHS_SUBJECTS[strand];
+    if (!strandMap) return [];
+    const gradeMap = strandMap[gradeLevel];
+    if (!gradeMap) return [];
+    const semMap = gradeMap[semesterName];
+    if (!semMap) return [];
+    const list = semMap[quarterName];
+    return Array.isArray(list) ? list : [];
+  } catch (e) {
+    console.warn('Unable to resolve SHS subjects for term:', { gradeLevel, strand, semesterName, quarterName }, e);
+    return [];
   }
 }
