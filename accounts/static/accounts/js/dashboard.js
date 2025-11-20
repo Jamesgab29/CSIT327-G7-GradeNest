@@ -9,61 +9,141 @@ const appState = {
   overallGwa: 0
 };
 
-// DepEd JHS Subjects (Grades 7-10)
-const JHS_SUBJECTS = [
-  'Filipino',
-  'English',
-  'Mathematics',
-  'Science',
-  'Araling Panlipunan',
-  'Edukasyon sa Pagpapakatao',
-  'MAPEH',
-  'Technology and Livelihood Education'
-];
+// Fetch subject data from server
+let JHS_SUBJECTS = [];
+let SHS_SUBJECTS = {};
 
-// DepEd Grade Transmutation Table (Initial Grade to Transmuted Grade)
-// Based on DepEd Order No. 8, s. 2015
-const TRANSMUTATION_TABLE = {
-  100: 100, 99: 99, 98: 98, 97: 97, 96: 96,
-  95: 95, 94: 94, 93: 93, 92: 92, 91: 91,
-  90: 90, 89: 89, 88: 88, 87: 87, 86: 86,
-  85: 85, 84: 84, 83: 83, 82: 82, 81: 81,
-  80: 80, 79: 79, 78: 78, 77: 77, 76: 76,
-  75: 75, 74: 74, 73: 73, 72: 72, 71: 71,
-  70: 70, 69: 69, 68: 68, 67: 67, 66: 66,
-  65: 65, 64: 64, 63: 63, 62: 62, 61: 61,
-  60: 60, 59: 59, 58: 58, 57: 57, 56: 56,
-  55: 55, 54: 54, 53: 53, 52: 52, 51: 51,
-  50: 50, 49: 49, 48: 48, 47: 47, 46: 46,
-  45: 45, 44: 44, 43: 43, 42: 42, 41: 41,
-  40: 40, 39: 39, 38: 38, 37: 37, 36: 36,
-  35: 35, 34: 34, 33: 33, 32: 32, 31: 31,
-  30: 30, 29: 29, 28: 28, 27: 27, 26: 26,
-  25: 25, 24: 24, 23: 23, 22: 22, 21: 21,
-  20: 20, 19: 19, 18: 18, 17: 17, 16: 16,
-  15: 15, 14: 14, 13: 13, 12: 12, 11: 11,
-  10: 10, 9: 9, 8: 8, 7: 7, 6: 6,
-  5: 5, 4: 4, 3: 3, 2: 2, 1: 1, 0: 0
-};
-
-function transmuteGrade(initialGrade) {
-  // Round to nearest whole number
-  const rounded = Math.round(initialGrade);
-  // Return transmuted grade from table
-  return TRANSMUTATION_TABLE[rounded] || rounded;
+// Load subject data when app initializes
+async function loadSubjectData() {
+    try {
+        // Load JHS subjects
+        const jhsResponse = await fetch('/accounts/api/subjects/jhs/', {
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+        if (jhsResponse.ok) {
+            const jhsData = await jhsResponse.json();
+            JHS_SUBJECTS = jhsData.subjects;
+        }
+        
+        // Load SHS subjects
+        const shsResponse = await fetch('/accounts/api/subjects/shs/', {
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+        }
+        });
+        if (shsResponse.ok) {
+            const shsData = await shsResponse.json();
+            SHS_SUBJECTS = shsData.shs_subjects;
+        }
+    } catch (error) {
+        console.error('Failed to load subject data:', error);
+        // Fallback to hardcoded data if server fails
+        JHS_SUBJECTS = [
+            'Filipino',
+            'English',
+            'Mathematics',
+            'Science',
+            'Araling Panlipunan',
+            'Edukasyon sa Pagpapakatao',
+            'MAPEH',
+            'Technology and Livelihood Education'
+        ];
+    }
 }
 
-// DepEd Grade Components by Subject Type (Grades 1-10)
-const COMPONENT_WEIGHTS = {
-  'Filipino': { WW: 30, PT: 50, QA: 20 },
-  'English': { WW: 30, PT: 50, QA: 20 },
-  'Mathematics': { WW: 40, PT: 40, QA: 20 },
-  'Science': { WW: 40, PT: 40, QA: 20 },
-  'Araling Panlipunan': { WW: 30, PT: 50, QA: 20 },
-  'Edukasyon sa Pagpapakatao': { WW: 30, PT: 50, QA: 20 },
-  'MAPEH': { WW: 20, PT: 60, QA: 20 },
-  'Technology and Livelihood Education': { WW: 20, PT: 60, QA: 20 }
-};
+// Fetch transmutation table from server
+let TRANSMUTATION_TABLE = {};
+
+// Load transmutation table when app initializes
+async function loadTransmutationTable() {
+    try {
+        const response = await fetch('/accounts/api/transmutation/', {
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            TRANSMUTATION_TABLE = data.transmutation_table;
+        }
+    } catch (error) {
+        console.error('Failed to load transmutation table:', error);
+        // Fallback to hardcoded data if server fails
+        TRANSMUTATION_TABLE = {
+            100: 100, 99: 99, 98: 98, 97: 97, 96: 96,
+            95: 95, 94: 94, 93: 93, 92: 92, 91: 91,
+            90: 90, 89: 89, 88: 88, 87: 87, 86: 86,
+            85: 85, 84: 84, 83: 83, 82: 82, 81: 81,
+            80: 80, 79: 79, 78: 78, 77: 77, 76: 76,
+            75: 75, 74: 74, 73: 73, 72: 72, 71: 71,
+            70: 70, 69: 69, 68: 68, 67: 67, 66: 66,
+            65: 65, 64: 64, 63: 63, 62: 62, 61: 61,
+            60: 60, 59: 59, 58: 58, 57: 57, 56: 56,
+            55: 55, 54: 54, 53: 53, 52: 52, 51: 51,
+            50: 50, 49: 49, 48: 48, 47: 47, 46: 46,
+            45: 45, 44: 44, 43: 43, 42: 42, 41: 41,
+            40: 40, 39: 39, 38: 38, 37: 37, 36: 36,
+            35: 35, 34: 34, 33: 33, 32: 32, 31: 31,
+            30: 30, 29: 29, 28: 28, 27: 27, 26: 26,
+            25: 25, 24: 24, 23: 23, 22: 22, 21: 21,
+            20: 20, 19: 19, 18: 18, 17: 17, 16: 16,
+            15: 15, 14: 14, 13: 13, 12: 12, 11: 11,
+            10: 10, 9: 9, 8: 8, 7: 7, 6: 6,
+            5: 5, 4: 4, 3: 3, 2: 2, 1: 1, 0: 0
+        };
+    }
+}
+
+// Transmute initial grade to final grade using DepEd table
+function transmuteGrade(initialGrade) {
+    if (initialGrade === null || initialGrade === undefined) return null;
+    
+    // Round to nearest whole number
+    const rounded = Math.round(initialGrade);
+    
+    // Return transmuted grade from table
+    return TRANSMUTATION_TABLE[rounded] || rounded;
+}
+
+// Fetch component weights from server
+let COMPONENT_WEIGHTS = {};
+let SHS_COMPONENT_WEIGHTS = {};
+
+// Load component weights when app initializes
+async function loadComponentWeights() {
+    try {
+        const response = await fetch('/accounts/api/component-weights/', {
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            COMPONENT_WEIGHTS = data.component_weights;
+            SHS_COMPONENT_WEIGHTS = data.shs_component_weights;
+        }
+    } catch (error) {
+        console.error('Failed to load component weights:', error);
+        // Fallback to hardcoded data if server fails
+        COMPONENT_WEIGHTS = {
+            'Filipino': { WW: 30, PT: 50, QA: 20 },
+            'English': { WW: 30, PT: 50, QA: 20 },
+            'Mathematics': { WW: 40, PT: 40, QA: 20 },
+            'Science': { WW: 40, PT: 40, QA: 20 },
+            'Araling Panlipunan': { WW: 30, PT: 50, QA: 20 },
+            'Edukasyon sa Pagpapakatao': { WW: 30, PT: 50, QA: 20 },
+            'MAPEH': { WW: 20, PT: 60, QA: 20 },
+            'Technology and Livelihood Education': { WW: 20, PT: 60, QA: 20 }
+        };
+        
+        SHS_COMPONENT_WEIGHTS = {
+            'default': { WW: 25, PT: 50, QA: 25 },
+            'immersion': { WW: 20, PT: 60, QA: 20 }
+        };
+    }
+}
 
 const COMPONENT_NAMES = {
   WW: 'Written Works',
@@ -71,311 +151,9 @@ const COMPONENT_NAMES = {
   QA: 'Quarterly Assessment'
 };
 
-// Subjects are DIFFERENT per quarter within a semester
-const SHS_SUBJECTS = {
-  STEM: {
-    "Grade 11": {
-      "First Semester": {
-        "Quarter 1": [
-          "Oral Communication in Context",
-          "Komunikasyon at Pananaliksik sa Wika at Kulturang Pilipino",
-          "General Mathematics",
-          "Earth and Life Science",
-          "Introduction to Philosophy of the Human Person",
-          "Physical Education & Health 1",
-          "Pre-Calculus",
-          "General Biology 1"
-        ],
-        "Quarter 2": [
-          "Reading and Writing Skills",
-          "Pagbasa at Pagsusuri ng Iba't Ibang Teksto Tungo sa Pananaliksik",
-          "Statistics and Probability",
-          "Physical Science",
-          "Personal Development",
-          "Physical Education & Health 2",
-          "English for Academic and Professional Purposes",
-          "General Chemistry 1"
-        ]
-      },
-      "Second Semester": {
-        "Quarter 1": [
-          "21st Century Literature from the Philippines and the World",
-          "Understanding Culture, Society, and Politics",
-          "Practical Research 1 (Qualitative)",
-          "Practical Research 2 (Quantitative)",
-          "Empowerment Technologies",
-          "Basic Calculus",
-          "General Biology 2",
-          "General Physics 1"
-        ],
-        "Quarter 2": [
-          "Contemporary Philippine Arts from the Regions",
-          "Media and Information Literacy",
-          "Filipino sa Piling Larangan",
-          "Buffer Subject / Elective",
-          "General Chemistry 2"
-        ]
-      }
-    },
-    "Grade 12": {
-      "First Semester": {
-        "Quarter 1": [
-          "Entrepreneurship",
-          "Physical Education & Health 3",
-          "General Physics 2",
-          "Disaster Readiness and Risk Reduction"
-        ],
-        "Quarter 2": [
-          "Inquiries, Investigations, and Immersion",
-          "Physical Education & Health 3 (Cont.)"
-        ]
-      },
-      "Second Semester": {
-        "Quarter 1": [
-          "Physical Education & Health 4",
-          "Work Immersion / Research Project (Part 1)"
-        ],
-        "Quarter 2": [
-          "Work Immersion / Research Project (Part 2)"
-        ]
-      }
-    }
-  },
-  ABM: {
-    "Grade 11": {
-      "First Semester": {
-        "Quarter 1": [
-          "Oral Communication in Context",
-          "Komunikasyon at Pananaliksik sa Wika at Kulturang Pilipino",
-          "General Mathematics",
-          "Earth and Life Science",
-          "Introduction to Philosophy of the Human Person",
-          "Physical Education & Health 1",
-          "English for Academic and Professional Purposes",
-          "Fundamentals of Accountancy, Business & Mgt 1"
-        ],
-        "Quarter 2": [
-          "Reading and Writing Skills",
-          "Pagbasa at Pagsusuri ng Iba't Ibang Teksto Tungo sa Pananaliksik",
-          "Statistics and Probability",
-          "Physical Science",
-          "Personal Development",
-          "Physical Education & Health 2",
-          "Practical Research 1 (Qualitative)",
-          "Business Mathematics"
-        ]
-      },
-      "Second Semester": {
-        "Quarter 1": [
-          "21st Century Literature from the Philippines and the World",
-          "Understanding Culture, Society, and Politics",
-          "Media and Information Literacy",
-          "Practical Research 2 (Quantitative)",
-          "Empowerment Technologies",
-          "Organization and Management",
-          "Principles of Marketing",
-          "Applied Economics"
-        ],
-        "Quarter 2": [
-          "Contemporary Philippine Arts from the Regions",
-          "Filipino sa Piling Larangan",
-          "Buffer Subject / Elective",
-          "Buffer Subject / Elective",
-          "Fundamentals of Accountancy, Business & Mgt 1 (Cont.)"
-        ]
-      }
-    },
-    "Grade 12": {
-      "First Semester": {
-        "Quarter 1": [
-          "Entrepreneurship",
-          "Physical Education & Health 3",
-          "Fundamentals of Accountancy, Business & Mgt 2",
-          "Business Finance"
-        ],
-        "Quarter 2": [
-          "Inquiries, Investigations, and Immersion",
-          "Physical Education & Health 3 (Cont.)",
-          "Business Finance (Cont.)",
-          "Business Ethics and Social Responsibility"
-        ]
-      },
-      "Second Semester": {
-        "Quarter 1": [
-          "Physical Education & Health 4",
-          "Work Immersion / Business Enterprise Simulation (Part 1)"
-        ],
-        "Quarter 2": [
-          "Physical Education & Health 4 (Cont.)",
-          "Work Immersion / Business Enterprise Simulation (Part 2)"
-        ]
-      }
-    }
-  },
-  HUMSS: {
-    "Grade 11": {
-      "First Semester": {
-        "Quarter 1": [
-          "Oral Communication in Context",
-          "Komunikasyon at Pananaliksik sa Wika at Kulturang Pilipino",
-          "General Mathematics",
-          "Earth and Life Science",
-          "Introduction to Philosophy of the Human Person",
-          "Physical Education & Health 1",
-          "English for Academic and Professional Purposes",
-          "Philippine Politics and Governance"
-        ],
-        "Quarter 2": [
-          "Reading and Writing Skills",
-          "Pagbasa at Pagsusuri ng Iba't Ibang Teksto Tungo sa Pananaliksik",
-          "Statistics and Probability",
-          "Physical Science",
-          "Personal Development",
-          "Physical Education & Health 2",
-          "Practical Research 1 (Qualitative)",
-          "Disciplines and Ideas in the Social Sciences"
-        ]
-      },
-      "Second Semester": {
-        "Quarter 1": [
-          "21st Century Literature from the Philippines and the World",
-          "Understanding Culture, Society, and Politics",
-          "Media and Information Literacy",
-          "Practical Research 2 (Quantitative)",
-          "Empowerment Technologies",
-          "Disciplines and Ideas in the Applied Social Sciences",
-          "Introduction to World Religions and Belief Systems",
-          "Creative Writing"
-        ],
-        "Quarter 2": [
-          "Contemporary Philippine Arts from the Regions",
-          "Filipino sa Piling Larangan",
-          "Buffer Subject / Elective",
-          "Buffer Subject / Elective",
-          "Introduction to World Religions and Belief Systems (Cont.)"
-        ]
-      }
-    },
-    "Grade 12": {
-      "First Semester": {
-        "Quarter 1": [
-          "Entrepreneurship",
-          "Physical Education & Health 3",
-          "Community Engagement, Solidarity, and Citizenship",
-          "Creative Non-Fiction"
-        ],
-        "Quarter 2": [
-          "Inquiries, Investigations, and Immersion",
-          "Physical Education & Health 3 (Cont.)",
-          "Community Engagement, Solidarity, and Citizenship (Cont.)",
-          "Trends, Networks, and Critical Thinking in the 21st Century Culture"
-        ]
-      },
-      "Second Semester": {
-        "Quarter 1": [
-          "Physical Education & Health 4",
-          "Work Immersion / Research (Part 1)"
-        ],
-        "Quarter 2": [
-          "Physical Education & Health 4 (Cont.)",
-          "Work Immersion / Research (Part 2)"
-        ]
-      }
-    }
-  },
-  GAS: {
-    "Grade 11": {
-      "First Semester": {
-        "Quarter 1": [
-          "Oral Communication in Context",
-          "Komunikasyon at Pananaliksik sa Wika at Kulturang Pilipino",
-          "General Mathematics",
-          "Earth and Life Science",
-          "Introduction to Philosophy of the Human Person",
-          "Physical Education & Health 1",
-          "English for Academic and Professional Purposes",
-          "Humanities 1"
-        ],
-        "Quarter 2": [
-          "Reading and Writing Skills",
-          "Pagbasa at Pagsusuri ng Iba't Ibang Teksto Tungo sa Pananaliksik",
-          "Statistics and Probability",
-          "Physical Science",
-          "Personal Development",
-          "Physical Education & Health 2",
-          "Practical Research 1 (Qualitative)",
-          "Social Science 1"
-        ]
-      },
-      "Second Semester": {
-        "Quarter 1": [
-          "21st Century Literature from the Philippines and the World",
-          "Understanding Culture, Society, and Politics",
-          "Media and Information Literacy",
-          "Practical Research 2 (Quantitative)",
-          "Empowerment Technologies",
-          "Organization and Management",
-          "Disaster Readiness and Risk Reduction",
-          "Elective 1"
-        ],
-        "Quarter 2": [
-          "Contemporary Philippine Arts from the Regions",
-          "Filipino sa Piling Larangan",
-          "Buffer Subject / Elective",
-          "Buffer Subject / Elective",
-          "Elective 1 (Cont.)"
-        ]
-      }
-    },
-    "Grade 12": {
-      "First Semester": {
-        "Quarter 1": [
-          "Entrepreneurship",
-          "Physical Education & Health 3",
-          "Humanities 2",
-          "Applied Economics"
-        ],
-        "Quarter 2": [
-          "Inquiries, Investigations, and Immersion",
-          "Physical Education & Health 3 (Cont.)",
-          "Humanities 2 (Cont.)",
-          "Applied Economics (Cont.)"
-        ]
-      },
-      "Second Semester": {
-        "Quarter 1": [
-          "Physical Education & Health 4",
-          "Elective 2 (Part 1)",
-          "Work Immersion / Research / Career Advocacy (Part 1)"
-        ],
-        "Quarter 2": [
-          "Physical Education & Health 4 (Cont.)",
-          "Elective 2 (Part 2)",
-          "Work Immersion / Research / Career Advocacy (Part 2)"
-        ]
-      }
-    }
-  }
-};
 
-// SHS Component Weights
-const SHS_COMPONENT_WEIGHTS = {
-  // Core & Specialized
-  default: { WW: 25, PT: 50, QA: 25 },
-  // Work Immersion/Research/Business Enterprise/Exhibit/Performance
-  immersion: { WW: 20, PT: 60, QA: 20 }
-};
 
-// Helper to get weights by subject
-function getShsComponentWeights(subject) {
-  const immersionKeywords = [
-    "Work Immersion", "Research", "Business Enterprise", "Simulation", "Exhibit", "Performance", "Immersion", "Research Project"
-  ];
-  if (immersionKeywords.some(k => subject.toLowerCase().includes(k.toLowerCase()))) {
-    return SHS_COMPONENT_WEIGHTS.immersion;
-  }
-  return SHS_COMPONENT_WEIGHTS.default;
-}
+
 // ==================== VALIDATION & MODALS ====================
 
 function showValidationError(inputElement, message) {
@@ -553,6 +331,7 @@ async function initializeGradeStructure(profile) {
       }));
     } else {
       // No quarters - show empty state
+      console.warn('No quarters found for JHS user');
       appState.quarters = [];
     }
     
@@ -620,15 +399,12 @@ async function initializeGradeStructure(profile) {
     });
   } else if (profile.isSHS) {
     // For SHS, load quarters from database and organize by semester
-    console.log('SHS: Loading quarters from database:', quartersData);
     
     if (quartersData && quartersData.length > 0) {
       // Group quarters by semester
       const firstSemesterQuarters = quartersData.filter(q => q.semester === 'First Semester');
       const secondSemesterQuarters = quartersData.filter(q => q.semester === 'Second Semester');
       
-      console.log('First Semester quarters:', firstSemesterQuarters);
-      console.log('Second Semester quarters:', secondSemesterQuarters);
       
       appState.semesters = [
         {
@@ -662,7 +438,7 @@ async function initializeGradeStructure(profile) {
       console.log('Initialized SHS semesters:', appState.semesters);
     } else {
       // No quarters - empty state
-      console.log('No quarters found for SHS user');
+      console.warn('No quarters found for SHS user');
       appState.semesters = [
         { name: 'First Semester', quarters: [], finalGrade: null },
         { name: 'Second Semester', quarters: [], finalGrade: null }
@@ -861,9 +637,7 @@ async function fetchAndSetQuarterSubjectCount(quarter, cardEl) {
 // ==================== VIEW NAVIGATION ====================
 
 async function showShsSubjectsView(semester, quarter) {
-  console.log('=== showShsSubjectsView called ===');
-  console.log('Semester:', semester);
-  console.log('Quarter:', quarter);
+
   
   appState.currentSemester = semester;
   appState.currentQuarter = quarter;
@@ -940,7 +714,7 @@ async function showShsSubjectsView(semester, quarter) {
   for (const subject of subjects) {
     // Load components for this subject to calculate grade
     const components = await loadComponents(quarter.id, subject.id);
-    const gradeData = calculateSubjectGrade(subject.name, components);
+    const gradeData = calculateSubjectGrade(subject.name, components,true);
     
     const card = document.createElement('div');
     card.className = 'subject-card';
@@ -1012,7 +786,6 @@ async function showShsSubjectsView(semester, quarter) {
     
     card.addEventListener('click', (e) => {
       console.log('=== SHS CARD CLICKED ===');
-      console.log('Subject object:', subject);
       showSubjectDetailView(subject);
     });
     
@@ -1022,7 +795,6 @@ async function showShsSubjectsView(semester, quarter) {
         e.preventDefault();
         e.stopPropagation();
         console.log('=== SHS VISIT BUTTON CLICKED ===');
-        console.log('Subject object:', subject);
         showSubjectDetailView(subject);
       });
     }
@@ -1052,12 +824,10 @@ function showView(viewName) {
   
   // Show selected view
   const targetView = document.getElementById(`${viewName}View`);
-  console.log('Target view element:', targetView);
   
   if (targetView) {
     targetView.classList.add('active');
     appState.currentView = viewName;
-    console.log('View activated successfully');
   } else {
     console.error('View not found:', `${viewName}View`);
   }
@@ -1068,13 +838,11 @@ function showView(viewName) {
 
 async function showSubjectsView(quarter) {
   console.log('=== showSubjectsView called ===');
-  console.log('Quarter:', quarter);
   
   appState.currentQuarter = quarter;
   document.getElementById('subjectsViewTitle').textContent = `${quarter.name} - Subjects`;
   
   const grid = document.getElementById('subjectsGrid');
-  console.log('Grid element:', grid);
   grid.innerHTML = '';
   
   // Load subjects for this specific quarter from database
@@ -1110,7 +878,7 @@ async function showSubjectsView(quarter) {
   for (const subject of subjects) {
     // Load components for this subject to calculate grade
     const components = await loadComponents(quarter.id, subject.id);
-    const gradeData = calculateSubjectGrade(subject.name, components);
+    const gradeData = calculateSubjectGrade(subject.name, components,false);
     
     const card = document.createElement('div');
     card.className = 'subject-card';
@@ -1217,79 +985,81 @@ async function showSubjectsView(quarter) {
 // ==================== GRADE CALCULATION ====================
 
 /**
- * Calculate subject grade based on DepEd methodology
+ * Calculate subject grade based on DepEd methodology (server-side)
  * @param {string} subjectName - Name of the subject
  * @param {Array} components - Array of component objects with score, highest_score, component_type
+ * @param {boolean} isSHS - Whether this is for SHS student
  * @returns {Object} Grade data with WW, PT, QA averages, initial grade, and transmuted grade
  */
-function calculateSubjectGrade(subjectName, components) {
-  console.log('Calculating grade for:', subjectName, components);
-  
-  // Get component weights for this subject (default to standard weights if not found)
-  const weights = COMPONENT_WEIGHTS[subjectName] || { WW: 30, PT: 50, QA: 20 };
-  console.log('Using weights:', weights);
-  
-  // Separate components by type
-  const wwComponents = components.filter(c => c.component_type === 'WW');
-  const ptComponents = components.filter(c => c.component_type === 'PT');
-  const qaComponents = components.filter(c => c.component_type === 'QA');
-  
-  // Calculate average percentage for each component type
-  const calculateAverage = (componentsList) => {
-    if (componentsList.length === 0) return null;
+// Calculate subject grade based on DepEd methodology (client-side)
+function calculateSubjectGrade(subjectName, components, isSHS = false) {
+    // Get component weights for this subject
+    let weights;
+    if (isSHS) {
+        weights = getShsComponentWeights(subjectName);
+    } else {
+        weights = COMPONENT_WEIGHTS[subjectName] || { WW: 30, PT: 50, QA: 20 };
+    }
     
-    const total = componentsList.reduce((sum, comp) => {
-      return sum + (comp.score / comp.highest_score * 100);
-    }, 0);
+    // Separate components by type
+    const wwComponents = components.filter(c => c.component_type === 'WW');
+    const ptComponents = components.filter(c => c.component_type === 'PT');
+    const qaComponents = components.filter(c => c.component_type === 'QA');
     
-    return total / componentsList.length;
-  };
-  
-  const wwAverage = calculateAverage(wwComponents);
-  const ptAverage = calculateAverage(ptComponents);
-  const qaAverage = calculateAverage(qaComponents);
-  
-  console.log('Component averages:', { wwAverage, ptAverage, qaAverage });
-  
-  // Calculate weighted grade (Initial Grade)
-  let initialGrade = null;
-  let weightedSum = 0;
-  let totalWeight = 0;
-  
-  if (wwAverage !== null) {
-    weightedSum += wwAverage * (weights.WW / 100);
-    totalWeight += weights.WW;
-  }
-  
-  if (ptAverage !== null) {
-    weightedSum += ptAverage * (weights.PT / 100);
-    totalWeight += weights.PT;
-  }
-  
-  if (qaAverage !== null) {
-    weightedSum += qaAverage * (weights.QA / 100);
-    totalWeight += weights.QA;
-  }
-  
-  // Only calculate initial grade if we have at least one component
-  if (totalWeight > 0) {
-    initialGrade = weightedSum;
-  }
-  
-  // Calculate transmuted grade using DepEd transmutation table
-  const transmutedGrade = initialGrade !== null ? transmuteGrade(initialGrade) : null;
-  
-  console.log('Final grades:', { initialGrade, transmutedGrade });
-  
-  return {
-    wwAverage,
-    ptAverage,
-    qaAverage,
-    initialGrade,
-    transmutedGrade,
-    weights
-  };
+    // Calculate average percentage for each component type
+    function calculateAverage(componentsList) {
+        if (componentsList.length === 0) return null;
+        
+        const total = componentsList.reduce((sum, comp) => {
+            return sum + (comp.score / comp.highest_score * 100);
+        }, 0);
+        
+        return total / componentsList.length;
+    }
+    
+    const wwAverage = calculateAverage(wwComponents);
+    const ptAverage = calculateAverage(ptComponents);
+    const qaAverage = calculateAverage(qaComponents);
+    
+    // Calculate weighted grade (Initial Grade)
+    let initialGrade = null;
+    let weightedSum = 0;
+    let totalWeight = 0;
+    
+    if (wwAverage !== null) {
+        weightedSum += wwAverage * (weights.WW / 100);
+        totalWeight += weights.WW;
+    }
+    
+    if (ptAverage !== null) {
+        weightedSum += ptAverage * (weights.PT / 100);
+        totalWeight += weights.PT;
+    }
+    
+    if (qaAverage !== null) {
+        weightedSum += qaAverage * (weights.QA / 100);
+        totalWeight += weights.QA;
+    }
+    
+    // Only calculate initial grade if we have at least one component
+    if (totalWeight > 0) {
+        initialGrade = weightedSum;
+    }
+    
+    // Calculate transmuted grade using DepEd transmutation table
+    const transmutedGrade = transmuteGrade(initialGrade);
+    
+    return {
+        wwAverage: wwAverage,
+        ptAverage: ptAverage,
+        qaAverage: qaAverage,
+        initialGrade: initialGrade,
+        transmutedGrade: transmutedGrade,
+        weights: weights
+    };
 }
+
+
 
 // Calculate Quarter GWA (average of all subject grades)
 async function calculateQuarterGWA(quarterId) {
@@ -1304,14 +1074,17 @@ async function calculateQuarterGWA(quarterId) {
       return null; // No subjects, no GWA
     }
     
+    // Determine if this is SHS or JHS based on appState
+    const isSHS = appState.semesters && appState.semesters.length > 0;
+
     const subjectGrades = [];
     
     // Calculate grade for each subject
     for (const subject of subjects) {
       const components = await loadComponents(quarterId, subject.id);
-      const gradeData = calculateSubjectGrade(subject.name, components);
+      const gradeData = calculateSubjectGrade(subject.name, components, isSHS);
       
-      if (gradeData.transmutedGrade !== null) {
+      if (gradeData && gradeData.transmutedGrade !== null) {
         subjectGrades.push(gradeData.transmutedGrade);
       }
     }
@@ -1351,11 +1124,18 @@ async function showSubjectDetailView(subject) {
   console.log('Loaded components for subject:', components);
   
   // Calculate grades based on components
-  const gradeData = calculateSubjectGrade(subject.name, components);
+  // Determine if this is SHS based on appState
+  const isSHS = appState.semesters && appState.semesters.length > 0;
+  const gradeData = calculateSubjectGrade(subject.name, components, isSHS);
   console.log('Calculated grade data:', gradeData);
   
   // Update circular progress displays with calculated grades
-  updateGradeCircles(gradeData.initialGrade, gradeData.transmutedGrade);
+  if (gradeData) {
+    updateGradeCircles(gradeData.initialGrade, gradeData.transmutedGrade);
+  } else {
+    // Handle error case - show default values
+    updateGradeCircles(null, null);
+  }
   
   // Render components in a simple table
   const container = document.getElementById('componentsTableBody');
@@ -1404,14 +1184,16 @@ async function showSubjectDetailView(subject) {
     filtered.forEach(comp => container.appendChild(createComponentRow(comp, finalized)));
 
     // Add type average row
-    const typeAverage = activeType === 'WW' ? gradeData.wwAverage : activeType === 'PT' ? gradeData.ptAverage : gradeData.qaAverage;
-    if (typeAverage !== null && typeAverage !== undefined) {
-      const avgRow = document.createElement('tr');
-      avgRow.innerHTML = `
-        <td colspan="5" style="text-align: right; font-weight: bold; padding-right: 20px; background: #fafafa;">Average:</td>
-        <td style="font-weight: bold; background: #fafafa;">${typeAverage.toFixed(2)}%</td>
-      `;
-      container.appendChild(avgRow);
+    if (gradeData) {
+      const typeAverage = activeType === 'WW' ? gradeData.wwAverage : activeType === 'PT' ? gradeData.ptAverage : gradeData.qaAverage;
+      if (typeAverage !== null && typeAverage !== undefined) {
+        const avgRow = document.createElement('tr');
+        avgRow.innerHTML = `
+          <td colspan="5" style="text-align: right; font-weight: bold; padding-right: 20px; background: #fafafa;">Average:</td>
+          <td style="font-weight: bold; background: #fafafa;">${typeAverage.toFixed(2)}%</td>
+        `;
+        container.appendChild(avgRow);
+      }
     }
   }
   
@@ -2399,7 +2181,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   setCurrentDate();
   const profile = await fetchUserProfile();
   await initializeGradeStructure(profile);
-  
+
+  //to load transmutation table
+  await loadTransmutationTable();
+  await loadComponentWeights();
+
   // Calculate all quarter GWAs before rendering
   if (profile.isJHS && appState.quarters.length > 0) {
     for (const quarter of appState.quarters) {
@@ -2841,7 +2627,15 @@ function getCSRFToken() {
 // Load Quarters
 async function loadQuarters() {
   try {
+    console.log('Loading quarters from /quarters/list/');
     const response = await fetch('/quarters/list/');
+    console.log('Quarters response status:', response.status);
+    
+    if (!response.ok) {
+      console.error('Failed to load quarters:', response.status, response.statusText);
+      return [];
+    }
+    
     const data = await response.json();
     console.log('Loaded quarters:', data.quarters);
     return data.quarters || [];

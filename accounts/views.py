@@ -11,139 +11,8 @@ from django.db.models import F
 import re
 import json
 
-
-# ---------------- REGISTER ----------------
-def register(request):
-    if request.method == "POST":
-        full_name = request.POST.get("full_name", "").strip()
-        email = request.POST.get("email", "").strip()
-        password = request.POST.get("password1", "")
-        confirm_password = request.POST.get("password2", "")
-
-        context = {"full_name": full_name, "email": email}
-
-        try:
-            validate_email(email)
-        except ValidationError:
-            context["email_error"] = "Please enter a valid email address."
-            return render(request, "accounts/register.html", context)
-
-        if password != confirm_password:
-            context["password_error"] = "Please make sure your passwords match."
-            return render(request, "accounts/register.html", context)
-
-        if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_]).{8,}$', password):
-            context["password_format_error"] = (
-                "Password should have a minimum length of 8 and contain upper and lowercase letters and a special character."
-            )
-            return render(request, "accounts/register.html", context)
-
-        if CustomUser.objects.filter(email=email).exists():
-            messages.error(request, "Email already registered. Please click here to login.")
-            return render(request, "accounts/register.html", context)
-
-        user = CustomUser.objects.create_user(
-            email=email, full_name=full_name, password=password
-        )
-        Profile.objects.create(user=user)
-        auth_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-        return redirect("accounts:education_level")
-
-    return render(request, "accounts/register.html")
-
-
-# ---------------- LOGIN ----------------
-def user_login(request):
-    if request.method == "POST":
-        email = request.POST.get("username", "").strip()
-        password = request.POST.get("password", "").strip()
-
-        if not email or not password:
-            messages.error(request, "Please enter both email and password.")
-            return render(request, "accounts/login.html", {"login_input": email})
-
-        try:
-            user = CustomUser.objects.get(email=email)
-        except CustomUser.DoesNotExist:
-            messages.error(request, "Email not found. Please register first.")
-            return render(request, "accounts/login.html", {"login_input": email})
-
-        user_auth = authenticate(request, email=email, password=password)
-
-        if user_auth is not None:
-            auth_login(request, user_auth)
-            profile, _ = Profile.objects.get_or_create(user=user_auth)
-
-            if not profile.grade_level:
-                return redirect("accounts:education_level")
-
-            return redirect("accounts:dashboard")
-        else:
-            messages.error(request, "Incorrect password. Please try again.")
-            return render(request, "accounts/login.html", {"login_input": email})
-
-    return render(request, "accounts/login.html")
-
-
-# ---------------- EDUCATION LEVEL ----------------
-@login_required
-def education_level(request):
-    profile, _ = Profile.objects.get_or_create(user=request.user)
-
-    if profile.grade_level:
-        return redirect("accounts:dashboard")
-
-    if request.method == "POST":
-        grade_level = request.POST.get("gradeLevel")
-        strand = request.POST.get("strand")
-        school_year = request.POST.get("schoolYear")
-
-        if not grade_level or not school_year:
-            messages.error(request, "Please complete all required fields.")
-            return render(request, "accounts/education-level.html")
-
-        if grade_level in ["Grade 11", "Grade 12"] and not strand:
-            messages.error(request, "Please select your strand.")
-            return render(request, "accounts/education-level.html")
-
-        profile.grade_level = grade_level
-        profile.strand = strand if strand else None
-        profile.school_year = school_year
-        profile.save()
-
-        # Auto-provision quarters and subjects based on education level
-        provision_academic_structure(request.user, grade_level, strand)
-
-        return redirect("accounts:dashboard")
-
-    return render(request, "accounts/education-level.html")
-
-# ---------------- DASHBOARD ----------------
-def provision_academic_structure(user, grade_level, strand):
-    """
-    Automatically create quarters and subjects for a user based on their education level.
-    JHS: 4 quarters with 8 standard subjects each
-    SHS: 4 quarters (2 per semester) with strand-specific subjects
-    """
-    # Prevent duplicate provisioning
-    if Quarter.objects.filter(user=user).exists():
-        print(f"Academic structure already exists for user {user.email}")
-        return
-    
-    # JHS Subjects (Grades 7-10)
-    JHS_SUBJECTS = [
-        'Filipino',
-        'English',
-        'Mathematics',
-        'Science',
-        'Araling Panlipunan',
-        'Edukasyon sa Pagpapakatao',
-        'MAPEH',
-        'Technology and Livelihood Education'
-    ]
-    
-    # SHS Subjects by Strand, Grade, Semester, and Quarter
-    SHS_SUBJECTS = {
+# SHS Subjects by Strand, Grade, Semester, and Quarter
+SHS_SUBJECTS = {
         'STEM': {
             'Grade 11': {
                 'First Semester': {
@@ -428,6 +297,187 @@ def provision_academic_structure(user, grade_level, strand):
             }
         }
     }
+
+
+# ---------------- TRANSFORMATION DATA ----------------
+# DepEd Grade Transmutation Table (Initial Grade to Transmuted Grade)
+# Based on DepEd Order No. 8, s. 2015
+TRANSMUTATION_TABLE = {
+    100: 100, 99: 99, 98: 98, 97: 97, 96: 96,
+    95: 95, 94: 94, 93: 93, 92: 92, 91: 91,
+    90: 90, 89: 89, 88: 88, 87: 87, 86: 86,
+    85: 85, 84: 84, 83: 83, 82: 82, 81: 81,
+    80: 80, 79: 79, 78: 78, 77: 77, 76: 76,
+    75: 75, 74: 74, 73: 73, 72: 72, 71: 71,
+    70: 70, 69: 69, 68: 68, 67: 67, 66: 66,
+    65: 65, 64: 64, 63: 63, 62: 62, 61: 61,
+    60: 60, 59: 59, 58: 58, 57: 57, 56: 56,
+    55: 55, 54: 54, 53: 53, 52: 52, 51: 51,
+    50: 50, 49: 49, 48: 48, 47: 47, 46: 46,
+    45: 45, 44: 44, 43: 43, 42: 42, 41: 41,
+    40: 40, 39: 39, 38: 38, 37: 37, 36: 36,
+    35: 35, 34: 34, 33: 33, 32: 32, 31: 31,
+    30: 30, 29: 29, 28: 28, 27: 27, 26: 26,
+    25: 25, 24: 24, 23: 23, 22: 22, 21: 21,
+    20: 20, 19: 19, 18: 18, 17: 17, 16: 16,
+    15: 15, 14: 14, 13: 13, 12: 12, 11: 11,
+    10: 10, 9: 9, 8: 8, 7: 7, 6: 6,
+    5: 5, 4: 4, 3: 3, 2: 2, 1: 1, 0: 0
+}
+
+
+# DepEd Grade Components by Subject Type (Grades 1-10)
+COMPONENT_WEIGHTS = {
+    'Filipino': {'WW': 30, 'PT': 50, 'QA': 20},
+    'English': {'WW': 30, 'PT': 50, 'QA': 20},
+    'Mathematics': {'WW': 40, 'PT': 40, 'QA': 20},
+    'Science': {'WW': 40, 'PT': 40, 'QA': 20},
+    'Araling Panlipunan': {'WW': 30, 'PT': 50, 'QA': 20},
+    'Edukasyon sa Pagpapakatao': {'WW': 30, 'PT': 50, 'QA': 20},
+    'MAPEH': {'WW': 20, 'PT': 60, 'QA': 20},
+    'Technology and Livelihood Education': {'WW': 20, 'PT': 60, 'QA': 20}
+}
+
+# SHS Component Weights
+SHS_COMPONENT_WEIGHTS = {
+    'default': {'WW': 25, 'PT': 50, 'QA': 25},
+    'immersion': {'WW': 20, 'PT': 60, 'QA': 20}
+}
+
+
+
+
+# ---------------- REGISTER ----------------
+def register(request):
+    if request.method == "POST":
+        full_name = request.POST.get("full_name", "").strip()
+        email = request.POST.get("email", "").strip()
+        password = request.POST.get("password1", "")
+        confirm_password = request.POST.get("password2", "")
+
+        context = {"full_name": full_name, "email": email}
+
+        try:
+            validate_email(email)
+        except ValidationError:
+            context["email_error"] = "Please enter a valid email address."
+            return render(request, "accounts/register.html", context)
+
+        if password != confirm_password:
+            context["password_error"] = "Please make sure your passwords match."
+            return render(request, "accounts/register.html", context)
+
+        if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_]).{8,}$', password):
+            context["password_format_error"] = (
+                "Password should have a minimum length of 8 and contain upper and lowercase letters and a special character."
+            )
+            return render(request, "accounts/register.html", context)
+
+        if CustomUser.objects.filter(email=email).exists():
+            messages.error(request, "Email already registered. Please click here to login.")
+            return render(request, "accounts/register.html", context)
+
+        user = CustomUser.objects.create_user(
+            email=email, full_name=full_name, password=password
+        )
+        Profile.objects.create(user=user)
+        auth_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+        return redirect("accounts:education_level")
+
+    return render(request, "accounts/register.html")
+
+
+# ---------------- LOGIN ----------------
+def user_login(request):
+    if request.method == "POST":
+        email = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "").strip()
+
+        if not email or not password:
+            messages.error(request, "Please enter both email and password.")
+            return render(request, "accounts/login.html", {"login_input": email})
+
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            messages.error(request, "Email not found. Please register first.")
+            return render(request, "accounts/login.html", {"login_input": email})
+
+        user_auth = authenticate(request, email=email, password=password)
+
+        if user_auth is not None:
+            auth_login(request, user_auth)
+            profile, _ = Profile.objects.get_or_create(user=user_auth)
+
+            if not profile.grade_level:
+                return redirect("accounts:education_level")
+
+            return redirect("accounts:dashboard")
+        else:
+            messages.error(request, "Incorrect password. Please try again.")
+            return render(request, "accounts/login.html", {"login_input": email})
+
+    return render(request, "accounts/login.html")
+
+
+# ---------------- EDUCATION LEVEL ----------------
+@login_required
+def education_level(request):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+
+    if profile.grade_level:
+        return redirect("accounts:dashboard")
+
+    if request.method == "POST":
+        grade_level = request.POST.get("gradeLevel")
+        strand = request.POST.get("strand")
+        school_year = request.POST.get("schoolYear")
+
+        if not grade_level or not school_year:
+            messages.error(request, "Please complete all required fields.")
+            return render(request, "accounts/education-level.html")
+
+        if grade_level in ["Grade 11", "Grade 12"] and not strand:
+            messages.error(request, "Please select your strand.")
+            return render(request, "accounts/education-level.html")
+
+        profile.grade_level = grade_level
+        profile.strand = strand if strand else None
+        profile.school_year = school_year
+        profile.save()
+
+        # Auto-provision quarters and subjects based on education level
+        provision_academic_structure(request.user, grade_level, strand)
+
+        return redirect("accounts:dashboard")
+
+    return render(request, "accounts/education-level.html")
+
+# ---------------- DASHBOARD ----------------
+def provision_academic_structure(user, grade_level, strand):
+    """
+    Automatically create quarters and subjects for a user based on their education level.
+    JHS: 4 quarters with 8 standard subjects each
+    SHS: 4 quarters (2 per semester) with strand-specific subjects
+    """
+    # Prevent duplicate provisioning
+    if Quarter.objects.filter(user=user).exists():
+        print(f"Academic structure already exists for user {user.email}")
+        return
+    
+    # JHS Subjects (Grades 7-10)
+    JHS_SUBJECTS = [
+        'Filipino',
+        'English',
+        'Mathematics',
+        'Science',
+        'Araling Panlipunan',
+        'Edukasyon sa Pagpapakatao',
+        'MAPEH',
+        'Technology and Livelihood Education'
+    ]
+    
+    
     
     # Check if user is JHS
     is_jhs = grade_level in ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10']
@@ -952,3 +1002,147 @@ def confirm_progression(request):
             return JsonResponse({'error': str(e)}, status=500)
     
     return JsonResponse({'error': 'Invalid method.'}, status=405)
+
+
+
+# ---------------- SUBJECT DATA API ----------------
+@login_required
+def get_jhs_subjects_api(request):
+    """
+    API endpoint to get JHS subjects data
+    """
+    jhs_subjects = [
+        'Filipino',
+        'English',
+        'Mathematics',
+        'Science',
+        'Araling Panlipunan',
+        'Edukasyon sa Pagpapakatao',
+        'MAPEH',
+        'Technology and Livelihood Education'
+    ]
+    return JsonResponse({'subjects': jhs_subjects})
+
+
+@login_required
+def get_shs_subjects_api(request):
+    """
+    API endpoint to get SHS subjects data
+    """
+    # Now SHS_SUBJECTS is accessible here because it's a global variable
+    return JsonResponse({'shs_subjects': SHS_SUBJECTS})
+
+
+
+
+# ------------------- FOR COMPONENTS WEIGHT -------------------
+@login_required
+def get_component_weights_api(request):
+    """
+    API endpoint to get component weights data
+    """
+    return JsonResponse({
+        'component_weights': COMPONENT_WEIGHTS,
+        'shs_component_weights': SHS_COMPONENT_WEIGHTS
+    })
+
+# ------------------- TRANSMUTATION TABLE -------------------
+@login_required
+def get_transmutation_table_api(request):
+    """
+    API endpoint to get transmutation table data
+    """
+    return JsonResponse({'transmutation_table': TRANSMUTATION_TABLE})
+
+
+# ------------------- GRADE CALCULATION FUNCTIONS -------------------
+
+def calculate_subject_grade(subject_name, components, is_shs=False):
+    """
+    Calculate subject grade based on DepEd methodology
+    """
+    # Get component weights for this subject
+    if is_shs:
+        weights = get_shs_component_weights(subject_name)
+    else:
+        weights = COMPONENT_WEIGHTS.get(subject_name, {'WW': 30, 'PT': 50, 'QA': 20})
+    
+    # Separate components by type
+    ww_components = [c for c in components if c.get('component_type') == 'WW']
+    pt_components = [c for c in components if c.get('component_type') == 'PT']
+    qa_components = [c for c in components if c.get('component_type') == 'QA']
+    
+    # Calculate average percentage for each component type
+    def calculate_average(components_list):
+        if not components_list:
+            return None
+        
+        total = sum(comp.get('score', 0) / comp.get('highest_score', 1) * 100 for comp in components_list)
+        return total / len(components_list)
+    
+    ww_average = calculate_average(ww_components)
+    pt_average = calculate_average(pt_components)
+    qa_average = calculate_average(qa_components)
+    
+    # Calculate weighted grade (Initial Grade)
+    initial_grade = None
+    weighted_sum = 0
+    total_weight = 0
+    
+    if ww_average is not None:
+        weighted_sum += ww_average * (weights['WW'] / 100)
+        total_weight += weights['WW']
+    
+    if pt_average is not None:
+        weighted_sum += pt_average * (weights['PT'] / 100)
+        total_weight += weights['PT']
+    
+    if qa_average is not None:
+        weighted_sum += qa_average * (weights['QA'] / 100)
+        total_weight += weights['QA']
+    
+    # Only calculate initial grade if we have at least one component
+    if total_weight > 0:
+        initial_grade = weighted_sum
+    
+    # Calculate transmuted grade using DepEd transmutation table
+    transmuted_grade = transmute_grade(initial_grade) if initial_grade is not None else None
+    
+    return {
+        'wwAverage': ww_average,
+        'ptAverage': pt_average,
+        'qaAverage': qa_average,
+        'initialGrade': initial_grade,
+        'transmutedGrade': transmuted_grade,
+        'weights': weights
+    }
+
+
+def get_shs_component_weights(subject):
+    """
+    Helper to get weights by subject for SHS
+    """
+    immersion_keywords = [
+        "Work Immersion", "Research", "Business Enterprise", "Simulation", 
+        "Exhibit", "Performance", "Immersion", "Research Project"
+    ]
+    
+    if any(keyword.lower() in subject.lower() for keyword in immersion_keywords):
+        return SHS_COMPONENT_WEIGHTS['immersion']
+    return SHS_COMPONENT_WEIGHTS['default']
+
+
+def transmute_grade(initial_grade):
+    """
+    Transmute initial grade to DepEd transmuted grade
+    Based on DepEd Order No. 8, s. 2015
+    """
+    if initial_grade is None:
+        return None
+    
+    # Round to nearest whole number
+    rounded = round(initial_grade)
+    # Return transmuted grade from table
+    return TRANSMUTATION_TABLE.get(rounded, rounded)
+
+

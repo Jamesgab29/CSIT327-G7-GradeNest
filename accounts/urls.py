@@ -77,4 +77,17 @@ urlpatterns = [
     path("api/profile/update-academic/", views.update_academic_info, name="update_academic_info"),
     path("api/profile/update-password/", views.update_password, name="update_password"),
     path("api/profile/confirm-progression/", views.confirm_progression, name="confirm_progression"),
+
+    # Subject Data API endpoints
+    path("api/subjects/jhs/", views.get_jhs_subjects_api, name="get_jhs_subjects"),
+    path("api/subjects/shs/", views.get_shs_subjects_api, name="get_shs_subjects"),
+
+    # Transmutation Table API endpoint
+    path("api/transmutation/", views.get_transmutation_table_api, name="get_transmutation_table"),
+
+
+    # Component Weights API endpoint
+    path("api/component-weights/", views.get_component_weights_api, name="get_component_weights"),
+
+    
 ]
