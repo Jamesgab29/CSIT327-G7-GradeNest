@@ -68,7 +68,7 @@
         </div>
         <span class="nav-badge">{{ profile.school_year|default:"2024-25" }}</span>
       </a>
-      <a href="#" class="nav-item" data-page="goals" id="goalsLink">
+      <a href="{% url 'accounts:goal' %}" class="nav-item" data-page="goals" id="goalsLink">
         <div class="nav-item-content">
           <img src="{% static 'accounts/img/goals-icon.png' %}" alt="Goals" class="nav-icon" />
           <span class="nav-label">My Goals</span>

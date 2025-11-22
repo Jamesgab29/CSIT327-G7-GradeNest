@@ -4,10 +4,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from .models import CustomUser, Profile, Quarter, Subject, Component
+from .models import CustomUser, Profile, Quarter, Subject, Component, Goal
 from django.core.mail import send_mail
 from django.http import HttpResponse, JsonResponse
 from django.db.models import F
+from django.utils import timezone
 import re
 import json
 
@@ -745,85 +746,93 @@ def add_component(request):
         except (TypeError, ValueError):
             return JsonResponse({'error': 'Score and Highest Score must be numeric values.'}, status=400)
 
-        # Business validation
-        if score < 0 or highest_score < 0:
-            return JsonResponse({'error': 'Scores cannot be negative.'}, status=400)
-        if highest_score == 0:
-            return JsonResponse({'error': 'Highest Score must be greater than zero.'}, status=400)
+        # Validate required fields
+        if not name:
+            return JsonResponse({'error': 'Component name is required.'}, status=400)
+        if not quarter_id:
+            return JsonResponse({'error': 'Quarter is required.'}, status=400)
+        if not subject_id:
+            return JsonResponse({'error': 'Subject is required.'}, status=400)
+        if score < 0:
+            return JsonResponse({'error': 'Score cannot be negative.'}, status=400)
+        if highest_score <= 0:
+            return JsonResponse({'error': 'Highest score must be positive.'}, status=400)
         if score > highest_score:
-            return JsonResponse({'error': 'Score cannot exceed Highest Score.'}, status=400)
+            return JsonResponse({'error': 'Score cannot exceed highest score.'}, status=400)
+        if component_type not in ['WW', 'PT', 'QA']:
+            return JsonResponse({'error': 'Invalid component type.'}, status=400)
 
-        if quarter_id and subject_id and name:
-            quarter = get_object_or_404(Quarter, id=quarter_id)
-            subject = get_object_or_404(Subject, id=subject_id)
-            component = Component.objects.create(
-                quarter=quarter,
-                subject=subject,
-                name=name,
-                score=score,
-                highest_score=highest_score,
-                component_type=component_type
-            )
-            return JsonResponse({
-                'id': component.id,
-                'name': component.name,
-                'quarter': component.quarter.name,
-                'subject': component.subject.name,
-                'score': component.score,
-                'highest_score': component.highest_score,
-                'component_type': component.component_type
-            })
-    return JsonResponse({'error': 'Invalid data'}, status=400)
+        # Create component
+        quarter = get_object_or_404(Quarter, id=quarter_id, user=request.user)
+        subject = get_object_or_404(Subject, id=subject_id, quarter=quarter)
+        
+        component = Component.objects.create(
+            quarter=quarter,
+            subject=subject,
+            name=name,
+            score=score,
+            highest_score=highest_score,
+            component_type=component_type
+        )
+
+        return JsonResponse({
+            'id': component.id,
+            'name': component.name,
+            'quarter_id': component.quarter.id,
+            'subject_id': component.subject.id,
+            'score': component.score,
+            'highest_score': component.highest_score,
+            'component_type': component.component_type
+        })
+
+    return JsonResponse({'error': 'Invalid method'}, status=400)
+
 
 @login_required
 def update_component(request, component_id):
     if request.method == 'POST':
         component = get_object_or_404(Component, id=component_id)
-        
-        name = request.POST.get('name')
-        score = request.POST.get('score')
-        highest_score = request.POST.get('highest_score')
-        component_type = request.POST.get('component_type')
-        
-        if name:
-            component.name = name
-        # Validate numeric fields when provided
-        if score is not None:
-            try:
-                score_val = float(score)
-            except (TypeError, ValueError):
-                return JsonResponse({'error': 'Score must be a numeric value.'}, status=400)
-            if score_val < 0:
-                return JsonResponse({'error': 'Score cannot be negative.'}, status=400)
-            # If highest_score also provided below, full comparison done after parsing both
-            component.score = score_val
-        if highest_score is not None:
-            try:
-                hps_val = float(highest_score)
-            except (TypeError, ValueError):
-                return JsonResponse({'error': 'Highest Score must be a numeric value.'}, status=400)
-            if hps_val < 0:
-                return JsonResponse({'error': 'Highest Score cannot be negative.'}, status=400)
-            if hps_val == 0:
-                return JsonResponse({'error': 'Highest Score must be greater than zero.'}, status=400)
-            component.highest_score = hps_val
-        # Ensure score does not exceed highest_score after potential updates
-        if component.score is not None and component.highest_score is not None and component.score > component.highest_score:
-            return JsonResponse({'error': 'Score cannot exceed Highest Score.'}, status=400)
-        if component_type:
-            component.component_type = component_type
-            
+        name = (request.POST.get('name') or '').strip()
+        component_type = (request.POST.get('component_type') or 'WW').strip()
+
+        # Validate numeric inputs safely
+        try:
+            score = float(request.POST.get('score', '0'))
+            highest_score = float(request.POST.get('highest_score', '100'))
+        except (TypeError, ValueError):
+            return JsonResponse({'error': 'Score and Highest Score must be numeric values.'}, status=400)
+
+        # Validate required fields
+        if not name:
+            return JsonResponse({'error': 'Component name is required.'}, status=400)
+        if score < 0:
+            return JsonResponse({'error': 'Score cannot be negative.'}, status=400)
+        if highest_score <= 0:
+            return JsonResponse({'error': 'Highest score must be positive.'}, status=400)
+        if score > highest_score:
+            return JsonResponse({'error': 'Score cannot exceed highest score.'}, status=400)
+        if component_type not in ['WW', 'PT', 'QA']:
+            return JsonResponse({'error': 'Invalid component type.'}, status=400)
+
+        # Update component
+        component.name = name
+        component.score = score
+        component.highest_score = highest_score
+        component.component_type = component_type
         component.save()
+
         return JsonResponse({
             'id': component.id,
             'name': component.name,
-            'quarter': component.quarter.name,
-            'subject': component.subject.name,
+            'quarter_id': component.quarter.id,
+            'subject_id': component.subject.id,
             'score': component.score,
             'highest_score': component.highest_score,
             'component_type': component.component_type
         })
-    return JsonResponse({'error': 'Invalid data'}, status=400)
+
+    return JsonResponse({'error': 'Invalid method'}, status=400)
+
 
 @login_required
 def delete_component(request, component_id):
@@ -831,6 +840,176 @@ def delete_component(request, component_id):
         component = get_object_or_404(Component, id=component_id)
         component.delete()
         return JsonResponse({'success': True})
+
+    return JsonResponse({'error': 'Invalid method'}, status=400)
+
+
+@login_required
+def update_subject(request, subject_id):
+    if request.method == 'POST':
+        subject = get_object_or_404(Subject, id=subject_id)
+        name = (request.POST.get('name') or '').strip()
+
+        # Validate required fields
+        if not name:
+            return JsonResponse({'error': 'Subject name is required.'}, status=400)
+
+        # Update subject
+        subject.name = name
+        subject.save()
+
+        return JsonResponse({
+            'id': subject.id,
+            'name': subject.name,
+            'quarter_id': subject.quarter.id
+        })
+
+    return JsonResponse({'error': 'Invalid method'}, status=400)
+
+
+@login_required
+def delete_subject(request, subject_id):
+    if request.method == 'POST':
+        subject = get_object_or_404(Subject, id=subject_id)
+        subject.delete()
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'error': 'Invalid method'}, status=400)
+
+
+# ------------------- GOAL CRUD -------------------
+
+@login_required
+def goals_list(request):
+    goals = Goal.objects.filter(user=request.user).order_by('-created_at')
+    data = [{
+        'id': goal.id,
+        'title': goal.title,
+        'description': goal.description,
+        'category': goal.category,
+        'target_date': goal.target_date.strftime('%Y-%m-%d'),
+        'status': goal.status,
+        'created_at': goal.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+        'updated_at': goal.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
+    } for goal in goals]
+    
+    return JsonResponse({'goals': data})
+
+
+@login_required
+def add_goal(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            title = data.get('title', '').strip()
+            description = data.get('description', '').strip()
+            category = data.get('category', '').strip()
+            target_date_str = data.get('target_date', '').strip()
+            
+            # Validate required fields
+            if not title:
+                return JsonResponse({'error': 'Title is required.'}, status=400)
+            if not category:
+                return JsonResponse({'error': 'Category is required.'}, status=400)
+            if not target_date_str:
+                return JsonResponse({'error': 'Target date is required.'}, status=400)
+            
+            # Validate date format
+            try:
+                target_date = timezone.datetime.strptime(target_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                return JsonResponse({'error': 'Invalid date format. Use YYYY-MM-DD.'}, status=400)
+            
+            # Create goal
+            goal = Goal.objects.create(
+                user=request.user,
+                title=title,
+                description=description if description else None,
+                category=category,
+                target_date=target_date
+            )
+            
+            return JsonResponse({
+                'id': goal.id,
+                'title': goal.title,
+                'description': goal.description,
+                'category': goal.category,
+                'target_date': goal.target_date.strftime('%Y-%m-%d'),
+                'status': goal.status,
+                'created_at': goal.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'updated_at': goal.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
+            })
+            
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON data.'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=400)
+
+
+@login_required
+def update_goal(request, goal_id):
+    if request.method == 'PUT':
+        try:
+            goal = get_object_or_404(Goal, id=goal_id, user=request.user)
+            data = json.loads(request.body)
+            
+            # Update fields if provided
+            if 'title' in data:
+                title = data['title'].strip()
+                if not title:
+                    return JsonResponse({'error': 'Title cannot be empty.'}, status=400)
+                goal.title = title
+                
+            if 'description' in data:
+                goal.description = data['description'].strip() if data['description'].strip() else None
+                
+            if 'category' in data:
+                category = data['category'].strip()
+                if category:
+                    goal.category = category
+                    
+            if 'target_date' in data:
+                try:
+                    target_date = timezone.datetime.strptime(data['target_date'], '%Y-%m-%d').date()
+                    goal.target_date = target_date
+                except ValueError:
+                    return JsonResponse({'error': 'Invalid date format. Use YYYY-MM-DD.'}, status=400)
+                    
+            if 'status' in data:
+                status = data['status'].strip()
+                if status in ['active', 'completed', 'overdue']:
+                    goal.status = status
+            
+            goal.save()
+            
+            return JsonResponse({
+                'id': goal.id,
+                'title': goal.title,
+                'description': goal.description,
+                'category': goal.category,
+                'target_date': goal.target_date.strftime('%Y-%m-%d'),
+                'status': goal.status,
+                'created_at': goal.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'updated_at': goal.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
+            })
+            
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON data.'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=400)
+
+
+@login_required
+def delete_goal(request, goal_id):
+    if request.method == 'DELETE':
+        goal = get_object_or_404(Goal, id=goal_id, user=request.user)
+        goal.delete()
+        return JsonResponse({'success': True})
+    
     return JsonResponse({'error': 'Invalid method'}, status=400)
 
 

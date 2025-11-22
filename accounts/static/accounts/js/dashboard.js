@@ -2479,23 +2479,23 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  if (goalsLink) {
-    goalsLink.addEventListener('click', function (e) {
-      e.preventDefault();
-
-      document.querySelectorAll('.sidebar .nav-item')
-        .forEach(item => item.classList.remove('active'));
-      goalsLink.classList.add('active');
-
-      loadMainContent(
-        '/goal/',
-        '<span class="breadcrumb-item active" data-level="goals">My Goals</span>',
-        function () {
-          ensureGoalsAssetsLoaded();
-        }
-      );
-    });
-  }
+  // if (goalsLink) {
+  //   goalsLink.addEventListener('click', function (e) {
+  //     e.preventDefault();
+  //
+  //     document.querySelectorAll('.sidebar .nav-item')
+  //       .forEach(item => item.classList.remove('active'));
+  //     goalsLink.classList.add('active');
+  //
+  //     loadMainContent(
+  //       '/goal/',
+  //       '<span class="breadcrumb-item active" data-level="goals">My Goals</span>',
+  //       function () {
+  //         ensureGoalsAssetsLoaded();
+  //       }
+  //     );
+  //   });
+  // }
 });
 
 function ensureSettingsAssetsLoaded() {

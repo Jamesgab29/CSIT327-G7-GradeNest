@@ -13,9 +13,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
   <script src="{% static 'accounts/js/dashboard.js' %}?v={{ CACHE_VERSION }}" defer></script>
-  {% comment %} <script src="{% static 'accounts/js/goal.js' %}?v={{ CACHE_VERSION }}" defer></script> {% endcomment %}
+  <script src="{% static 'accounts/js/goal.js' %}?v={{ CACHE_VERSION }}" defer></script>
 </head>
 <body>
+  {% csrf_token %}
 
 <div class="topbar">
   <div class="logo-section">
@@ -348,7 +349,7 @@
   </div>
   <div class="toast-content">
     <p class="toast-title">Success!</p>
-    <p class="toast-message" id="successMessage"></p>
+    <p class="toast-message" id="successMessage">Operation completed successfully!</p>
   </div>
 </div>
 
@@ -361,7 +362,7 @@
   </div>
   <div class="toast-content">
     <p class="toast-title">Error</p>
-    <p class="toast-message" id="errorMessage"></p>
+    <p class="toast-message" id="errorMessage">An error occurred. Please try again.</p>
   </div>
 </div>
 

@@ -88,6 +88,10 @@ urlpatterns = [
 
     # Component Weights API endpoint
     path("api/component-weights/", views.get_component_weights_api, name="get_component_weights"),
-
     
+    # Goal API endpoints
+    path("api/goals/list/", views.goals_list, name="goals_list"),
+    path("api/goals/add/", views.add_goal, name="add_goal"),
+    path("api/goals/update/<int:goal_id>/", views.update_goal, name="update_goal"),
+    path("api/goals/delete/<int:goal_id>/", views.delete_goal, name="delete_goal"),
 ]
