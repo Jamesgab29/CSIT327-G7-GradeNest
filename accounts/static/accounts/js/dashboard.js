@@ -345,36 +345,36 @@ async function initializeGradeStructure(profile) {
             subAreas: {
               'Music': {
                 components: {
-                  WW: { items: [], weight: COMPONENT_WEIGHTS[subject].WW },
-                  PT: { items: [], weight: COMPONENT_WEIGHTS[subject].PT },
-                  QA: { items: [], weight: COMPONENT_WEIGHTS[subject].QA }
+                  WW: { items: [], weight: (COMPONENT_WEIGHTS[subject] || { WW: 30, PT: 50, QA: 20 }).WW },
+                  PT: { items: [], weight: (COMPONENT_WEIGHTS[subject] || { WW: 30, PT: 50, QA: 20 }).PT },
+                  QA: { items: [], weight: (COMPONENT_WEIGHTS[subject] || { WW: 30, PT: 50, QA: 20 }).QA }
                 },
                 initialGrade: null,
                 transmutedGrade: null
               },
               'Arts': {
                 components: {
-                  WW: { items: [], weight: COMPONENT_WEIGHTS[subject].WW },
-                  PT: { items: [], weight: COMPONENT_WEIGHTS[subject].PT },
-                  QA: { items: [], weight: COMPONENT_WEIGHTS[subject].QA }
+                  WW: { items: [], weight: (COMPONENT_WEIGHTS[subject] || { WW: 30, PT: 50, QA: 20 }).WW },
+                  PT: { items: [], weight: (COMPONENT_WEIGHTS[subject] || { WW: 30, PT: 50, QA: 20 }).PT },
+                  QA: { items: [], weight: (COMPONENT_WEIGHTS[subject] || { WW: 30, PT: 50, QA: 20 }).QA }
                 },
                 initialGrade: null,
                 transmutedGrade: null
               },
               'Physical Education': {
                 components: {
-                  WW: { items: [], weight: COMPONENT_WEIGHTS[subject].WW },
-                  PT: { items: [], weight: COMPONENT_WEIGHTS[subject].PT },
-                  QA: { items: [], weight: COMPONENT_WEIGHTS[subject].QA }
+                  WW: { items: [], weight: (COMPONENT_WEIGHTS[subject] || { WW: 30, PT: 50, QA: 20 }).WW },
+                  PT: { items: [], weight: (COMPONENT_WEIGHTS[subject] || { WW: 30, PT: 50, QA: 20 }).PT },
+                  QA: { items: [], weight: (COMPONENT_WEIGHTS[subject] || { WW: 30, PT: 50, QA: 20 }).QA }
                 },
                 initialGrade: null,
                 transmutedGrade: null
               },
               'Health': {
                 components: {
-                  WW: { items: [], weight: COMPONENT_WEIGHTS[subject].WW },
-                  PT: { items: [], weight: COMPONENT_WEIGHTS[subject].PT },
-                  QA: { items: [], weight: COMPONENT_WEIGHTS[subject].QA }
+                  WW: { items: [], weight: (COMPONENT_WEIGHTS[subject] || { WW: 30, PT: 50, QA: 20 }).WW },
+                  PT: { items: [], weight: (COMPONENT_WEIGHTS[subject] || { WW: 30, PT: 50, QA: 20 }).PT },
+                  QA: { items: [], weight: (COMPONENT_WEIGHTS[subject] || { WW: 30, PT: 50, QA: 20 }).QA }
                 },
                 initialGrade: null,
                 transmutedGrade: null
@@ -386,9 +386,9 @@ async function initializeGradeStructure(profile) {
           quarter.subjects[subject] = {
             isMAPEH: false,
             components: {
-              WW: { items: [], weight: COMPONENT_WEIGHTS[subject].WW },
-              PT: { items: [], weight: COMPONENT_WEIGHTS[subject].PT },
-              QA: { items: [], weight: COMPONENT_WEIGHTS[subject].QA }
+              WW: { items: [], weight: (COMPONENT_WEIGHTS[subject] || { WW: 30, PT: 50, QA: 20 }).WW },
+              PT: { items: [], weight: (COMPONENT_WEIGHTS[subject] || { WW: 30, PT: 50, QA: 20 }).PT },
+              QA: { items: [], weight: (COMPONENT_WEIGHTS[subject] || { WW: 30, PT: 50, QA: 20 }).QA }
             },
             initialGrade: null,
             transmutedGrade: null,
@@ -603,9 +603,12 @@ function createQuarterCard(quarter, semester = null) {
   `;
 
   card.addEventListener('click', () => {
+    console.log('Quarter card clicked:', {quarter, semester});
     if (semester) {
+      console.log('Showing SHS subjects view with semester:', semester);
       showShsSubjectsView(semester, quarter);
     } else {
+      console.log('Showing JHS subjects view');
       showSubjectsView(quarter);
     }
   });
@@ -637,6 +640,7 @@ async function fetchAndSetQuarterSubjectCount(quarter, cardEl) {
 // ==================== VIEW NAVIGATION ====================
 
 async function showShsSubjectsView(semester, quarter) {
+  console.log('showShsSubjectsView called with:', {semester, quarter});
 
   
   appState.currentSemester = semester;
@@ -658,6 +662,12 @@ async function showShsSubjectsView(semester, quarter) {
   // Create new quarter switcher
   quarterSwitcher = document.createElement('div');
   quarterSwitcher.className = 'quarter-switcher';
+  
+  // Check if semester.quarters exists and is an array
+  if (!semester || !Array.isArray(semester.quarters)) {
+    console.error('Invalid semester data:', semester);
+    return;
+  }
   
   semester.quarters.forEach(q => {
     const btn = document.createElement('button');
@@ -949,8 +959,7 @@ async function showSubjectsView(quarter) {
     card.style.cursor = 'pointer';
     
     card.addEventListener('click', (e) => {
-      console.log('=== CARD CLICKED ===');
-      console.log('Subject:', subject);
+      console.log('=== JHS CARD CLICKED ===');
       showSubjectDetailView(subject);
     });
     
@@ -959,8 +968,7 @@ async function showSubjectsView(quarter) {
       visitBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('=== VISIT BUTTON CLICKED ===');
-        console.log('Subject:', subject);
+        console.log('=== JHS VISIT BUTTON CLICKED ===');
         showSubjectDetailView(subject);
       });
     }
@@ -968,7 +976,7 @@ async function showSubjectsView(quarter) {
     grid.appendChild(card);
   }
   
-  console.log('Cards created, calling showView');
+  console.log('JHS cards created, calling showView');
   showView('subjects');
   
   // Calculate and update quarter GWA in the background
@@ -976,13 +984,427 @@ async function showSubjectsView(quarter) {
     if (gwa !== null) {
       quarter.gwa = gwa;
       console.log('Quarter GWA updated:', gwa);
-      // Update the quarter card on dashboard if we go back
-      updateQuarterCard(quarter);
     }
   });
 }
 
+async function showSubjectDetailView(subject) {
+  console.log('showSubjectDetailView called with:', subject);
+  
+  appState.currentSubject = subject;
+  document.getElementById('subjectDetailViewTitle').textContent = subject.name;
+  
+  const grid = document.getElementById('subjectDetailGrid');
+  grid.innerHTML = '';
+  
+  // Load components for this subject from database
+  const components = await loadComponents(appState.currentQuarter.id, subject.id);
+  console.log('Loaded components for subject:', components);
+  
+  // Setup Add Component button listener
+  const btnAddComponent = document.getElementById('btnAddComponent');
+  if (btnAddComponent) {
+    // Remove old listener by cloning
+    const newBtn = btnAddComponent.cloneNode(true);
+    btnAddComponent.parentNode.replaceChild(newBtn, btnAddComponent);
+    
+    newBtn.addEventListener('click', () => {
+      console.log('Add Component button clicked!');
+      const modal = document.getElementById('addComponentModal');
+      if (modal) {
+        modal.style.display = '';
+        modal.classList.add('show');
+        console.log('Add Component modal displayed');
+      }
+    });
+  }
+  
+  if (components.length === 0) {
+    // Show message if no components
+    grid.innerHTML = '<div style="text-align: center; padding: 60px 20px; color: #666;"><h3 style="margin-bottom: 12px; color: #333;">No Components Yet</h3><p style="margin-bottom: 20px;">Click "Add Component" button above to create your first component and start tracking grades!</p></div>';
+    showView('subjectDetail');
+    return;
+  }
+  
+  // Render component cards from database with calculated grades
+  for (const component of components) {
+    const card = document.createElement('div');
+    card.className = 'component-card';
+    card.setAttribute('data-component', component.name);
+    
+    // Determine status badge and progress display
+    let statusBadge = '<span class="status-badge pending">No Grade</span>';
+    let progressValue = '--';
+    let progressLabel = 'No grade';
+    let strokeColor = '#E5E7EB';
+    let strokeOffset = 2 * Math.PI * 52; // Full circle (no progress)
+    
+    if (component.grade !== null) {
+      progressValue = component.grade;
+      progressLabel = component.grade >= 75 ? 'Passing' : 'Needs Improvement';
+      
+      // Color based on grade
+      if (component.grade >= 90) {
+        strokeColor = '#10b981'; // Green
+        statusBadge = '<span class="status-badge completed">Outstanding</span>';
+      } else if (component.grade >= 85) {
+        strokeColor = '#38CA79'; // Light green
+        statusBadge = '<span class="status-badge completed">Very Good</span>';
+      } else if (component.grade >= 80) {
+        strokeColor = '#3b82f6'; // Blue
+        statusBadge = '<span class="status-badge in-progress">Good</span>';
+      } else if (component.grade >= 75) {
+        strokeColor = '#f59e0b'; // Orange
+        statusBadge = '<span class="status-badge in-progress">Passing</span>';
+      } else {
+        strokeColor = '#ef4444'; // Red
+        statusBadge = '<span class="status-badge pending">Failed</span>';
+      }
+      
+      // Calculate stroke offset for circular progress
+      const circumference = 2 * Math.PI * 52;
+      strokeOffset = circumference * (1 - component.grade / 100);
+    }
+    
+    card.innerHTML = `
+      <div class="component-card-header">
+        <h3 class="component-card-title">${component.name}</h3>
+        <div class="component-card-status">
+          ${statusBadge}
+        </div>
+      </div>
+      <div class="component-card-body">
+        <div class="circular-progress-container">
+          <svg class="circular-progress" width="120" height="120" viewBox="0 0 120 120">
+            <circle class="progress-bg" cx="60" cy="60" r="52" 
+                    stroke="#E5E7EB" stroke-width="8" fill="none"/>
+            <circle class="progress-bar" cx="60" cy="60" r="52" 
+                    stroke="${strokeColor}" stroke-width="8" fill="none"
+                    stroke-dasharray="${2 * Math.PI * 52}" 
+                    stroke-dashoffset="${strokeOffset}"
+                    transform="rotate(-90 60 60)"
+                    stroke-linecap="round"/>
+          </svg>
+          <div class="progress-text">
+            <span class="progress-value">${progressValue}</span>
+            <span class="progress-label">${progressLabel}</span>
+          </div>
+        </div>
+        <button class="btn-visit-component">Visit</button>
+      </div>
+    `;
+    
+    card.style.cursor = 'pointer';
+    
+    card.addEventListener('click', (e) => {
+      console.log('=== COMPONENT CARD CLICKED ===');
+      showComponentDetailView(component);
+    });
+    
+    const visitBtn = card.querySelector('.btn-visit-component');
+    if (visitBtn) {
+      visitBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('=== COMPONENT VISIT BUTTON CLICKED ===');
+        showComponentDetailView(component);
+      });
+    }
+    
+    grid.appendChild(card);
+  }
+  
+  console.log('Component cards created, calling showView');
+  showView('subjectDetail');
+}
+
+async function showComponentDetailView(component) {
+  console.log('showComponentDetailView called with:', component);
+  
+  appState.currentComponent = component;
+  document.getElementById('componentDetailViewTitle').textContent = component.name;
+  
+  const grid = document.getElementById('componentDetailGrid');
+  grid.innerHTML = '';
+  
+  // Load grades for this component from database
+  const grades = await loadGrades(appState.currentQuarter.id, appState.currentSubject.id, component.id);
+  console.log('Loaded grades for component:', grades);
+  
+  // Setup Add Grade button listener
+  const btnAddGrade = document.getElementById('btnAddGrade');
+  if (btnAddGrade) {
+    // Remove old listener by cloning
+    const newBtn = btnAddGrade.cloneNode(true);
+    btnAddGrade.parentNode.replaceChild(newBtn, btnAddGrade);
+    
+    newBtn.addEventListener('click', () => {
+      console.log('Add Grade button clicked!');
+      const modal = document.getElementById('addGradeModal');
+      if (modal) {
+        modal.style.display = '';
+        modal.classList.add('show');
+        console.log('Add Grade modal displayed');
+      }
+    });
+  }
+  
+  if (grades.length === 0) {
+    // Show message if no grades
+    grid.innerHTML = '<div style="text-align: center; padding: 60px 20px; color: #666;"><h3 style="margin-bottom: 12px; color: #333;">No Grades Yet</h3><p style="margin-bottom: 20px;">Click "Add Grade" button above to create your first grade and start tracking grades!</p></div>';
+    showView('componentDetail');
+    return;
+  }
+  
+  // Render grade cards from database with calculated grades
+  for (const grade of grades) {
+    const card = document.createElement('div');
+    card.className = 'grade-card';
+    card.setAttribute('data-grade', grade.name);
+    
+    // Determine status badge and progress display
+    let statusBadge = '<span class="status-badge pending">No Grade</span>';
+    let progressValue = '--';
+    let progressLabel = 'No grade';
+    let strokeColor = '#E5E7EB';
+    let strokeOffset = 2 * Math.PI * 52; // Full circle (no progress)
+    
+    if (grade.score !== null) {
+      progressValue = grade.score;
+      progressLabel = grade.score >= 75 ? 'Passing' : 'Needs Improvement';
+      
+      // Color based on grade
+      if (grade.score >= 90) {
+        strokeColor = '#10b981'; // Green
+        statusBadge = '<span class="status-badge completed">Outstanding</span>';
+      } else if (grade.score >= 85) {
+        strokeColor = '#38CA79'; // Light green
+        statusBadge = '<span class="status-badge completed">Very Good</span>';
+      } else if (grade.score >= 80) {
+        strokeColor = '#3b82f6'; // Blue
+        statusBadge = '<span class="status-badge in-progress">Good</span>';
+      } else if (grade.score >= 75) {
+        strokeColor = '#f59e0b'; // Orange
+        statusBadge = '<span class="status-badge in-progress">Passing</span>';
+      } else {
+        strokeColor = '#ef4444'; // Red
+        statusBadge = '<span class="status-badge pending">Failed</span>';
+      }
+      
+      // Calculate stroke offset for circular progress
+      const circumference = 2 * Math.PI * 52;
+      strokeOffset = circumference * (1 - grade.score / 100);
+    }
+    
+    card.innerHTML = `
+      <div class="grade-card-header">
+        <h3 class="grade-card-title">${grade.name}</h3>
+        <div class="grade-card-status">
+          ${statusBadge}
+        </div>
+      </div>
+      <div class="grade-card-body">
+        <div class="circular-progress-container">
+          <svg class="circular-progress" width="120" height="120" viewBox="0 0 120 120">
+            <circle class="progress-bg" cx="60" cy="60" r="52" 
+                    stroke="#E5E7EB" stroke-width="8" fill="none"/>
+            <circle class="progress-bar" cx="60" cy="60" r="52" 
+                    stroke="${strokeColor}" stroke-width="8" fill="none"
+                    stroke-dasharray="${2 * Math.PI * 52}" 
+                    stroke-dashoffset="${strokeOffset}"
+                    transform="rotate(-90 60 60)"
+                    stroke-linecap="round"/>
+          </svg>
+          <div class="progress-text">
+            <span class="progress-value">${progressValue}</span>
+            <span class="progress-label">${progressLabel}</span>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    card.style.cursor = 'pointer';
+    
+    card.addEventListener('click', (e) => {
+      console.log('=== GRADE CARD CLICKED ===');
+      showGradeDetailView(grade);
+    });
+    
+    grid.appendChild(card);
+  }
+  
+  console.log('Grade cards created, calling showView');
+  showView('componentDetail');
+}
+
+async function showGradeDetailView(grade) {
+  console.log('showGradeDetailView called with:', grade);
+  
+  appState.currentGrade = grade;
+  document.getElementById('gradeDetailViewTitle').textContent = grade.name;
+  
+  const grid = document.getElementById('gradeDetailGrid');
+  grid.innerHTML = '';
+  
+  // Load grade details from database
+  const gradeDetails = await loadGradeDetails(appState.currentQuarter.id, appState.currentSubject.id, appState.currentComponent.id, grade.id);
+  console.log('Loaded grade details for grade:', gradeDetails);
+  
+  if (gradeDetails.length === 0) {
+    // Show message if no grade details
+    grid.innerHTML = '<div style="text-align: center; padding: 60px 20px; color: #666;"><h3 style="margin-bottom: 12px; color: #333;">No Grade Details Yet</h3><p style="margin-bottom: 20px;">Click "Add Grade" button above to create your first grade and start tracking grades!</p></div>';
+    showView('gradeDetail');
+    return;
+  }
+  
+  // Render grade detail cards from database with calculated grades
+  for (const detail of gradeDetails) {
+    const card = document.createElement('div');
+    card.className = 'grade-detail-card';
+    card.setAttribute('data-grade-detail', detail.name);
+    
+    // Determine status badge and progress display
+    let statusBadge = '<span class="status-badge pending">No Grade</span>';
+    let progressValue = '--';
+    let progressLabel = 'No grade';
+    let strokeColor = '#E5E7EB';
+    let strokeOffset = 2 * Math.PI * 52; // Full circle (no progress)
+    
+    if (detail.score !== null) {
+      progressValue = detail.score;
+      progressLabel = detail.score >= 75 ? 'Passing' : 'Needs Improvement';
+      
+      // Color based on grade
+      if (detail.score >= 90) {
+        strokeColor = '#10b981'; // Green
+        statusBadge = '<span class="status-badge completed">Outstanding</span>';
+      } else if (detail.score >= 85) {
+        strokeColor = '#38CA79'; // Light green
+        statusBadge = '<span class="status-badge completed">Very Good</span>';
+      } else if (detail.score >= 80) {
+        strokeColor = '#3b82f6'; // Blue
+        statusBadge = '<span class="status-badge in-progress">Good</span>';
+      } else if (detail.score >= 75) {
+        strokeColor = '#f59e0b'; // Orange
+        statusBadge = '<span class="status-badge in-progress">Passing</span>';
+      } else {
+        strokeColor = '#ef4444'; // Red
+        statusBadge = '<span class="status-badge pending">Failed</span>';
+      }
+      
+      // Calculate stroke offset for circular progress
+      const circumference = 2 * Math.PI * 52;
+      strokeOffset = circumference * (1 - detail.score / 100);
+    }
+    
+    card.innerHTML = `
+      <div class="grade-detail-card-header">
+        <h3 class="grade-detail-card-title">${detail.name}</h3>
+        <div class="grade-detail-card-status">
+          ${statusBadge}
+        </div>
+      </div>
+      <div class="grade-detail-card-body">
+        <div class="circular-progress-container">
+          <svg class="circular-progress" width="120" height="120" viewBox="0 0 120 120">
+            <circle class="progress-bg" cx="60" cy="60" r="52" 
+                    stroke="#E5E7EB" stroke-width="8" fill="none"/>
+            <circle class="progress-bar" cx="60" cy="60" r="52" 
+                    stroke="${strokeColor}" stroke-width="8" fill="none"
+                    stroke-dasharray="${2 * Math.PI * 52}" 
+                    stroke-dashoffset="${strokeOffset}"
+                    transform="rotate(-90 60 60)"
+                    stroke-linecap="round"/>
+          </svg>
+          <div class="progress-text">
+            <span class="progress-value">${progressValue}</span>
+            <span class="progress-label">${progressLabel}</span>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    card.style.cursor = 'pointer';
+    
+    card.addEventListener('click', (e) => {
+      console.log('=== GRADE DETAIL CARD CLICKED ===');
+      showGradeDetailView(detail);
+    });
+    
+    grid.appendChild(card);
+  }
+  
+  console.log('Grade detail cards created, calling showView');
+  showView('gradeDetail');
+}
+
+function updateBreadcrumb() {
+  console.log('Updating breadcrumb...');
+  const breadcrumb = document.getElementById('breadcrumb');
+  breadcrumb.innerHTML = '';
+  
+  if (appState.currentView === 'home') {
+    breadcrumb.innerHTML = '<span>Home</span>';
+  } else if (appState.currentView === 'subjects') {
+    breadcrumb.innerHTML = `
+      <span>Home</span>
+      <span>${appState.currentQuarter.name}</span>
+    `;
+  } else if (appState.currentView === 'subjectDetail') {
+    breadcrumb.innerHTML = `
+      <span>Home</span>
+      <span>${appState.currentQuarter.name}</span>
+      <span>${appState.currentSubject.name}</span>
+    `;
+  } else if (appState.currentView === 'componentDetail') {
+    breadcrumb.innerHTML = `
+      <span>Home</span>
+      <span>${appState.currentQuarter.name}</span>
+      <span>${appState.currentSubject.name}</span>
+      <span>${appState.currentComponent.name}</span>
+    `;
+  } else if (appState.currentView === 'gradeDetail') {
+    breadcrumb.innerHTML = `
+      <span>Home</span>
+      <span>${appState.currentQuarter.name}</span>
+      <span>${appState.currentSubject.name}</span>
+      <span>${appState.currentComponent.name}</span>
+      <span>${appState.currentGrade.name}</span>
+    `;
+  }
+}
+
 // ==================== GRADE CALCULATION ====================
+
+// Helper to get weights by subject for SHS
+function getShsComponentWeights(subject) {
+    const immersionKeywords = [
+        "Work Immersion", "Research", "Business Enterprise", "Simulation", 
+        "Exhibit", "Performance", "Immersion", "Research Project"
+    ];
+    
+    // Check if any immersion keyword is in the subject name (case insensitive)
+    const isImmersionSubject = immersionKeywords.some(keyword => 
+        subject.toLowerCase().includes(keyword.toLowerCase()));
+    
+    // Defensive coding: Ensure we have valid fallback weights
+    const defaultWeights = { WW: 25, PT: 50, QA: 25 };
+    const immersionWeights = { WW: 20, PT: 60, QA: 20 };
+    
+    // Check if SHS_COMPONENT_WEIGHTS is properly loaded
+    if (!SHS_COMPONENT_WEIGHTS || Object.keys(SHS_COMPONENT_WEIGHTS).length === 0) {
+        // Fallback to hardcoded values if not loaded
+        return isImmersionSubject ? immersionWeights : defaultWeights;
+    }
+    
+    // Use loaded values if available
+    if (isImmersionSubject) {
+        return SHS_COMPONENT_WEIGHTS.immersion || immersionWeights;
+    }
+    return SHS_COMPONENT_WEIGHTS.default || defaultWeights;
+}
+
+
 
 /**
  * Calculate subject grade based on DepEd methodology (server-side)
@@ -1060,7 +1482,6 @@ function calculateSubjectGrade(subjectName, components, isSHS = false) {
 }
 
 
-
 // Calculate Quarter GWA (average of all subject grades)
 async function calculateQuarterGWA(quarterId) {
   console.log('Calculating quarter GWA for quarter:', quarterId);
@@ -1089,6 +1510,31 @@ async function calculateQuarterGWA(quarterId) {
       }
     }
     
+    console.log('Subject grades:', subjectGrades);
+    // New rule: GWA is computed only if ALL required subject grades are present
+    if (subjectGrades.length !== subjects.length) {
+      return null; // Missing or invalid grades for one or more subjects
+    }
+    
+    // Calculate average across all subjects
+    const sum = subjectGrades.reduce((total, grade) => total + grade, 0);
+    const gwa = sum / subjectGrades.length;
+    
+    console.log('Quarter GWA:', gwa);
+    return gwa;
+  } catch (error) {
+    console.error('Error calculating quarter GWA:', error);
+    return null;
+  }
+}
+
+async function showSubjectDetailView(subject) {
+  console.log('showSubjectDetailView called with:', subject);
+  console.log('Subject name:', subject.name);
+  console.log('Is subject MAPEH?', subject.name === 'MAPEH');
+  console.log('Current quarter:', appState.currentQuarter);
+  try {
+    const subjectGrades = await getSubjectGrades(subject);
     console.log('Subject grades:', subjectGrades);
     // New rule: GWA is computed only if ALL required subject grades are present
     if (subjectGrades.length !== subjects.length) {
