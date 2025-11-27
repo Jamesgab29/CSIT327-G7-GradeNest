@@ -29,7 +29,7 @@ INSTALLED_APPS = [
     "accounts",  # Your custom app
 ]
 
-# Middleware configuration
+# Middleware configuration  
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",  # <-- WhiteNoise for static files
