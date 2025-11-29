@@ -90,6 +90,37 @@
 }
 
 /* =========================================
+   TABS
+   ========================================= */
+.tabs {
+  display: flex;
+  gap: 8px;
+  background: white;
+  padding: 8px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--neutral-200);
+  box-shadow: var(--shadow-md);
+  margin-bottom: 18px;
+}
+
+.tab-btn {
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  color: var(--neutral-700);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.tab-btn:hover { background: var(--neutral-100); }
+.tab-btn.active { background: var(--primary-green-subtle); color: var(--primary-green-dark); }
+
+.tab-panels { margin-top: 10px; }
+.tab-panel { display: none; animation: fadeIn 0.2s ease-in; }
+.tab-panel.active { display: block; }
+
+/* =========================================
    SETTINGS GRID
    ========================================= */
 
