@@ -640,6 +640,12 @@ async function fetchAndSetQuarterSubjectCount(quarter, cardEl) {
 // ==================== VIEW NAVIGATION ====================
 
 async function showShsSubjectsView(semester, quarter) {
+  // Show loading overlay
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  if (loadingOverlay) {
+    loadingOverlay.classList.add('active');
+  }
+  
   console.log('showShsSubjectsView called with:', {semester, quarter});
 
   
@@ -666,6 +672,10 @@ async function showShsSubjectsView(semester, quarter) {
   // Check if semester.quarters exists and is an array
   if (!semester || !Array.isArray(semester.quarters)) {
     console.error('Invalid semester data:', semester);
+    // Hide loading overlay
+    if (loadingOverlay) {
+      loadingOverlay.classList.remove('active');
+    }
     return;
   }
   
@@ -717,6 +727,10 @@ async function showShsSubjectsView(semester, quarter) {
     // Show message if no subjects
     grid.innerHTML = '<div style="text-align: center; padding: 60px 20px; color: #666;"><h3 style="margin-bottom: 12px; color: #333;">No Subjects Yet</h3><p style="margin-bottom: 20px;">Click "Add Subject" button above to create your first subject and start tracking grades!</p></div>';
     showView('subjects');
+    // Hide loading overlay
+    if (loadingOverlay) {
+      loadingOverlay.classList.remove('active');
+    }
     return;
   }
   
@@ -822,6 +836,11 @@ async function showShsSubjectsView(semester, quarter) {
       console.log('Quarter GWA updated:', gwa);
     }
   });
+  
+  // Hide loading overlay
+  if (loadingOverlay) {
+    loadingOverlay.classList.remove('active');
+  }
 }
 
 function showView(viewName) {
@@ -847,6 +866,12 @@ function showView(viewName) {
 }
 
 async function showSubjectsView(quarter) {
+  // Show loading overlay
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  if (loadingOverlay) {
+    loadingOverlay.classList.add('active');
+  }
+  
   console.log('=== showSubjectsView called ===');
   
   appState.currentQuarter = quarter;
@@ -881,6 +906,10 @@ async function showSubjectsView(quarter) {
     // Show message if no subjects
     grid.innerHTML = '<div style="text-align: center; padding: 60px 20px; color: #666;"><h3 style="margin-bottom: 12px; color: #333;">No Subjects Yet</h3><p style="margin-bottom: 20px;">Click "Add Subject" button above to create your first subject and start tracking grades!</p></div>';
     showView('subjects');
+    // Hide loading overlay
+    if (loadingOverlay) {
+      loadingOverlay.classList.remove('active');
+    }
     return;
   }
   
@@ -986,6 +1015,11 @@ async function showSubjectsView(quarter) {
       console.log('Quarter GWA updated:', gwa);
     }
   });
+  
+  // Hide loading overlay
+  if (loadingOverlay) {
+    loadingOverlay.classList.remove('active');
+  }
 }
 
 async function showSubjectDetailView(subject) {
@@ -1554,6 +1588,12 @@ async function showSubjectDetailView(subject) {
 }
 
 async function showSubjectDetailView(subject) {
+  // Show loading overlay
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  if (loadingOverlay) {
+    loadingOverlay.classList.add('active');
+  }
+  
   console.log('showSubjectDetailView called with:', subject);
   console.log('Subject name:', subject.name);
   console.log('Is subject MAPEH?', subject.name === 'MAPEH');
@@ -1587,6 +1627,10 @@ async function showSubjectDetailView(subject) {
   const container = document.getElementById('componentsTableBody');
   if (!container) {
     console.error('Components table body not found!');
+    // Hide loading overlay
+    if (loadingOverlay) {
+      loadingOverlay.classList.remove('active');
+    }
     return;
   }
   
@@ -1616,7 +1660,7 @@ async function showSubjectDetailView(subject) {
         <td>${percentage}%</td>
         <td>
           <button class="btn-edit-component" data-id="${comp.id}" style="background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-right: 6px; font-size: 12px;" ${disableActions ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Edit</button>
-          <button class="btn-delete-component" data-id="${comp.id}" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;" ${disableActions ? 'disabled style=\"opacity:0.5;cursor:not-allowed;\"' : ''}>Delete</button>
+          <button class="btn-delete-component" data-id="${comp.id}" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;" ${disableActions ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Delete</button>
         </td>
       `;
       if (!disableActions) {
@@ -1672,6 +1716,11 @@ async function showSubjectDetailView(subject) {
     if (tab.dataset.component === activeComponentTab) tab.classList.add('active');
     else tab.classList.remove('active');
   });
+  
+  // Hide loading overlay
+  if (loadingOverlay) {
+    loadingOverlay.classList.remove('active');
+  }
 }
 
 function updateGradeCircles(initialGrade, transmutedGrade) {
@@ -1728,6 +1777,12 @@ function updateGradeCircles(initialGrade, transmutedGrade) {
 }
 
 async function showDashboardView() {
+  // Show loading overlay
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  if (loadingOverlay) {
+    loadingOverlay.classList.add('active');
+  }
+  
   appState.currentQuarter = null;
   appState.currentSubject = null;
   
@@ -1769,6 +1824,11 @@ async function showDashboardView() {
   updateOverallGwa(profile);
   
   showView('dashboard');
+  
+  // Hide loading overlay
+  if (loadingOverlay) {
+    loadingOverlay.classList.remove('active');
+  }
 }
 
 function updateBreadcrumb() {
@@ -2624,6 +2684,12 @@ function markSchoolYearComplete() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Show loading overlay
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  if (loadingOverlay) {
+    loadingOverlay.classList.add('active');
+  }
+  
   setCurrentDate();
   const profile = await fetchUserProfile();
   await initializeGradeStructure(profile);
@@ -2670,6 +2736,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   await refreshYearProgress(); // Fetch backend quarter statuses and update progress
   await loadSubjects(); // Load subjects for dropdowns
   await loadComponents(); // Load components
+  
+  // Hide loading overlay once everything is loaded
+  if (loadingOverlay) {
+    loadingOverlay.classList.remove('active');
+  }
   
   // Setup Add Quarter button
   const btnAddQuarter = document.getElementById('btnAddQuarter');
