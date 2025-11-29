@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="{% static 'accounts/css/dashboard.css' %}?v={{ CACHE_VERSION }}" />
   <link rel="stylesheet" href="{% static 'accounts/css/dashboard-compact.css' %}?v={{ CACHE_VERSION }}" />
   <link rel="stylesheet" href="{% static 'accounts/css/settings.css' %}?v={{ CACHE_VERSION }}" />
+  <link rel="stylesheet" href="{% static 'accounts/css/profile.css' %}?v={{ CACHE_VERSION }}" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
@@ -118,156 +119,231 @@
 
     <!-- Breadcrumb Navigation -->
     <div class="breadcrumb-nav" id="breadcrumbNav">
-      <span class="breadcrumb-item active" data-level="settings">Settings</span>
+      <span class="breadcrumb-item" data-level="settings">Settings</span>
+      <span class="breadcrumb-separator">›</span>
+      <span class="breadcrumb-item active" data-level="student-profile">Student Profile</span>
     </div>
 
-    <!-- Settings View -->
+    <!-- Settings View (Student Profile Tabs) -->
     <div id="settingsView" class="view-container active">
-      
+
       <!-- Settings Header -->
       <div class="settings-header">
-        <h1 class="settings-title">Settings</h1>
-        <p class="settings-subtitle">Manage your account preferences and configurations</p>
+        <h1 class="settings-title">Student Profile</h1>
+        <p class="settings-subtitle">Manage your personal information and account security; academic info is view-only.</p>
       </div>
 
-      <!-- Settings Grid -->
-      <div class="settings-grid">
-        
-        <!-- Profile Card -->
-        <a href="{% url 'accounts:profile' %}" class="settings-card" id="profileCard">
-          <div class="settings-card-icon profile-icon">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <path d="M16 16a6 6 0 100-12 6 6 0 000 12zM6 28a10 10 0 0120 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="settings-card-content">
-            <h3 class="settings-card-title">Profile</h3>
-            <p class="settings-card-description">Manage your personal and academic information</p>
-          </div>
-          <div class="settings-card-arrow">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M7.5 15l5-5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-        </a>
-
-        {% comment %} <!-- Notifications Card (Placeholder) -->
-        <div class="settings-card disabled" title="Coming Soon">
-          <div class="settings-card-icon notifications-icon">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <path d="M24 11a8 8 0 00-16 0c0 7-3 9-3 9h22s-3-2-3-9zM18.73 24a2 2 0 01-3.46 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="settings-card-content">
-            <h3 class="settings-card-title">Notifications</h3>
-            <p class="settings-card-description">Configure your notification preferences</p>
-          </div>
-          <span class="coming-soon-badge">Coming Soon</span>
-        </div>
-
-        <!-- Privacy Card (Placeholder) -->
-        <div class="settings-card disabled" title="Coming Soon">
-          <div class="settings-card-icon privacy-icon">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <path d="M16 4l8 3v7c0 5.523-3.134 10-8 13-4.866-3-8-7.477-8-13V7l8-3z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="settings-card-content">
-            <h3 class="settings-card-title">Privacy & Security</h3>
-            <p class="settings-card-description">Control your privacy and security settings</p>
-          </div>
-          <span class="coming-soon-badge">Coming Soon</span>
-        </div>
-
-        <!-- Appearance Card (Placeholder) -->
-        <div class="settings-card disabled" title="Coming Soon">
-          <div class="settings-card-icon appearance-icon">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <path d="M16 4v24M4 16h24M16 4a12 12 0 0112 12 12 12 0 01-12 12A12 12 0 014 16 12 12 0 0116 4z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="settings-card-content">
-            <h3 class="settings-card-title">Appearance</h3>
-            <p class="settings-card-description">Customize theme and display preferences</p>
-          </div>
-          <span class="coming-soon-badge">Coming Soon</span>
-        </div>
-
-        <!-- Data & Storage Card (Placeholder) -->
-        <div class="settings-card disabled" title="Coming Soon">
-          <div class="settings-card-icon storage-icon">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <path d="M28 8H4a2 2 0 00-2 2v12a2 2 0 002 2h24a2 2 0 002-2V10a2 2 0 00-2-2zM6 16h.01M10 16h.01M6 20h.01M10 20h.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="settings-card-content">
-            <h3 class="settings-card-title">Data & Storage</h3>
-            <p class="settings-card-description">Manage your data and storage options</p>
-          </div>
-          <span class="coming-soon-badge">Coming Soon</span>
-        </div>
-
-        <!-- Help & Support Card (Placeholder) -->
-        <div class="settings-card disabled" title="Coming Soon">
-          <div class="settings-card-icon support-icon">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <circle cx="16" cy="16" r="12" stroke="currentColor" stroke-width="2.5"/>
-              <path d="M12 12a4 4 0 017.5 2c0 2-2.5 3-2.5 3M16 22h.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="settings-card-content">
-            <h3 class="settings-card-title">Help & Support</h3>
-            <p class="settings-card-description">Get help and contact support</p>
-          </div>
-          <span class="coming-soon-badge">Coming Soon</span>
-        </div>
-
+      <!-- Tabs Navigation -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="personal">Personal Information</button>
+        <button class="tab-btn" data-tab="security">Account Security</button>
+        <button class="tab-btn" data-tab="academic">Academic Information</button>
       </div>
 
-      <!-- Account Actions Section -->
-      <div class="account-actions">
-        <h2 class="section-title">Account Actions</h2>
-        <div class="action-cards">
-          
-          <!-- Export Data Card -->
-          <div class="action-card disabled">
-            <div class="action-card-content">
-              <div class="action-icon export-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5-5 5 5M12 5v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </div>
-              <div class="action-info">
-                <h4 class="action-title">Export Your Data</h4>
-                <p class="action-description">Download a copy of your academic records</p>
+      <!-- Tabs Content -->
+      <div class="tab-panels">
+
+        <!-- Personal Information Panel -->
+        <section id="tab-personal" class="tab-panel active">
+          <div class="profile-card">
+            <div class="card-header">
+              <div class="card-header-left">
+                <div class="card-icon personal">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M10 10a4 4 0 100-8 4 4 0 000 8zM3 18a7 7 0 0114 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <h2 class="card-title">Personal Information</h2>
               </div>
             </div>
-            <span class="coming-soon-badge">Coming Soon</span>
-          </div>
-
-          <!-- Delete Account Card -->
-          <div class="action-card disabled">
-            <div class="action-card-content">
-              <div class="action-icon delete-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </div>
-              <div class="action-info">
-                <h4 class="action-title">Delete Account</h4>
-                <p class="action-description">Permanently delete your account and data</p>
-              </div> {% endcomment %}
+            <div class="card-body">
+              <form id="personalInfoForm" novalidate>
+                <div class="form-group">
+                  <label class="form-label" for="firstName">First Name <span class="required-mark">*</span></label>
+                  <input type="text" id="firstName" name="firstName" class="form-input" value="{{ user.first_name|default:user.full_name|default:'' }}" required />
+                  <span class="form-error" id="firstNameError"></span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="lastName">Last Name <span class="required-mark">*</span></label>
+                  <input type="text" id="lastName" name="lastName" class="form-input" value="{{ user.last_name|default:'' }}" required />
+                  <span class="form-error" id="lastNameError"></span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="email">Email Address <span class="required-mark">*</span></label>
+                  <input type="email" id="email" name="email" class="form-input" value="{{ user.email }}" required />
+                  <span class="form-error" id="emailError"></span>
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn-save" id="savePersonalInfo">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M13.333 4L6 11.333 2.667 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Save Changes
+                  </button>
+                </div>
+              </form>
             </div>
-            <span class="coming-soon-badge">Coming Soon</span>
           </div>
+        </section>
 
-        </div>
+        <!-- Account Security Panel -->
+        <section id="tab-security" class="tab-panel">
+          <div class="profile-card">
+            <div class="card-header">
+              <div class="card-header-left">
+                <div class="card-icon security">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M10 2l6 2v5c0 3.866-2.239 7-6 9-3.761-2-6-5.134-6-9V4l6-2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <h2 class="card-title">Account Security</h2>
+              </div>
+            </div>
+            <div class="card-body">
+              <form id="securityForm" novalidate>
+                <div class="form-group">
+                  <label class="form-label" for="currentPassword">Current Password <span class="required-mark">*</span></label>
+                  <div class="password-input-wrapper">
+                    <input type="password" id="currentPassword" name="currentPassword" class="form-input" placeholder="Enter current password" />
+                    <button type="button" class="toggle-password" data-target="currentPassword">
+                      <svg class="eye-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M10 4C5 4 1.73 7.11 1 10c.73 2.89 4 6 9 6s8.27-3.11 9-6c-.73-2.89-4-6-9-6z" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <span class="form-error" id="currentPasswordError"></span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="newPassword">New Password <span class="required-mark">*</span></label>
+                  <div class="password-input-wrapper">
+                    <input type="password" id="newPassword" name="newPassword" class="form-input" placeholder="Enter new password" />
+                    <button type="button" class="toggle-password" data-target="newPassword">
+                      <svg class="eye-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M10 4C5 4 1.73 7.11 1 10c.73 2.89 4 6 9 6s8.27-3.11 9-6c-.73-2.89-4-6-9-6z" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <span class="form-error" id="newPasswordError"></span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="confirmPassword">Confirm New Password <span class="required-mark">*</span></label>
+                  <div class="password-input-wrapper">
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" placeholder="Confirm new password" />
+                    <button type="button" class="toggle-password" data-target="confirmPassword">
+                      <svg class="eye-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M10 4C5 4 1.73 7.11 1 10c.73 2.89 4 6 9 6s8.27-3.11 9-6c-.73-2.89-4-6-9-6z" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <span class="form-error" id="confirmPasswordError"></span>
+                </div>
+
+                <div class="password-requirements">
+                  <p class="requirements-title">Password must contain:</p>
+                  <ul class="requirements-list">
+                    <li class="requirement-item" id="reqLength">
+                      <svg class="req-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                      At least 8 characters
+                    </li>
+                    <li class="requirement-item" id="reqUppercase">
+                      <svg class="req-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                      One uppercase letter
+                    </li>
+                    <li class="requirement-item" id="reqLowercase">
+                      <svg class="req-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                      One lowercase letter
+                    </li>
+                    <li class="requirement-item" id="reqNumber">
+                      <svg class="req-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                      One number
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="form-actions">
+                  <button type="submit" class="btn-save" id="updatePassword">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M13.333 4L6 11.333 2.667 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Update Password
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <!-- Academic Information Panel (Read-only) -->
+        <section id="tab-academic" class="tab-panel">
+          <div class="profile-card full-width">
+            <div class="card-header">
+              <div class="card-header-left">
+                <div class="card-icon academic">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M10 2L2 6l8 4 8-4-8-4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M2 10l8 4 8-4M6 8.5v5a4 4 0 008 0v-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <h2 class="card-title">Academic Information</h2>
+              </div>
+              <span class="info-badge">Current School Year: {{ profile.school_year|default:"2024-2025" }}</span>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label">School Level</label>
+                <div id="displayGradeLevel">{{ profile.grade_level|default:"Grade 7" }}</div>
+              </div>
+              <div class="form-group" id="displayStrandGroup" {% if not isSHS %}style="display:none;"{% endif %}>
+                <label class="form-label">Strand</label>
+                <div id="displayStrand">{{ profile.strand|default:"—" }}</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
       </div>
 
     </div>
 
   </div>
 </main>
+
+<!-- Success Toast -->
+<div class="toast success" id="successToast">
+  <div class="toast-icon">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <path d="M16.667 5L7.5 14.167 3.333 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div class="toast-content">
+    <p class="toast-title">Success!</p>
+    <p class="toast-message" id="successMessage"></p>
+  </div>
+  </div>
+
+<!-- Error Toast -->
+<div class="toast error" id="errorToast">
+  <div class="toast-icon">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <path d="M10 6v4M10 14h.01M19 10a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div class="toast-content">
+    <p class="toast-title">Error</p>
+    <p class="toast-message" id="errorMessage"></p>
+  </div>
+</div>
 
 <script id="user-profile-data" type="application/json">
 {
