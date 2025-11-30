@@ -1,5 +1,5 @@
 /* ============================================
-   GOALS PAGE STYLES
+   ENHANCED GOALS PAGE STYLES
    ============================================ */
 
 /* Goals Header */
@@ -30,30 +30,48 @@
 }
 
 .btn-add-goal {
-    padding: 12px 24px;
-    background: #38CA79;
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #38CA79 0%, #2ba564 100%);
     color: white;
     border: none;
     border-radius: 12px;
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     gap: 8px;
     font-family: 'Outfit', sans-serif;
-    box-shadow: 0 2px 8px rgba(56, 202, 121, 0.2);
+    box-shadow: 0 4px 12px rgba(56, 202, 121, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-add-goal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .btn-add-goal:hover {
-    background: #2ba564;
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(56, 202, 121, 0.3);
+    box-shadow: 0 8px 20px rgba(56, 202, 121, 0.4);
+}
+
+.btn-add-goal:hover::before {
+    opacity: 1;
 }
 
 .btn-add-goal:active {
     transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(56, 202, 121, 0.3);
 }
 
 /* Goals Stats */
@@ -72,13 +90,31 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: #38CA79;
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
 }
 
 .stat-card:hover {
     border-color: #38CA79;
-    box-shadow: 0 4px 16px rgba(56, 202, 121, 0.1);
-    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(56, 202, 121, 0.15);
+    transform: translateY(-4px);
+}
+
+.stat-card:hover::before {
+    transform: scaleY(1);
 }
 
 .stat-icon {
@@ -89,6 +125,11 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.1) rotate(5deg);
 }
 
 .stat-icon.active {
@@ -116,6 +157,7 @@
     font-size: 28px;
     font-weight: 700;
     color: #1F2937;
+    line-height: 1;
 }
 
 .stat-label {
@@ -167,6 +209,10 @@
     min-width: 180px;
 }
 
+.control-select:hover {
+    border-color: #d1d5db;
+}
+
 .control-select:focus {
     outline: none;
     border-color: #38CA79;
@@ -210,7 +256,7 @@
     border: 2px solid #e5e7eb;
     border-radius: 16px;
     padding: 24px;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
 }
@@ -229,8 +275,8 @@
 
 .goal-card:hover {
     border-color: #38CA79;
-    box-shadow: 0 8px 24px rgba(56, 202, 121, 0.15);
-    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(56, 202, 121, 0.2);
+    transform: translateY(-6px);
 }
 
 .goal-card:hover::before {
@@ -247,7 +293,7 @@
 
 .goal-card.overdue:hover {
     border-color: #ef4444;
-    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.15);
+    box-shadow: 0 12px 32px rgba(239, 68, 68, 0.2);
 }
 
 .goal-card.completed {
@@ -258,10 +304,10 @@
     background: linear-gradient(90deg, #9ca3af 0%, #6b7280 100%);
 }
 
-.goal-header {
+.goal-card-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     margin-bottom: 16px;
     gap: 12px;
 }
@@ -300,42 +346,26 @@
     color: #6b21a8;
 }
 
-.goal-actions {
-    display: flex;
-    gap: 8px;
+.goal-status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
 }
 
-.btn-goal-action {
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: #f3f4f6;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #6B7280;
-}
-
-.btn-goal-action:hover {
-    background: #e5e7eb;
-    color: #374151;
-    transform: scale(1.05);
-}
-
-.btn-goal-action.edit:hover {
+.goal-status.status-active {
     background: #dbeafe;
     color: #1e40af;
 }
 
-.btn-goal-action.delete:hover {
+.goal-status.status-overdue {
     background: #fee2e2;
     color: #dc2626;
 }
 
-.btn-goal-action.complete:hover {
+.goal-status.status-completed {
     background: #d1fae5;
     color: #065f46;
 }
@@ -364,90 +394,149 @@
     overflow: hidden;
 }
 
-.goal-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 16px;
-    border-top: 1px solid #e5e7eb;
+.goal-meta {
+    margin-bottom: 20px;
 }
 
 .goal-date {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 6px;
     font-size: 13px;
     font-weight: 600;
-}
-
-.goal-date.upcoming {
-    color: #1e40af;
-}
-
-.goal-date.overdue {
-    color: #dc2626;
-}
-
-.goal-date.completed {
     color: #6B7280;
-}
-
-.goal-status {
     padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
+    background: #f9fafb;
+    border-radius: 8px;
+}
+
+/* Enhanced Goal Action Buttons */
+.goal-actions {
+    display: flex;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.btn-edit-goal,
+.btn-complete-goal,
+.btn-reopen-goal,
+.btn-delete-goal {
+    flex: 1;
+    padding: 10px 16px;
+    border: 2px solid;
+    border-radius: 10px;
+    font-size: 13px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: 'Outfit', sans-serif;
+    position: relative;
+    overflow: hidden;
 }
 
-.goal-status.active {
-    background: #dbeafe;
+.btn-edit-goal::before,
+.btn-complete-goal::before,
+.btn-reopen-goal::before,
+.btn-delete-goal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.btn-edit-goal {
+    background: white;
+    border-color: #d1d5db;
+    color: #374151;
+}
+
+.btn-edit-goal::before {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+}
+
+.btn-edit-goal:hover {
+    border-color: #1e40af;
     color: #1e40af;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.2);
 }
 
-.goal-status.overdue {
-    background: #fee2e2;
-    color: #dc2626;
+.btn-edit-goal:hover::before {
+    opacity: 1;
 }
 
-.goal-status.completed {
-    background: #d1fae5;
+.btn-complete-goal,
+.btn-reopen-goal {
+    background: white;
+    border-color: #d1d5db;
+    color: #374151;
+}
+
+.btn-complete-goal::before,
+.btn-reopen-goal::before {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+}
+
+.btn-complete-goal:hover,
+.btn-reopen-goal:hover {
+    border-color: #38CA79;
     color: #065f46;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(56, 202, 121, 0.3);
+}
+
+.btn-complete-goal:hover::before,
+.btn-reopen-goal:hover::before {
+    opacity: 1;
+}
+
+.btn-delete-goal {
+    background: white;
+    border-color: #d1d5db;
+    color: #374151;
+}
+
+.btn-delete-goal::before {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+}
+
+.btn-delete-goal:hover {
+    border-color: #ef4444;
+    color: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-delete-goal:hover::before {
+    opacity: 1;
+}
+
+.btn-edit-goal:active,
+.btn-complete-goal:active,
+.btn-reopen-goal:active,
+.btn-delete-goal:active {
+    transform: translateY(0);
 }
 
 /* Empty State */
-.empty-state {
+.no-goals-message {
     text-align: center;
     padding: 60px 20px;
     background: white;
     border: 2px dashed #e5e7eb;
     border-radius: 16px;
-}
-
-.empty-icon {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 20px;
-    border-radius: 50%;
-    background: #f3f4f6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     color: #9ca3af;
-}
-
-.empty-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: #1F2937;
-    margin: 0 0 8px 0;
-}
-
-.empty-message {
     font-size: 15px;
-    color: #6B7280;
-    margin: 0 0 24px 0;
+    font-weight: 500;
 }
 
 /* Modal Styles */
@@ -472,18 +561,18 @@
 
 .modal-container {
     background: white;
-    border-radius: 16px;
+    border-radius: 20px;
     width: 90%;
     max-width: 600px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: slideUp 0.3s ease;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .modal-header {
     padding: 24px 24px 20px;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 2px solid #f3f4f6;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -501,11 +590,11 @@
 }
 
 .btn-close-modal {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border: none;
     background: #f3f4f6;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
@@ -517,6 +606,7 @@
 .btn-close-modal:hover {
     background: #e5e7eb;
     color: #374151;
+    transform: rotate(90deg);
 }
 
 .modal-body {
@@ -561,6 +651,12 @@
     min-height: 100px;
 }
 
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
+    border-color: #d1d5db;
+}
+
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
@@ -599,37 +695,66 @@
 
 .btn-save,
 .btn-cancel {
-    padding: 12px 24px;
+    padding: 12px 28px;
     border: none;
     border-radius: 10px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: 'Outfit', sans-serif;
     display: flex;
     align-items: center;
     gap: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-save::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .btn-save {
-    background: #38CA79;
+    background: linear-gradient(135deg, #38CA79 0%, #2ba564 100%);
     color: white;
+    box-shadow: 0 4px 12px rgba(56, 202, 121, 0.3);
 }
 
 .btn-save:hover {
-    background: #2ba564;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(56, 202, 121, 0.4);
+    box-shadow: 0 6px 20px rgba(56, 202, 121, 0.4);
+}
+
+.btn-save:hover::before {
+    opacity: 1;
+}
+
+.btn-save:active {
+    transform: translateY(0);
 }
 
 .btn-cancel {
     background: #f3f4f6;
     color: #374151;
+    border: 2px solid #e5e7eb;
 }
 
 .btn-cancel:hover {
     background: #e5e7eb;
+    border-color: #d1d5db;
+    transform: translateY(-1px);
+}
+
+.btn-cancel:active {
+    transform: translateY(0);
 }
 
 /* Delete Modal */
@@ -667,37 +792,63 @@
 
 .btn-modal-cancel,
 .btn-modal-delete {
-    padding: 12px 24px;
+    padding: 12px 28px;
     border: none;
     border-radius: 10px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: 'Outfit', sans-serif;
     display: flex;
     align-items: center;
     gap: 8px;
+    position: relative;
+    overflow: hidden;
 }
 
 .btn-modal-cancel {
     background: #f3f4f6;
     color: #374151;
+    border: 2px solid #e5e7eb;
 }
 
 .btn-modal-cancel:hover {
     background: #e5e7eb;
+    border-color: #d1d5db;
+    transform: translateY(-1px);
+}
+
+.btn-modal-delete::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .btn-modal-delete {
-    background: #ef4444;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     color: white;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 .btn-modal-delete:hover {
-    background: #dc2626;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+.btn-modal-delete:hover::before {
+    opacity: 1;
+}
+
+.btn-modal-delete:active,
+.btn-modal-cancel:active {
+    transform: translateY(0);
 }
 
 /* Toast Notifications */
@@ -706,9 +857,9 @@
     top: 24px;
     right: 24px;
     background: white;
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 16px 20px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -735,8 +886,8 @@
 }
 
 .toast-icon {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -745,12 +896,12 @@
 }
 
 .toast.success .toast-icon {
-    background: #d1fae5;
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
     color: #065f46;
 }
 
 .toast.error .toast-icon {
-    background: #fee2e2;
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
     color: #991b1b;
 }
 
@@ -824,6 +975,10 @@
     
     .form-row {
         grid-template-columns: 1fr;
+    }
+    
+    .goal-actions {
+        flex-direction: column;
     }
     
     .toast {

@@ -1,120 +1,11 @@
+{% extends 'accounts/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard - GradeNest</title>
-  <link rel="icon" type="image/png" href="{% static 'accounts/img/gradenest-logo.png' %}" />
-  <link rel="stylesheet" href="{% static 'accounts/css/dashboard.css' %}?v={{ CACHE_VERSION }}" />
-  <link rel="stylesheet" href="{% static 'accounts/css/dashboard-compact.css' %}?v={{ CACHE_VERSION }}" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
-  <script src="{% static 'accounts/js/dashboard.js' %}?v={{ CACHE_VERSION }}" defer></script>
-</head>
-<body>
-
-<div class="topbar">
-  <div class="logo-section">
-    <img src="{% static 'accounts/img/gradenest-logo.png' %}" alt="GradeNest Logo" class="logo-img" />
-    <span class="logo-text">GradeNest</span>
-  </div>
-
-  <div class="profile-section">
-    <span class="profile-name" id="topbarProfileName">{{ user.full_name|default:"User" }}</span>
-    <div class="profile-icon-wrapper" id="profileDropdownToggle">
-      <img src="{% static 'accounts/img/profile-icon.png' %}" alt="Profile" class="profile-icon" />
-    </div>
-    
-    <div class="profile-dropdown" id="profileDropdown">
-      <a href="#" class="dropdown-item" id="settingsLink">Settings</a>
-      <a href="{% url 'accounts:logout' %}" class="dropdown-item logout-item">Logout</a>
-    </div>
-  </div>
-</div>
-
-<aside class="sidebar">
-  <div class="sidebar-header">
-    <div class="user-profile-card">
-      <div class="user-avatar">
-        <img src="{% static 'accounts/img/profile-icon.png' %}" alt="Profile" />
-      </div>
-      <div class="user-info">
-        <span class="user-name">{{ user.full_name|default:"User" }}</span>
-        <span class="user-level">{{ profile.grade_level|default:"Grade 7" }}</span>
-      </div>
-    </div>
-  </div>
-
-  <nav class="nav-menu">
-    <div class="nav-section">
-      <span class="nav-section-label">Main</span>
-      <a href="{% url 'accounts:dashboard' %}" class="nav-item active" data-page="dashboard">
-        <div class="nav-item-content">
-          <img src="{% static 'accounts/img/home-icon.png' %}" alt="Home" class="nav-icon" />
-          <span class="nav-label">Dashboard</span>
-        </div>
-        <span class="nav-indicator"></span>
-      </a>
-    </div>
-
-    <div class="nav-section">
-      <span class="nav-section-label">Academics</span>
-      <a href="#" class="nav-item" data-page="school-year" id="schoolYearLink">
-        <div class="nav-item-content">
-          <img src="{% static 'accounts/img/sy-icon.png' %}" alt="School Year" class="nav-icon" />
-          <span class="nav-label">School Years</span>
-        </div>
-        <span class="nav-badge">{{ profile.school_year|default:"2024-25" }}</span>
-      </a>
-      <a href="{% url 'accounts:goal' %}" class="nav-item" data-page="goals" id="goalsLink">
-        <div class="nav-item-content">
-          <img src="{% static 'accounts/img/goals-icon.png' %}" alt="Goals" class="nav-icon" />
-          <span class="nav-label">My Goals</span>
-        </div>
-        <span class="nav-count" id="goalsCount">0</span>
-      </a>
-    </div>
-
-    <div class="nav-section">
-      <span class="nav-section-label">Account</span>
-      <a href="#" class="nav-item" data-page="settings" id="navSettingsLink">
-        <div class="nav-item-content">
-          <img src="{% static 'accounts/img/settings-icon.png' %}" alt="Settings" class="nav-icon" />
-          <span class="nav-label">Settings</span>
-        </div>
-      </a>
-    </div>
-  </nav>
-
-  <div class="sidebar-footer">
-    <div class="quick-stats">
-      <div class="stat-item">
-        <span class="stat-value" id="sidebarGwa">--</span>
-        <span class="stat-label">Current GWA</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <span class="stat-value" id="sidebarProgress">0%</span>
-        <span class="stat-label">Year Progress</span>
-      </div>
-    </div>
-    <a href="{% url 'accounts:logout' %}" class="btn-logout">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-        <polyline points="16 17 21 12 16 7"/>
-        <line x1="21" y1="12" x2="9" y2="12"/>
-      </svg>
-      <span>Logout</span>
-    </a>
-  </div>
-</aside>
-
-<main class="main-content">
+{% block title %}Dashboard - GradeNest{% endblock %}
+{% block content %}
   <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-spinner"></div>
   </div>
+  
   <div class="content-wrapper">
 
     <!-- Breadcrumb Navigation -->
@@ -313,7 +204,7 @@
     </div>
 
   </div>
-</main>
+{% endblock %}
 
 <!-- Confirmation Modal -->
 <div class="modal-overlay" id="confirmYearCompleteModal">
@@ -412,19 +303,18 @@
   </div>
 </div>
 
-<script id="user-profile-data" type="application/json">
-{
-  "gradeLevel": "{{ profile.grade_level|default:'Grade 7' }}",
-  "strand": "{{ profile.strand|default:'' }}",
-  "schoolYear": "{{ profile.school_year|default:'Not set' }}",
-  "isJHS": {{ isJHS|yesno:"true,false" }},
-  "isSHS": {{ isSHS|yesno:"true,false" }}
-}
-</script>
-<script>
-  // Parse user profile data from JSON
-  window.userProfile = JSON.parse(document.getElementById('user-profile-data').textContent);
-</script>
-
-</body>
-</html>
+{% block extra_js %}
+  <script id="user-profile-data" type="application/json">
+  {
+    "gradeLevel": "{{ profile.grade_level|default:'Grade 7' }}",
+    "strand": "{{ profile.strand|default:'' }}",
+    "schoolYear": "{{ profile.school_year|default:'Not set' }}",
+    "isJHS": {{ isJHS|yesno:"true,false" }},
+    "isSHS": {{ isSHS|yesno:"true,false" }}
+  }
+  </script>
+  <script>
+    // Parse user profile data from JSON
+    window.userProfile = JSON.parse(document.getElementById('user-profile-data').textContent);
+  </script>
+{% endblock %}
