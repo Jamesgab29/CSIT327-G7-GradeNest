@@ -1,0 +1,49 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}GradeNest{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{% static 'accounts/img/gradenest-logo.png' %}" />
+  <link rel="stylesheet" href="{% static 'accounts/css/dashboard.css' %}?v={{ CACHE_VERSION }}" />
+  <link rel="stylesheet" href="{% static 'accounts/css/dashboard-compact.css' %}?v={{ CACHE_VERSION }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo-section">
+    <img src="{% static 'accounts/img/gradenest-logo.png' %}" alt="GradeNest Logo" class="logo-img" />
+    <span class="logo-text">GradeNest</span>
+  </div>
+
+  <div class="profile-section">
+    <span class="profile-name" id="topbarProfileName">{{ user.full_name|default:"User" }}</span>
+    <div class="profile-icon-wrapper" id="profileDropdownToggle">
+      <img src="{% static 'accounts/img/profile-icon.png' %}" alt="Profile" class="profile-icon" />
+    </div>
+    
+    <div class="profile-dropdown" id="profileDropdown">
+      <a href="#" class="dropdown-item" id="settingsLink">Settings</a>
+      <a href="{% url 'accounts:logout' %}" class="dropdown-item logout-item">Logout</a>
+    </div>
+  </div>
+</div>
+
+{% include 'accounts/partials/sidebar.html' with active_page=active_page %}
+
+<main class="main-content">
+  <div class="content-wrapper">
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+<script src="{% static 'accounts/js/dashboard.js' %}?v={{ CACHE_VERSION }}" defer></script>
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>
