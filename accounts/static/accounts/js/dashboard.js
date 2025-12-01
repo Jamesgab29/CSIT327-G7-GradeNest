@@ -761,16 +761,16 @@ async function showShsSubjectsView(semester, quarter) {
         statusBadge = '<span class="status-badge completed">Outstanding</span>';
       } else if (gradeData.transmutedGrade >= 85) {
         strokeColor = '#38CA79'; // Light green
-        statusBadge = '<span class="status-badge completed">Very Good</span>';
+        statusBadge = '<span class="status-badge completed">Very Satisfactory</span>';
       } else if (gradeData.transmutedGrade >= 80) {
         strokeColor = '#3b82f6'; // Blue
-        statusBadge = '<span class="status-badge in-progress">Good</span>';
+        statusBadge = '<span class="status-badge in-progress">Satisfactory</span>';
       } else if (gradeData.transmutedGrade >= 75) {
         strokeColor = '#f59e0b'; // Orange
-        statusBadge = '<span class="status-badge in-progress">Passing</span>';
+        statusBadge = '<span class="status-badge in-progress">Fairly Satisfactory</span>';
       } else {
         strokeColor = '#ef4444'; // Red
-        statusBadge = '<span class="status-badge pending">Failed</span>';
+        statusBadge = '<span class="status-badge pending">Did Not Meet</span>';
       }
       
       // Calculate stroke offset for circular progress
@@ -940,16 +940,16 @@ async function showSubjectsView(quarter) {
         statusBadge = '<span class="status-badge completed">Outstanding</span>';
       } else if (gradeData.transmutedGrade >= 85) {
         strokeColor = '#38CA79'; // Light green
-        statusBadge = '<span class="status-badge completed">Very Good</span>';
+        statusBadge = '<span class="status-badge completed">Very Satisfactory</span>';
       } else if (gradeData.transmutedGrade >= 80) {
         strokeColor = '#3b82f6'; // Blue
-        statusBadge = '<span class="status-badge in-progress">Good</span>';
+        statusBadge = '<span class="status-badge in-progress">Satisfactory</span>';
       } else if (gradeData.transmutedGrade >= 75) {
         strokeColor = '#f59e0b'; // Orange
-        statusBadge = '<span class="status-badge in-progress">Passing</span>';
+        statusBadge = '<span class="status-badge in-progress">Fairly Satisfactory</span>';
       } else {
         strokeColor = '#ef4444'; // Red
-        statusBadge = '<span class="status-badge pending">Failed</span>';
+        statusBadge = '<span class="status-badge pending">Did Not Meet</span>';
       }
       
       // Calculate stroke offset for circular progress
@@ -1083,16 +1083,16 @@ async function showSubjectDetailView(subject) {
         statusBadge = '<span class="status-badge completed">Outstanding</span>';
       } else if (component.grade >= 85) {
         strokeColor = '#38CA79'; // Light green
-        statusBadge = '<span class="status-badge completed">Very Good</span>';
+        statusBadge = '<span class="status-badge completed">Very Satisfactory</span>';
       } else if (component.grade >= 80) {
         strokeColor = '#3b82f6'; // Blue
-        statusBadge = '<span class="status-badge in-progress">Good</span>';
+        statusBadge = '<span class="status-badge in-progress">Satisfactory</span>';
       } else if (component.grade >= 75) {
         strokeColor = '#f59e0b'; // Orange
-        statusBadge = '<span class="status-badge in-progress">Passing</span>';
+        statusBadge = '<span class="status-badge in-progress">Fairly Satisfactory</span>';
       } else {
         strokeColor = '#ef4444'; // Red
-        statusBadge = '<span class="status-badge pending">Failed</span>';
+        statusBadge = '<span class="status-badge pending">Did Not Meet</span>';
       }
       
       // Calculate stroke offset for circular progress
@@ -1213,16 +1213,16 @@ async function showComponentDetailView(component) {
         statusBadge = '<span class="status-badge completed">Outstanding</span>';
       } else if (grade.score >= 85) {
         strokeColor = '#38CA79'; // Light green
-        statusBadge = '<span class="status-badge completed">Very Good</span>';
+        statusBadge = '<span class="status-badge completed">Very Satisfactory</span>';
       } else if (grade.score >= 80) {
         strokeColor = '#3b82f6'; // Blue
-        statusBadge = '<span class="status-badge in-progress">Good</span>';
+        statusBadge = '<span class="status-badge in-progress">Satisfactory</span>';
       } else if (grade.score >= 75) {
         strokeColor = '#f59e0b'; // Orange
-        statusBadge = '<span class="status-badge in-progress">Passing</span>';
+        statusBadge = '<span class="status-badge in-progress">Fairly Satisfactory</span>';
       } else {
         strokeColor = '#ef4444'; // Red
-        statusBadge = '<span class="status-badge pending">Failed</span>';
+        statusBadge = '<span class="status-badge pending">Did Not Meet</span>';
       }
       
       // Calculate stroke offset for circular progress
@@ -1314,16 +1314,16 @@ async function showGradeDetailView(grade) {
         statusBadge = '<span class="status-badge completed">Outstanding</span>';
       } else if (detail.score >= 85) {
         strokeColor = '#38CA79'; // Light green
-        statusBadge = '<span class="status-badge completed">Very Good</span>';
+        statusBadge = '<span class="status-badge completed">Very Satisfactory</span>';
       } else if (detail.score >= 80) {
         strokeColor = '#3b82f6'; // Blue
-        statusBadge = '<span class="status-badge in-progress">Good</span>';
+        statusBadge = '<span class="status-badge in-progress">Satisfactory</span>';
       } else if (detail.score >= 75) {
         strokeColor = '#f59e0b'; // Orange
-        statusBadge = '<span class="status-badge in-progress">Passing</span>';
+        statusBadge = '<span class="status-badge in-progress">Fairly Satisfactory</span>';
       } else {
         strokeColor = '#ef4444'; // Red
-        statusBadge = '<span class="status-badge pending">Failed</span>';
+        statusBadge = '<span class="status-badge pending">Did Not Meet</span>';
       }
       
       // Calculate stroke offset for circular progress
