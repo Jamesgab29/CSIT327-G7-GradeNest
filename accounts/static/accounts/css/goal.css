@@ -437,26 +437,89 @@
     font-family: 'Outfit', sans-serif;
     position: relative;
     overflow: hidden;
+    z-index: 1;
+    -webkit-text-fill-color: currentColor; /* fixes WebKit text disappearing */
+    mix-blend-mode: normal;
+}
+
+/* Keep readable colors at all times */
+.btn-edit-goal,
+.btn-complete-goal,
+.btn-reopen-goal,
+.btn-delete-goal {
+    color: #1F2937 !important; /* base readable color */
+}
+
+.btn-edit-goal:hover,
+.btn-edit-goal:focus {
+    color: #1e40af !important;
+}
+
+.btn-complete-goal:hover,
+.btn-complete-goal:focus,
+.btn-reopen-goal:hover,
+.btn-reopen-goal:focus {
+    color: #065f46 !important;
+}
+
+.btn-delete-goal:hover,
+.btn-delete-goal:focus {
+    color: #dc2626 !important;
 }
 
 .btn-edit-goal::before,
 .btn-complete-goal::before,
 .btn-reopen-goal::before,
 .btn-delete-goal::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.35; /* subtle by default */
+}
+
+.btn-edit-goal:hover::before,
+.btn-complete-goal:hover::before,
+.btn-reopen-goal:hover::before,
+.btn-delete-goal:hover::before {
+    opacity: 0.5;  /* highlight without hiding text */
+}
+
+.btn-edit-goal *,
+.btn-complete-goal *,
+.btn-reopen-goal *,
+.btn-delete-goal * {
+    position: relative;
+    z-index: 1;
+    color: inherit !important;
+    -webkit-text-fill-color: inherit !important;
+}
+
+.btn-edit-goal svg,
+.btn-complete-goal svg,
+.btn-reopen-goal svg,
+.btn-delete-goal svg {
+    fill: currentColor !important;
+    stroke: currentColor !important;
+}
+
+.btn-edit-goal:focus,
+.btn-complete-goal:focus,
+.btn-reopen-goal:focus,
+.btn-delete-goal:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.25);
 }
 
 .btn-edit-goal {
     background: white;
     border-color: #d1d5db;
     color: #374151;
+}
+
+.btn-edit-goal:hover::before,
+.btn-complete-goal:hover::before,
+.btn-reopen-goal:hover::before,
+.btn-delete-goal:hover::before {
+    opacity: 0.5;  /* subtle highlight, text remains dominant */
 }
 
 .btn-edit-goal::before {
