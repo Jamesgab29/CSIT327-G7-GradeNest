@@ -753,7 +753,7 @@ async function showShsSubjectsView(semester, quarter) {
     
     if (gradeData.transmutedGrade !== null) {
       progressValue = gradeData.transmutedGrade;
-      progressLabel = gradeData.transmutedGrade >= 75 ? 'Passing' : 'Needs Improvement';
+      progressLabel = gradeData.transmutedGrade >= 75 ? 'Passing' : 'Needs Progress';
       
       // Color based on grade
       if (gradeData.transmutedGrade >= 90) {
@@ -764,10 +764,10 @@ async function showShsSubjectsView(semester, quarter) {
         statusBadge = '<span class="status-badge completed">Very Satisfactory</span>';
       } else if (gradeData.transmutedGrade >= 80) {
         strokeColor = '#3b82f6'; // Blue
-        statusBadge = '<span class="status-badge in-progress">Satisfactory</span>';
+        statusBadge = '<span class="status-badge satisfactory">Satisfactory</span>';
       } else if (gradeData.transmutedGrade >= 75) {
         strokeColor = '#f59e0b'; // Orange
-        statusBadge = '<span class="status-badge in-progress">Fairly Satisfactory</span>';
+        statusBadge = '<span class="status-badge fairly">Fairly Satisfactory</span>';
       } else {
         strokeColor = '#ef4444'; // Red
         statusBadge = '<span class="status-badge pending">Did Not Meet</span>';
@@ -932,7 +932,7 @@ async function showSubjectsView(quarter) {
     
     if (gradeData.transmutedGrade !== null) {
       progressValue = gradeData.transmutedGrade;
-      progressLabel = gradeData.transmutedGrade >= 75 ? 'Passing' : 'Needs Improvement';
+      progressLabel = gradeData.transmutedGrade >= 75 ? 'Passing' : 'Needs Progress';
       
       // Color based on grade
       if (gradeData.transmutedGrade >= 90) {
@@ -943,10 +943,10 @@ async function showSubjectsView(quarter) {
         statusBadge = '<span class="status-badge completed">Very Satisfactory</span>';
       } else if (gradeData.transmutedGrade >= 80) {
         strokeColor = '#3b82f6'; // Blue
-        statusBadge = '<span class="status-badge in-progress">Satisfactory</span>';
+        statusBadge = '<span class="status-badge satisfactory">Satisfactory</span>';
       } else if (gradeData.transmutedGrade >= 75) {
         strokeColor = '#f59e0b'; // Orange
-        statusBadge = '<span class="status-badge in-progress">Fairly Satisfactory</span>';
+        statusBadge = '<span class="status-badge fairly">Fairly Satisfactory</span>';
       } else {
         strokeColor = '#ef4444'; // Red
         statusBadge = '<span class="status-badge pending">Did Not Meet</span>';
@@ -1075,7 +1075,7 @@ async function showSubjectDetailView(subject) {
     
     if (component.grade !== null) {
       progressValue = component.grade;
-      progressLabel = component.grade >= 75 ? 'Passing' : 'Needs Improvement';
+      progressLabel = component.grade >= 75 ? 'Passing' : 'Needs Progress';
       
       // Color based on grade
       if (component.grade >= 90) {
@@ -1205,7 +1205,7 @@ async function showComponentDetailView(component) {
     
     if (grade.score !== null) {
       progressValue = grade.score;
-      progressLabel = grade.score >= 75 ? 'Passing' : 'Needs Improvement';
+      progressLabel = grade.score >= 75 ? 'Passing' : 'Needs Progress';
       
       // Color based on grade
       if (grade.score >= 90) {
@@ -1306,7 +1306,7 @@ async function showGradeDetailView(grade) {
     
     if (detail.score !== null) {
       progressValue = detail.score;
-      progressLabel = detail.score >= 75 ? 'Passing' : 'Needs Improvement';
+      progressLabel = detail.score >= 75 ? 'Passing' : 'Needs Progress';
       
       // Color based on grade
       if (detail.score >= 90) {
@@ -2525,7 +2525,7 @@ function updateOverallGwa(profile) {
         if (typeof list[i].gwa === 'number') { recent = list[i]; break; }
       }
     }
-    termLabelEl.textContent = recent ? `Viewing: ${recent.name}` : '';
+    termLabelEl.textContent = '';
   }
 
   // Update hint text and button state based on completion status and finalization
