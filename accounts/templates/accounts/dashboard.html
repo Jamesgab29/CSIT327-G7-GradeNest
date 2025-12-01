@@ -1,6 +1,7 @@
 {% extends 'accounts/base.html' %}
 {% load static %}
 {% block title %}Dashboard - GradeNest{% endblock %}
+
 {% block content %}
   <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-spinner"></div>
@@ -77,7 +78,7 @@
         <h2 id="subjectsViewTitle">First Quarter - Subjects</h2>
       </div>
       
-      <!-- FIX: Add grade interpretation legend -->
+      <!-- Grade Interpretation Legend -->
       <div class="grade-legend" style="background: #f9fafb; padding: 16px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #e5e7eb;">
         <span style="font-weight: 600; color: #374151; margin-right: 16px;">Grade Interpretation:</span>
         <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px;">
@@ -203,105 +204,107 @@
       </div>
     </div>
 
-  </div>
-{% endblock %}
+    <!-- ===================== MODALS (INSIDE BLOCK CONTENT) ===================== -->
 
-<!-- Confirmation Modal -->
-<div class="modal-overlay" id="confirmYearCompleteModal">
-  <div class="modal-container">
-    <div class="modal-header">
-      <h3 class="modal-title">⚠️ Confirm Year Completion</h3>
-    </div>
-    <div class="modal-body">
-      <p class="modal-message">Quarter has not yet finished. Are you sure to complete this school year?</p>
-      <p class="modal-warning">This action cannot be undone.</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-modal-cancel" id="btnCancelYearComplete">Cancel</button>
-      <button class="btn-modal-confirm" id="btnConfirmYearComplete">OK</button>
-    </div>
-  </div>
-</div>
-
-<!-- Add Component Modal -->
-<div class="modal-overlay" id="addComponentModal" style="display: none;">
-  <div class="modal-container">
-    <div class="modal-header">
-      <h3 class="modal-title">Add Grade Component</h3>
-    </div>
-    <div class="modal-body">
-      <input type="text" id="componentNameInput" placeholder="Component name (e.g., Quiz 1)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
-      <select id="componentTypeSelect" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px;">
-        <option value="WW">Written Works</option>
-        <option value="PT">Performance Tasks</option>
-        <option value="QA">Quarterly Assessment</option>
-      </select>
-      <input type="number" id="componentScoreInput" placeholder="Your score" step="0.01" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
-      <input type="number" id="componentHighestInput" placeholder="Highest possible score" step="0.01" value="100" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
-    </div>
-    <div class="modal-footer">
-      <button class="btn-modal-cancel" id="btnCancelAddComponent">Cancel</button>
-      <button class="btn-modal-confirm" id="btnConfirmAddComponent">Add Component</button>
-    </div>
-  </div>
-</div>
-
-<!-- MAPEH Sub-Area Selection Modal -->
-<div class="modal-overlay" id="mapehSubAreaModal" style="display: none;">
-  <div class="modal-container" style="max-width: 500px;">
-    <div class="modal-header">
-      <h3 class="modal-title">Select MAPEH Sub-Area</h3>
-    </div>
-    <div class="modal-body">
-      <p style="margin-bottom: 20px; color: #666;">Please select which MAPEH sub-area this component belongs to:</p>
-      <div class="mapeh-sub-area-options" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-        <div class="mapeh-sub-area-option" data-area="Music" style="padding: 20px; border: 2px solid #e5e7eb; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s;">
-          <div style="font-size: 24px; margin-bottom: 8px;">🎵</div>
-          <div style="font-weight: bold;">Music</div>
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="confirmYearCompleteModal">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h3 class="modal-title">⚠️ Confirm Year Completion</h3>
         </div>
-        <div class="mapeh-sub-area-option" data-area="Arts" style="padding: 20px; border: 2px solid #e5e7eb; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s;">
-          <div style="font-size: 24px; margin-bottom: 8px;">🎨</div>
-          <div style="font-weight: bold;">Arts</div>
+        <div class="modal-body">
+          <p class="modal-message">Quarter has not yet finished. Are you sure to complete this school year?</p>
+          <p class="modal-warning">This action cannot be undone.</p>
         </div>
-        <div class="mapeh-sub-area-option" data-area="Physical Education" style="padding: 20px; border: 2px solid #e5e7eb; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s;">
-          <div style="font-size: 24px; margin-bottom: 8px;">🏃</div>
-          <div style="font-weight: bold;">Physical Education</div>
-        </div>
-        <div class="mapeh-sub-area-option" data-area="Health" style="padding: 20px; border: 2px solid #e5e7eb; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s;">
-          <div style="font-size: 24px; margin-bottom: 8px;">❤️</div>
-          <div style="font-weight: bold;">Health</div>
+        <div class="modal-footer">
+          <button class="btn-modal-cancel" id="btnCancelYearComplete">Cancel</button>
+          <button class="btn-modal-confirm" id="btnConfirmYearComplete">OK</button>
         </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn-modal-cancel" id="btnCancelMapehSubArea">Cancel</button>
-    </div>
-  </div>
-</div>
 
-<!-- Edit Component Modal -->
-<div class="modal-overlay" id="editComponentModal" style="display: none;">
-  <div class="modal-container">
-    <div class="modal-header">
-      <h3 class="modal-title">Edit Component</h3>
+    <!-- Add Component Modal -->
+    <div class="modal-overlay" id="addComponentModal" style="display: none;">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h3 class="modal-title">Add Grade Component</h3>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="componentNameInput" placeholder="Component name (e.g., Quiz 1)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+          <select id="componentTypeSelect" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px;">
+            <option value="WW">Written Works</option>
+            <option value="PT">Performance Tasks</option>
+            <option value="QA">Quarterly Assessment</option>
+          </select>
+          <input type="number" id="componentScoreInput" placeholder="Your score" step="0.01" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
+          <input type="number" id="componentHighestInput" placeholder="Highest possible score" step="0.01" value="100" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
+        </div>
+        <div class="modal-footer">
+          <button class="btn-modal-cancel" id="btnCancelAddComponent">Cancel</button>
+          <button class="btn-modal-confirm" id="btnConfirmAddComponent">Add Component</button>
+        </div>
+      </div>
     </div>
-    <div class="modal-body">
-      <input type="hidden" id="editComponentId">
-      <input type="text" id="editComponentNameInput" placeholder="Component name" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
-      <select id="editComponentTypeSelect" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px;">
-        <option value="WW">Written Works</option>
-        <option value="PT">Performance Tasks</option>
-        <option value="QA">Quarterly Assessment</option>
-      </select>
-      <input type="number" id="editComponentScoreInput" placeholder="Your score" step="0.01" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
-      <input type="number" id="editComponentHighestInput" placeholder="Highest possible score" step="0.01" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
+
+    <!-- MAPEH Sub-Area Selection Modal -->
+    <div class="modal-overlay" id="mapehSubAreaModal" style="display: none;">
+      <div class="modal-container" style="max-width: 500px;">
+        <div class="modal-header">
+          <h3 class="modal-title">Select MAPEH Sub-Area</h3>
+        </div>
+        <div class="modal-body">
+          <p style="margin-bottom: 20px; color: #666;">Please select which MAPEH sub-area this component belongs to:</p>
+          <div class="mapeh-sub-area-options" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="mapeh-sub-area-option" data-area="Music" style="padding: 20px; border: 2px solid #e5e7eb; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s;">
+              <div style="font-size: 24px; margin-bottom: 8px;">🎵</div>
+              <div style="font-weight: bold;">Music</div>
+            </div>
+            <div class="mapeh-sub-area-option" data-area="Arts" style="padding: 20px; border: 2px solid #e5e7eb; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s;">
+              <div style="font-size: 24px; margin-bottom: 8px;">🎨</div>
+              <div style="font-weight: bold;">Arts</div>
+            </div>
+            <div class="mapeh-sub-area-option" data-area="Physical Education" style="padding: 20px; border: 2px solid #e5e7eb; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s;">
+              <div style="font-size: 24px; margin-bottom: 8px;">🏃</div>
+              <div style="font-weight: bold;">Physical Education</div>
+            </div>
+            <div class="mapeh-sub-area-option" data-area="Health" style="padding: 20px; border: 2px solid #e5e7eb; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s;">
+              <div style="font-size: 24px; margin-bottom: 8px;">❤️</div>
+              <div style="font-weight: bold;">Health</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-modal-cancel" id="btnCancelMapehSubArea">Cancel</button>
+        </div>
+      </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn-modal-cancel" id="btnCancelEditComponent">Cancel</button>
-      <button class="btn-modal-confirm" id="btnConfirmEditComponent">Save Changes</button>
+
+    <!-- Edit Component Modal -->
+    <div class="modal-overlay" id="editComponentModal" style="display: none;">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h3 class="modal-title">Edit Component</h3>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editComponentId">
+          <input type="text" id="editComponentNameInput" placeholder="Component name" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+          <select id="editComponentTypeSelect" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px;">
+            <option value="WW">Written Works</option>
+            <option value="PT">Performance Tasks</option>
+            <option value="QA">Quarterly Assessment</option>
+          </select>
+          <input type="number" id="editComponentScoreInput" placeholder="Your score" step="0.01" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
+          <input type="number" id="editComponentHighestInput" placeholder="Highest possible score" step="0.01" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 12px; box-sizing: border-box;">
+        </div>
+        <div class="modal-footer">
+          <button class="btn-modal-cancel" id="btnCancelEditComponent">Cancel</button>
+          <button class="btn-modal-confirm" id="btnConfirmEditComponent">Save Changes</button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
+
+  </div>  {# end .content-wrapper #}
+{% endblock %}
 
 {% block extra_js %}
   <script id="user-profile-data" type="application/json">

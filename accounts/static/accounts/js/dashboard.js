@@ -2906,13 +2906,18 @@ document.getElementById('backToSubjects').addEventListener('click', () => {
     console.error('btnConfirmAddComponent NOT FOUND!');
   }
   
-  // Setup Edit Component Modal buttons
+  // Setup  to cancel Edit Component Modal buttons
   const btnCancelEditComponent = document.getElementById('btnCancelEditComponent');
-  if (btnCancelEditComponent) {
-    btnCancelEditComponent.addEventListener('click', () => {
-      document.getElementById('editComponentModal').style.display = 'none';
-    });
-  }
+if (btnCancelEditComponent) {
+  btnCancelEditComponent.addEventListener('click', () => {
+    const modal = document.getElementById('editComponentModal');
+    if (modal) {
+      modal.style.display = 'none';
+      modal.classList.remove('show');
+    }
+  });
+}
+
   
   const btnConfirmEditComponent = document.getElementById('btnConfirmEditComponent');
   if (btnConfirmEditComponent) {
@@ -3181,7 +3186,7 @@ async function loadSubjects(quarterId = null) {
         subjectSelect.appendChild(option);
       });
     }
-    return data.subjects || [];
+    return data.subjects || []; 
   } catch (error) {
     console.error('Error loading subjects:', error);
     return [];
@@ -3525,55 +3530,77 @@ function openRegularAddComponentModal() {
   console.log('Modal should be visible now');
 }
 
+
 // Open Edit Component Modal
 function openEditComponentModal(component) {
   console.log('Opening edit modal for component:', component);
+
   const modal = document.getElementById('editComponentModal');
   if (!modal) {
     console.error('Edit modal not found!');
     return;
   }
-  
-  // Populate form with component data
-  document.getElementById('editComponentId').value = component.id;
-  document.getElementById('editComponentNameInput').value = component.name;
-  document.getElementById('editComponentTypeSelect').value = component.component_type;
-  document.getElementById('editComponentScoreInput').value = component.score;
-  document.getElementById('editComponentHighestInput').value = component.highest_score;
-}
 
-  
-  // Show modal (remove display:none and add show class)
-  modal.style.display = '';
+  // Populate form with component data
+  const idInput       = document.getElementById('editComponentId');
+  const nameInput     = document.getElementById('editComponentNameInput');
+  const typeSelect    = document.getElementById('editComponentTypeSelect');
+  const scoreInput    = document.getElementById('editComponentScoreInput');
+  const highestInput  = document.getElementById('editComponentHighestInput');
+
+  if (!idInput || !nameInput || !typeSelect || !scoreInput || !highestInput) {
+    console.error('Edit component inputs not found!');
+    return;
+  }
+
+  idInput.value      = component.id;
+  nameInput.value    = component.name;
+  typeSelect.value   = component.component_type;
+  scoreInput.value   = component.score;
+  highestInput.value = component.highest_score;
+
+  // Actually show the modal
+  modal.style.display = 'flex';  // same as addComponentModal
   modal.classList.add('show');
+}
 
 // Update Component
 async function updateComponent() {
-  const id = document.getElementById('editComponentId').value;
-  const name = document.getElementById('editComponentNameInput').value.trim();
-  const type = document.getElementById('editComponentTypeSelect').value;
-  const score = parseFloat(document.getElementById('editComponentScoreInput').value);
+  const id      = document.getElementById('editComponentId').value;
+  const name    = document.getElementById('editComponentNameInput').value.trim();
+  const type    = document.getElementById('editComponentTypeSelect').value;
+  const score   = parseFloat(document.getElementById('editComponentScoreInput').value);
   const highest = parseFloat(document.getElementById('editComponentHighestInput').value);
-  
+
   if (!name || isNaN(score) || isNaN(highest)) {
     alert('Please fill in all fields correctly');
     return;
   }
-  
+
+  if (score < 0 || highest < 0) {
+    alert('Scores cannot be negative');
+    return;
+  }
+
+  if (highest === 0) {
+    alert('Highest possible score must be greater than zero');
+    return;
+  }
+
   if (score > highest) {
     alert('Score cannot be higher than the highest possible score');
     return;
   }
-  
+
   try {
     const csrfToken = getCSRFToken();
-    const formData = new FormData();
+    const formData  = new FormData();
     formData.append('name', name);
     formData.append('component_type', type);
     formData.append('score', score);
     formData.append('highest_score', highest);
     formData.append('csrfmiddlewaretoken', csrfToken);
-    
+
     const response = await fetch(`/components/update/${id}/`, {
       method: 'POST',
       headers: {
@@ -3581,14 +3608,19 @@ async function updateComponent() {
       },
       body: formData
     });
-    
+
     const data = await response.json();
     if (data.id) {
-      // Close modal
-      document.getElementById('editComponentModal').style.display = 'none';
-      document.getElementById('editComponentModal').classList.remove('show');
-      // Reload subject view to show updated component
-      showSubjectDetailView(appState.currentSubject);
+      const modal = document.getElementById('editComponentModal');
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+      }
+
+      // Reload subject view and progress
+      await showSubjectDetailView(appState.currentSubject);
+      await refreshYearProgress();
+
     } else {
       alert('Failed to update component: ' + (data.error || 'Unknown error'));
     }
@@ -3597,6 +3629,7 @@ async function updateComponent() {
     alert('Failed to update component');
   }
 }
+
 
 // Delete Component
 async function deleteComponent(componentId) {
