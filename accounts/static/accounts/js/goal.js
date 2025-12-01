@@ -1,4 +1,5 @@
 // Goal Page JavaScript
+let allGoals = [];
 
 function initializeGoalsPage() {
     console.log('Initializing Goals Page');
@@ -19,6 +20,20 @@ function bindEventListeners() {
     if (btnAddGoal) {
         btnAddGoal.addEventListener('click', showAddGoalModal);
         console.log('Event listener added to btnAddGoal');
+    }
+
+    const goalTargetDate = document.getElementById('goalTargetDate');
+    if (goalTargetDate) {
+        goalTargetDate.addEventListener('change', () => {
+            // Re-validate date on change and show a toast if invalid
+            const title = document.getElementById('goalTitle')?.value?.trim() || '';
+            const category = document.getElementById('goalCategory')?.value || '';
+            const targetDate = goalTargetDate.value;
+            const valid = validateGoalForm(title, category, targetDate);
+            if (!valid) {
+                showErrorToast('Future dates only. Past dates are not permitted. Please re-enter the date.');
+            }
+        });
     }
     
     // Close modal button
@@ -79,8 +94,12 @@ async function loadGoals() {
         
         if (response.ok) {
             const data = await response.json();
-            displayGoals(data.goals);
-            updateStats(data.goals);
+            // Store all goals
+            allGoals = Array.isArray(data.goals) ? data.goals : [];
+            // Update stats for the full set
+            updateStats(allGoals);
+            // Render using current filter selection
+            filterAndSortGoals();
         } else {
             console.error('Failed to load goals');
         }
@@ -347,26 +366,51 @@ async function saveGoal() {
     }
 }
 
-// Validate Goal Form
 function validateGoalForm(title, category, targetDate) {
     let isValid = true;
     clearFormErrors();
-    
+
     if (!title) {
         showFieldError('goalTitle', 'Title is required');
         isValid = false;
     }
-    
+
     if (!category) {
         showFieldError('goalCategory', 'Category is required');
         isValid = false;
     }
-    
+
     if (!targetDate) {
         showFieldError('goalTargetDate', 'Target date is required');
         isValid = false;
+    } else {
+        const now = new Date();
+        const date = new Date(targetDate);
+
+        if (isNaN(date.getTime())) {
+            showFieldError('goalTargetDate', 'Please enter a valid date');
+            isValid = false;
+        } else {
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const picked = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            if (picked < today) {
+                showFieldError('goalTargetDate', 'Target date cannot be in the past');
+                isValid = false;
+            }
+            const twoYearsAhead = new Date(today);
+            twoYearsAhead.setFullYear(twoYearsAhead.getFullYear() + 2);
+            if (picked > twoYearsAhead) {
+                showFieldError('goalTargetDate', 'Completion date is too far in the future. Please input a valid date.');
+                isValid = false;
+            }
+        }
     }
-    
+
+    // If invalid, also show a warning toast
+    if (!isValid) {
+        showErrorToast('Invalid input. Please check the form and enter a valid date.');
+    }
+
     return isValid;
 }
 
@@ -557,9 +601,41 @@ function updateStats(goals) {
 
 // Filter and sort goals
 function filterAndSortGoals() {
-    // This would be implemented if we had client-side filtering
-    // For now, we'll just reload from the server
-    loadGoals();
+    const categoryFilter = document.getElementById('categoryFilter');
+    const sortOrder = document.getElementById('sortOrder');
+
+    const selected = (categoryFilter?.value || 'all').trim().toLowerCase();
+
+    let filtered = allGoals;
+
+    // Simple if/else filtering by category
+    if (selected === 'all') {
+        filtered = allGoals;
+    } else if (selected === 'academic') {
+        filtered = allGoals.filter(g => (g.category || '').toLowerCase() === 'academic');
+    } else if (selected === 'personal') {
+        filtered = allGoals.filter(g => (g.category || '').toLowerCase() === 'personal');
+    } else if (selected === 'health') {
+        filtered = allGoals.filter(g => (g.category || '').toLowerCase() === 'health');
+    } else if (selected === 'career') {
+        filtered = allGoals.filter(g => (g.category || '').toLowerCase() === 'career');
+    } else {
+        // Fallback: match whatever value is selected
+        filtered = allGoals.filter(g => (g.category || '').toLowerCase() === selected);
+    }
+
+    // Optional sort by date
+    if (sortOrder && sortOrder.value) {
+        const order = sortOrder.value.toLowerCase();
+        if (order === 'date-asc') {
+            filtered.sort((a, b) => new Date(a.target_date) - new Date(b.target_date));
+        } else if (order === 'date-desc') {
+            filtered.sort((a, b) => new Date(b.target_date) - new Date(a.target_date));
+        }
+    }
+
+    // Render filtered results
+    displayGoals(filtered);
 }
 
 // Update filtered count display
