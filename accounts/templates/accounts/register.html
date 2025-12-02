@@ -59,22 +59,22 @@
         <p class="form-subtitle">Start your journey to academic excellence</p>
       </div>
       
-      <!-- Messages/Alerts -->
       {% if messages %}
         <div class="messages-modern" id="alertBox">
           {% for message in messages %}
-            <div class="alert-modern error">
+            <div class="alert-modern {{ message.tags }}">
               <div class="alert-icon">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path d="M10 6V10M10 14H10.01M19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1C14.9706 1 19 5.02944 19 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </div>
-              <span>
-                {{ message }}
-                {% if "Email already registered" in message %}
-                  <a href="{% url 'accounts:login' %}" class="link-primary-bold">Click here to login.</a>
+                {% if 'error' in message.tags %}
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M10 6V10M10 14H10.01M19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1C14.9706 1 19 5.02944 19 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                {% else %}
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M7 10L9 12L13 8M19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1C14.9706 1 19 5.02944 19 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
                 {% endif %}
-              </span>
+              </div>
+              <span>{{ message }}</span>
             </div>
           {% endfor %}
         </div>
@@ -187,16 +187,7 @@
           <p class="error-message-inline">{{ password_error }}</p>
         {% endif %}
         
-        <!-- Terms & Conditions -->
-        <div class="terms-modern">
-          <label class="checkbox-modern">
-            <input type="checkbox" id="terms" name="terms" required />
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-label">
-              I agree to the <a href="#" class="link-primary">terms and conditions</a>
-            </span>
-          </label>
-        </div>
+        <!-- Terms & Conditions removed -->
         
         <!-- Submit Button -->
         <button type="submit" class="btn-primary-full" id="registerBtn">
