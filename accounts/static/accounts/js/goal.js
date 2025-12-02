@@ -24,14 +24,22 @@ function bindEventListeners() {
 
     const goalTargetDate = document.getElementById('goalTargetDate');
     if (goalTargetDate) {
-        goalTargetDate.addEventListener('change', () => {
-            // Re-validate date on change and show a toast if invalid
-            const title = document.getElementById('goalTitle')?.value?.trim() || '';
-            const category = document.getElementById('goalCategory')?.value || '';
-            const targetDate = goalTargetDate.value;
-            const valid = validateGoalForm(title, category, targetDate);
-            if (!valid) {
-                showErrorToast('Future dates only. Past dates are not permitted. Please re-enter the date.');
+        // Set minimum selectable date to today (prevents past dates)
+        const todayStr = new Date().toISOString().split('T')[0];
+        goalTargetDate.setAttribute('min', todayStr);
+        // For browsers that render date as text, ensure year stays 4 digits
+        goalTargetDate.addEventListener('input', (e) => {
+            const v = e.target.value;
+            // Allow empty while typing; full check happens on submit
+            if (!v) return;
+            // If not in YYYY-MM-DD, try to sanitize lightly
+            const m = v.match(/^(\d{1,})(?:-(\d{0,2}))?(?:-(\d{0,2}))?$/);
+            if (m) {
+                const y = (m[1] || '').slice(0, 4); // max 4 digits for year
+                const mm = (m[2] || '');
+                const dd = (m[3] || '');
+                const rebuilt = [y, mm, dd].filter(Boolean).join('-');
+                if (rebuilt !== v) e.target.value = rebuilt;
             }
         });
     }
@@ -407,31 +415,38 @@ function validateGoalForm(title, category, targetDate) {
         showFieldError('goalTargetDate', 'Target date is required');
         isValid = false;
     } else {
-        const now = new Date();
-        const date = new Date(targetDate);
-
-        if (isNaN(date.getTime())) {
-            showFieldError('goalTargetDate', 'Please enter a valid date');
+        // Enforce YYYY-MM-DD format and 4-digit year
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(targetDate)) {
+            showFieldError('goalTargetDate', 'Use format YYYY-MM-DD with 4-digit year');
             isValid = false;
         } else {
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const picked = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-            if (picked < today) {
-                showFieldError('goalTargetDate', 'Target date cannot be in the past');
+            const now = new Date();
+            const date = new Date(targetDate);
+            if (isNaN(date.getTime())) {
+                showFieldError('goalTargetDate', 'Please enter a valid date');
                 isValid = false;
-            }
-            const twoYearsAhead = new Date(today);
-            twoYearsAhead.setFullYear(twoYearsAhead.getFullYear() + 2);
-            if (picked > twoYearsAhead) {
-                showFieldError('goalTargetDate', 'Completion date is too far in the future. Please input a valid date.');
-                isValid = false;
+            } else {
+                const [y] = targetDate.split('-');
+                if (!/^\d{4}$/.test(y)) {
+                    showFieldError('goalTargetDate', 'Year must be exactly 4 digits');
+                    isValid = false;
+                } else {
+                    // Disallow past dates (allow today)
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+                    date.setHours(0,0,0,0);
+                    if (date < today) {
+                        showFieldError('goalTargetDate', 'Target date cannot be in the past');
+                        isValid = false;
+                    }
+                }
             }
         }
     }
 
     // If invalid, also show a warning toast
     if (!isValid) {
-        showErrorToast('Invalid input. Please check the form and enter a valid date.');
+        showErrorToast('Invalid input. Please enter a valid date with 4-digit year.');
     }
 
     return isValid;

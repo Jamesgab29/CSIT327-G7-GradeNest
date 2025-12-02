@@ -179,6 +179,7 @@
               type="date" 
               id="goalTargetDate" 
               class="form-input"
+              min="{% now 'Y-m-d' %}"
               required
             />
             <span class="form-error" id="dateError"></span>
