@@ -24,9 +24,6 @@ function bindEventListeners() {
 
     const goalTargetDate = document.getElementById('goalTargetDate');
     if (goalTargetDate) {
-        // Set minimum selectable date to today (prevents past dates)
-        const todayStr = new Date().toISOString().split('T')[0];
-        goalTargetDate.setAttribute('min', todayStr);
         // For browsers that render date as text, ensure year stays 4 digits
         goalTargetDate.addEventListener('input', (e) => {
             const v = e.target.value;
@@ -66,8 +63,9 @@ function bindEventListeners() {
     const goalForm = document.getElementById('goalForm');
     if (goalForm) {
         goalForm.addEventListener('submit', function(e) {
+            // With novalidate on the form, rely on custom JS validation only
             e.preventDefault();
-            // Don't call saveGoal here since we're already handling it with the button click
+            saveGoal();
         });
     }
     
