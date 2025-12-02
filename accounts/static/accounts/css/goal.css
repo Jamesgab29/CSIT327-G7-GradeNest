@@ -1071,3 +1071,57 @@
         opacity: 1;
     }
 }
+
+/* ============================================
+   PERFECT MATCH – Dashboard Sidebar Stats
+   ============================================ */
+
+.sidebar-footer .quick-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+
+    /* EXACT Dashboard values */
+    background: #F8F9FA;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+
+    /* same width behavior */
+    width: 100%;
+}
+
+.sidebar-footer .stat-item {
+    flex: 1;
+    text-align: center;
+}
+
+.sidebar-footer .stat-value {
+    font-size: 20px;          /* EXACT */
+    font-weight: 700;
+    color: #38CA79;
+    margin-bottom: 2px;
+    line-height: 1;
+}
+
+.sidebar-footer .stat-label {
+    font-size: 11px;          /* EXACT */
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6B7280;
+}
+
+.sidebar-footer .stat-divider {
+    width: 1px;
+    height: 32px;             /* EXACT */
+    background: #E5E7EB;
+}
+
+.sidebar-footer {
+    background: #FFFFFF;
+    padding: 20px;
+    border-top: 1px solid #E5E7EB;
+}

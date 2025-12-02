@@ -529,15 +529,17 @@ def provision_academic_structure(user, grade_level, strand):
 @login_required
 def dashboard(request):
     profile = Profile.objects.get(user=request.user)
-    
-    isJHS = profile.grade_level in ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10']
-    isSHS = profile.grade_level in ['Grade 11', 'Grade 12']
+
+    overall_gwa, year_progress = compute_dashboard_stats(request.user)
 
     return render(request, "accounts/dashboard.html", {
         'profile': profile,
-        'isJHS': isJHS,
-        'isSHS': isSHS,
+        'overall_gwa': overall_gwa,
+        'year_progress': year_progress,
+        'isJHS': profile.grade_level in ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'],
+        'isSHS': profile.grade_level in ['Grade 11', 'Grade 12'],
     })
+
 
 
 # ---------------- LANDING PAGE ----------------
@@ -545,17 +547,20 @@ def landing_page(request):
     return render(request, "accounts/landing-page.html")
 
 # ---------------- GOAL PAGE ----------------
+@login_required
 def goal(request):
     profile = Profile.objects.get(user=request.user)
-    
-    isJHS = profile.grade_level in ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10']
-    isSHS = profile.grade_level in ['Grade 11', 'Grade 12']
+
+    overall_gwa, year_progress = compute_dashboard_stats(request.user)
 
     return render(request, "accounts/goal.html", {
         'profile': profile,
-        'isJHS': isJHS,
-        'isSHS': isSHS,
+        'overall_gwa': overall_gwa,
+        'year_progress': year_progress,
+        'isJHS': profile.grade_level in ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'],
+        'isSHS': profile.grade_level in ['Grade 11', 'Grade 12'],
     })
+
 
 # ---------------- SETTINGS PAGE ----------------
 @login_required
@@ -1324,4 +1329,42 @@ def transmute_grade(initial_grade):
     # Return transmuted grade from table
     return TRANSMUTATION_TABLE.get(rounded, rounded)
 
+
+def compute_dashboard_stats(user):
+    """Compute Overall GWA and Year Progress for the user."""
+
+    quarters = Quarter.objects.filter(user=user)
+    total_transmuted = 0
+    completed_quarters = 0
+
+    for q in quarters:
+        subjects = Subject.objects.filter(quarter=q)
+
+        subject_grades = []
+        for subject in subjects:
+            components = Component.objects.filter(subject=subject)
+
+            comp_data = [
+                {
+                    'score': c.score,
+                    'highest_score': c.highest_score,
+                    'component_type': c.component_type
+                } for c in components
+            ]
+
+            grade_data = calculate_subject_grade(subject.name, comp_data, is_shs=(q.semester is not None))
+            if grade_data['transmutedGrade'] is not None:
+                subject_grades.append(grade_data['transmutedGrade'])
+
+        if subject_grades:
+            quarter_gwa = sum(subject_grades) / len(subject_grades)
+            total_transmuted += quarter_gwa
+            completed_quarters += 1
+
+    overall_gwa = round(total_transmuted / completed_quarters, 2) if completed_quarters else 0  
+
+    # PROGRESS — If all 4 quarters complete → 100%
+    year_progress = (completed_quarters / 4) * 100
+
+    return overall_gwa, int(year_progress)
 

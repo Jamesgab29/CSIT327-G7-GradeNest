@@ -2,6 +2,7 @@
 {% url 'accounts:dashboard' as dashboard_url %}
 {% url 'accounts:goal' as goal_url %}
 {% url 'accounts:settings' as settings_url %}
+
 <aside class="sidebar">
   <div class="sidebar-header">
     <div class="user-profile-card">
@@ -36,6 +37,7 @@
         </div>
         <span class="nav-badge">{{ profile.school_year|default:"2024-25" }}</span>
       </a>
+
       <a href="{{ goal_url }}" class="nav-item {% if request.path == goal_url %}active{% endif %}" data-page="goals" id="goalsLink">
         <div class="nav-item-content">
           <img src="{% static 'accounts/img/goals-icon.png' %}" alt="Goals" class="nav-icon" />
@@ -58,15 +60,22 @@
   <div class="sidebar-footer">
     <div class="quick-stats">
       <div class="stat-item">
-        <span class="stat-value" id="sidebarGwa">--</span>
+        <span class="stat-value" id="sidebarGwa">
+          {% if overall_gwa %}{{ overall_gwa|floatformat:2 }}{% else %}--{% endif %}
+        </span>
         <span class="stat-label">Current GWA</span>
       </div>
+
       <div class="stat-divider"></div>
+
       <div class="stat-item">
-        <span class="stat-value" id="sidebarProgress">0%</span>
+        <span class="stat-value" id="sidebarProgress">
+          {% if year_progress %}{{ year_progress }}%{% else %}0%{% endif %}
+        </span>
         <span class="stat-label">Year Progress</span>
       </div>
     </div>
+
     <a href="{% url 'accounts:logout' %}" class="btn-logout">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
