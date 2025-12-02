@@ -249,6 +249,28 @@ function createGoalElement(goal) {
     return goalElement;
 }
 
+async function syncSidebarStats() {
+  try {
+    // Uses functions from dashboard.js, which is loaded globally via base.html
+    if (typeof refreshYearProgress === 'function') {
+      await refreshYearProgress(); // updates appState quarter completion and sidebar progress
+    }
+    if (typeof updateSidebarStats === 'function') {
+      const profile = window.userProfile || (typeof fetchUserProfile === 'function' ? await fetchUserProfile() : {});
+      updateSidebarStats(profile); // updates GWA and progress text in the sidebar
+    }
+  } catch (e) {
+    console.warn('Sidebar sync skipped:', e);
+  }
+}
+
+function initializeGoalsPage() {
+    console.log('Initializing Goals Page');
+    loadGoals()
+      .finally(syncSidebarStats); // refresh sidebar once goals are loaded
+    bindEventListeners();
+}
+
 // Show Add Goal Modal
 function showAddGoalModal() {
     console.log('showAddGoalModal function called');
@@ -351,7 +373,8 @@ async function saveGoal() {
             closeGoalModal();
             
             // Reload goals
-            loadGoals();
+            await loadGoals();
+            await syncSidebarStats(); // keep sidebar updated
             
             // Show success message
             showSuccessToast(goalId ? 'Goal updated successfully!' : 'Goal added successfully!');
@@ -479,7 +502,8 @@ async function completeGoal(goalId) {
         
         if (response.ok) {
             // Reload goals
-            loadGoals();
+            await loadGoals();
+            await syncSidebarStats(); // keep sidebar updated
             
             // Show success message
             showSuccessToast('Goal marked as completed!');
@@ -509,9 +533,8 @@ async function reopenGoal(goalId) {
         
         if (response.ok) {
             // Reload goals
-            loadGoals();
-            
-            // Show success message
+            await loadGoals();
+            await syncSidebarStats(); // keep sidebar updated
             showSuccessToast('Goal reopened!');
         } else {
             const errorData = await response.json();
@@ -567,8 +590,8 @@ async function confirmDeleteGoal(goalId) {
             // Close delete modal
             closeDeleteModal();
             
-            // Reload goals
-            loadGoals();
+            await loadGoals();
+            await syncSidebarStats(); // keep sidebar updated
             
             // Show success message
             showSuccessToast('Goal deleted successfully!');

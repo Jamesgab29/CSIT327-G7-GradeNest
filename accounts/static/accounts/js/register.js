@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // hash password (simple simulation for now)
     const hashedPassword = btoa(password.value);
 
-    alert("Registration successful! Redirecting to Education Level Page...");
+    showSuccessToast('Registration successful! Redirecting to Education Level Page...');
     console.log({
       name: name.value,
       email: email.value,

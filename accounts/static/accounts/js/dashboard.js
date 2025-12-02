@@ -2274,6 +2274,46 @@ function deleteComponentItem(componentType, index, isMAPEH = false) {
   });
 }
 
+async function computeQuarterGwaPartial(quarterId, isSHS) {
+  try {
+    const subjects = await loadSubjects(quarterId);
+    if (!subjects.length) return null;
+
+    const grades = [];
+    for (const subject of subjects) {
+      const components = await loadComponents(quarterId, subject.id);
+      if (!components.length) continue;
+      const gradeData = calculateSubjectGrade(subject.name, components, isSHS);
+      if (gradeData && gradeData.transmutedGrade !== null) {
+        grades.push(gradeData.transmutedGrade);
+      }
+    }
+    if (!grades.length) return null;
+    return grades.reduce((a, b) => a + b, 0) / grades.length;
+  } catch (e) {
+    console.warn('computeQuarterGwaPartial failed:', e);
+    return null;
+  }
+}
+
+async function getQuarterGwaLive(quarter, isSHS) {
+  if (quarter && typeof quarter.gwa === 'number' && !isNaN(quarter.gwa)) return quarter.gwa;
+  const val = await computeQuarterGwaPartial(quarter.id, isSHS);
+  return typeof val === 'number' ? val : null;
+}
+
+async function computeSemesterGwaLive(semester, isSHS) {
+  if (!semester || !Array.isArray(semester.quarters)) return null;
+  // Consider the two quarters of the semester
+  const values = [];
+  for (const q of semester.quarters.slice(0, 2)) {
+    const v = await getQuarterGwaLive(q, isSHS);
+    if (typeof v === 'number' && !isNaN(v)) values.push(v);
+  }
+  if (!values.length) return null;
+  return values.reduce((a, b) => a + b, 0) / values.length;
+}
+
 function updateAllCalculations() {
   const quarter = appState.currentQuarter;
   const subjectData = quarter.subjects[appState.currentSubject];
@@ -2465,37 +2505,47 @@ function computeQuarterGWA() {
 
 function updateOverallGwa(profile) {
   let gwaValues = [];
-  
+
   if (profile.isSHS) {
-    // For SHS, use semester final grades
-    appState.semesters.forEach(semester => {
-      if (semester.finalGrade) {
-        gwaValues.push(semester.finalGrade);
+    // SHS: require both semesters fully computed (2 quarters each)
+    const allQuarters = (appState.semesters || []).flatMap(s => s.quarters || []);
+    const allQuartersCompleted = allQuarters.length === 4 && allQuarters.every(q => typeof q.gwa === 'number' && !isNaN(q.gwa));
+
+    if (!allQuartersCompleted) {
+      appState.overallGwa = 0; // do not compute overall yet
+    } else {
+      // Use semester final grades when available; fallback to averaging all quarter GWAs
+      const semesterGrades = (appState.semesters || []).map(s => s.finalGrade).filter(g => typeof g === 'number');
+      if (semesterGrades.length === 2) {
+        appState.overallGwa = (semesterGrades.reduce((a,b)=>a+b,0) / semesterGrades.length).toFixed(2);
+      } else {
+        const quartersGwa = allQuarters.map(q => q.gwa);
+        appState.overallGwa = (quartersGwa.reduce((a,b)=>a+b,0) / quartersGwa.length).toFixed(2);
       }
-    });
+    }
   } else {
-    // For JHS, use quarter GWAs
-    gwaValues = appState.quarters.filter(q => q.gwa).map(q => q.gwa);
-  }
-  
-  const hasGwa = gwaValues.length > 0;
-  
-  if (hasGwa) {
-    appState.overallGwa = (gwaValues.reduce((a,b)=>a+b,0) / gwaValues.length).toFixed(2);
-  } else {
-    appState.overallGwa = 0;
+    // JHS: require 4 quarters computed
+    const quarters = appState.quarters || [];
+    const allQuartersCompleted = quarters.length === 4 && quarters.every(q => typeof q.gwa === 'number' && !isNaN(q.gwa));
+
+    if (!allQuartersCompleted) {
+      appState.overallGwa = 0; // do not compute overall yet
+    } else {
+      gwaValues = quarters.map(q => q.gwa);
+      appState.overallGwa = (gwaValues.reduce((a,b)=>a+b,0) / gwaValues.length).toFixed(2);
+    }
   }
 
-  // Update GWA display
+  // Update main dashboard overall GWA display
   const gwaValueElement = document.getElementById('overallGwaValue');
   const remarkElement = document.getElementById('overallRemark');
   const buttonHint = document.getElementById('buttonHint');
   const markDoneBtn = document.getElementById('markDoneBtn');
-  
-  gwaValueElement.textContent = hasGwa ? appState.overallGwa : '--';
-  
-  // Show remark only if there's a computed GWA
-  if (hasGwa) {
+
+  const hasOverall = appState.overallGwa > 0;
+  gwaValueElement.textContent = hasOverall ? appState.overallGwa : '--';
+
+  if (hasOverall) {
     remarkElement.textContent =
       appState.overallGwa >= 90 ? 'Outstanding! 🌟' :
       appState.overallGwa >= 85 ? 'Great job! 🎉' :
@@ -2507,28 +2557,19 @@ function updateOverallGwa(profile) {
     remarkElement.textContent = 'Keep pushing forward! 🌟';
     remarkElement.style.opacity = '0.6';
   }
-  
-  // Determine completion: quarters considered complete when GWA is computed
+
+  // Determine completion only when all quarters have computed GWA
   const allQuarters = profile.isSHS
     ? (appState.semesters.flatMap(s => s.quarters) || [])
     : (appState.quarters || []);
-  const allQuartersCompleted = allQuarters.length > 0 && allQuarters.every(q => typeof q.gwa === 'number' && !isNaN(q.gwa));
+  const allQuartersCompleted = (profile.isSHS ? allQuarters.length === 4 : allQuarters.length === 4) &&
+    allQuarters.every(q => typeof q.gwa === 'number' && !isNaN(q.gwa));
 
-  // Update current/most recent completed term label
   const termLabelEl = document.getElementById('currentTermLabel');
   if (termLabelEl) {
-    let recent = null;
-    const list = profile.isSHS ? allQuarters : appState.quarters;
-    if (list && list.length) {
-      // find last quarter with a computed gwa
-      for (let i = list.length - 1; i >= 0; i--) {
-        if (typeof list[i].gwa === 'number') { recent = list[i]; break; }
-      }
-    }
     termLabelEl.textContent = '';
   }
 
-  // Update hint text and button state based on completion status and finalization
   const finalized = appState.yearFinalized === true;
   buttonHint.classList.remove('hidden');
   if (finalized) {
@@ -2547,13 +2588,12 @@ function updateOverallGwa(profile) {
     markDoneBtn.style.opacity = '0.6';
     markDoneBtn.style.cursor = 'not-allowed';
   }
-  
-  // Update quarter cards if on dashboard
+
   if (appState.currentView === 'dashboard') {
     renderGradeCards(profile);
   }
-  
-  // Update sidebar stats to reflect current GWA and progress
+
+  // Sidebar should always show current quarter GWA (partial or full), not overall
   updateSidebarStats(profile);
 }
 
@@ -2679,12 +2719,12 @@ function markSchoolYearComplete() {
   // Update sidebar stats to reflect completion
   updateSidebarStats(window.userProfile);
   
-  // Show success message
-  alert('School year marked as complete! 🎉');
+  // Toast instead of alert
+  showSuccessToast('School year marked as complete! 🎉');
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Show loading overlay
+  ensureToastsInDOM();
   const loadingOverlay = document.getElementById('loadingOverlay');
   if (loadingOverlay) {
     loadingOverlay.classList.add('active');
@@ -2773,7 +2813,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     btnConfirmAddQuarter.addEventListener('click', async () => {
       const name = document.getElementById('quarterNameInput').value.trim();
       if (!name) {
-        alert('Please enter a quarter name');
+        showErrorToast('Please enter a quarter name');
         return;
       }
 
@@ -2793,7 +2833,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const data = await response.json();
         if (data.id) {
-          alert('Quarter added successfully!');
+          showSuccessToast('Quarter added successfully!');
           const modal = document.getElementById('addQuarterModal');
           modal.style.display = 'none';
           modal.classList.remove('show');
@@ -2803,7 +2843,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       } catch (error) {
         console.error('Error adding quarter:', error);
-        alert('Failed to add quarter');
+        showErrorToast('Failed to add quarter');
       }
     });
   }
@@ -2824,12 +2864,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     btnConfirmAddSubject.addEventListener('click', async () => {
       const name = document.getElementById('subjectNameInput').value.trim();
       if (!name) {
-        alert('Please enter a subject name');
+        showErrorToast('Please enter a subject name');
         return;
       }
 
       if (!appState.currentQuarter) {
-        alert('Please select a quarter first');
+        showErrorToast('Please select a quarter first');
         return;
       }
 
@@ -2850,7 +2890,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const data = await response.json();
         if (data.id) {
-          alert('Subject added successfully!');
+          showSuccessToast('Subject added successfully!');
           const modal = document.getElementById('addSubjectModal');
           modal.style.display = 'none';
           modal.classList.remove('show');
@@ -2860,7 +2900,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       } catch (error) {
         console.error('Error adding subject:', error);
-        alert('Failed to add subject');
+        showErrorToast('Failed to add subject');
       }
     });
   }
@@ -3107,34 +3147,130 @@ function switchComponentTab(componentType) {
   }
 }
 
-function updateSidebarStats(profile) {
+async function ensureSidebarCurrentQuarter(profile) {
+  if (appState.currentQuarter) return;
+
+  // Load backend quarters
+  const quarters = await loadQuarters();
+  if (!quarters || quarters.length === 0) return;
+
+  // Try to find a quarter with any subjects/components or a computed gwa
+  for (const q of quarters) {
+    // If we already computed gwa in appState, prefer that
+    const inState = (profile.isSHS
+      ? (appState.semesters.flatMap(s => s.quarters).find(x => x.id === q.id))
+      : (appState.quarters.find(x => x.id === q.id))
+    );
+    if (inState && typeof inState.gwa === 'number') {
+      appState.currentQuarter = inState;
+      return;
+    }
+    // Otherwise check if it has any subjects/components
+    const subjects = await loadSubjects(q.id);
+    if (subjects && subjects.length > 0) {
+      // Check at least one subject has components
+      for (const subj of subjects) {
+        const comps = await loadComponents(q.id, subj.id);
+        if (comps && comps.length > 0) {
+          // Create a minimal quarter object for appState
+          appState.currentQuarter = inState || { id: q.id, name: q.name, gwa: null };
+          return;
+        }
+      }
+    }
+  }
+
+  // Fallback: pick the last quarter returned by backend
+  const last = quarters[quarters.length - 1];
+  if (last) {
+    const inState = (profile.isSHS
+      ? (appState.semesters.flatMap(s => s.quarters).find(x => x.id === last.id))
+      : (appState.quarters.find(x => x.id === last.id))
+    );
+    appState.currentQuarter = inState || { id: last.id, name: last.name, gwa: null };
+  }
+}
+
+async function updateSidebarStats(profile) {
   const sidebarGwa = document.getElementById('sidebarGwa');
   const sidebarProgress = document.getElementById('sidebarProgress');
   const goalsCount = document.getElementById('goalsCount');
-  
-  if (sidebarGwa && sidebarProgress) {
-    // Update GWA
-    const gwa = appState.overallGwa;
-    if (gwa > 0) {
-      sidebarGwa.textContent = gwa;
+  if (!sidebarGwa || !sidebarProgress) return;
+
+  // Year progress
+  const allQuartersArr = profile.isSHS
+    ? (appState.semesters.flatMap(s => s.quarters) || [])
+    : (appState.quarters || []);
+  const completedQuarters = allQuartersArr.filter(q => q.is_completed === true || q.marked === true).length;
+  const progress = Math.round((completedQuarters / 4) * 100);
+  sidebarProgress.textContent = `${isFinite(progress) ? progress : 0}%`;
+  if (goalsCount) goalsCount.textContent = goalsCount.textContent || '0';
+
+  // If all quarters have computed GWA, show Overall GWA (and round up to 2 decimals)
+  const allTermsComputed = (allQuartersArr.length === 4) &&
+    allQuartersArr.every(q => typeof q.gwa === 'number' && !isNaN(q.gwa));
+
+  if (allTermsComputed) {
+    const overallNum = parseFloat(appState.overallGwa);
+    if (isFinite(overallNum)) {
+      const roundedUp = Math.ceil(overallNum * 100) / 100;
+      sidebarGwa.textContent = roundedUp.toFixed(2);
     } else {
       sidebarGwa.textContent = '--';
     }
-    
-    // Calculate year progress based on backend-computed quarter completion
-    const allQuarters = profile.isSHS
-      ? (appState.semesters.flatMap(s => s.quarters) || [])
-      : (appState.quarters || []);
-    const completedQuarters = allQuarters.filter(q => q.is_completed === true || q.marked === true).length;
-    const totalQuarters = 4; // Always 4 per school year
-    const progress = Math.round((completedQuarters / totalQuarters) * 100);
-    appState.yearProgress = progress;
-    sidebarProgress.textContent = `${isFinite(progress) ? progress : 0}%`;
-    
-    // Update goals count (placeholder - integrate with actual goals system)
-    if (goalsCount) {
-      goalsCount.textContent = '0';
+    return; // Done: "Current GWA" equals Overall GWA when all terms are done
+  }
+
+  // Ensure context when not yet complete
+  await ensureSidebarCurrentQuarter(profile);
+
+  // SHS: show live semester average (Q1+Q2), else fall back to current quarter
+  if (profile.isSHS) {
+    let semester =
+      appState.currentSemester ||
+      (appState.semesters || []).find(s => (s.quarters || []).some(q => q.id === appState.currentQuarter?.id)) ||
+      (appState.semesters || [])[0];
+
+    if (semester) {
+      sidebarGwa.textContent = '...';
+      const semGwa = await computeSemesterGwaLive(semester, true);
+      if (typeof semGwa === 'number') {
+        const roundedUp = Math.ceil(semGwa * 100) / 100;
+        sidebarGwa.textContent = roundedUp.toFixed(2);
+        return;
+      }
     }
+    // Fallback: current quarter
+    if (appState.currentQuarter) {
+      sidebarGwa.textContent = '...';
+      const qVal = await getQuarterGwaLive(appState.currentQuarter, true);
+      if (typeof qVal === 'number') {
+        const roundedUp = Math.ceil(qVal * 100) / 100;
+        sidebarGwa.textContent = roundedUp.toFixed(2);
+      } else {
+        sidebarGwa.textContent = '--';
+      }
+    } else {
+      sidebarGwa.textContent = '--';
+    }
+    return;
+  }
+
+  // JHS: show current quarter live GWA
+  if (appState.currentQuarter) {
+    sidebarGwa.textContent = '...';
+    const gwa = await computeQuarterGwaPartial(appState.currentQuarter.id, false);
+    const val = (typeof gwa === 'number')
+      ? gwa
+      : (typeof appState.currentQuarter.gwa === 'number' ? appState.currentQuarter.gwa : null);
+    if (val !== null) {
+      const roundedUp = Math.ceil(val * 100) / 100;
+      sidebarGwa.textContent = roundedUp.toFixed(2);
+    } else {
+      sidebarGwa.textContent = '--';
+    }
+  } else {
+    sidebarGwa.textContent = '--';
   }
 }
 
@@ -3316,15 +3452,99 @@ async function addComponentWithValues(name, type, score, highest) {
     
     if (data.id) {
       console.log('Component added successfully!');
-      alert('Component added successfully!');
+      showSuccessToast('Component added successfully!');
       // Reload subject view to show new component
       showSubjectDetailView(appState.currentSubject);
     } else {
-      alert('Failed to add component: ' + (data.error || 'Unknown error'));
+      showErrorToast(data.error || 'Failed to add component');
     }
   } catch (error) {
     console.error('Error adding component:', error);
-    alert('Failed to add component');
+    showErrorToast('Failed to add component');
+  }
+}
+
+function ensureToastsInDOM() {
+  // Inject toast styles once (works across all pages)
+  if (!document.getElementById('toastStyles')) {
+    const style = document.createElement('style');
+    style.id = 'toastStyles';
+    style.textContent = `
+      .toast { position: fixed; top: 24px; right: 24px; background: #fff; border-radius: 14px; padding: 16px 20px; box-shadow: 0 12px 32px rgba(0,0,0,.2); display: flex; align-items: center; gap: 12px; min-width: 320px; z-index: 11000; opacity: 0; transform: translateX(400px); transition: all .4s cubic-bezier(0.68,-0.55,0.265,1.55); pointer-events: none; }
+      .toast.show { opacity: 1; transform: translateX(0); pointer-events: auto; }
+      .toast.success { border-left: 4px solid #38CA79; }
+      .toast.error { border-left: 4px solid #ef4444; }
+      .toast-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+      .toast.success .toast-icon { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46; }
+      .toast.error .toast-icon { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color: #991b1b; }
+      .toast-content { flex: 1; }
+      .toast-title { font-size: 14px; font-weight: 700; color: #1F2937; margin: 0 0 4px 0; }
+      .toast-message { font-size: 13px; color: #6B7280; margin: 0; line-height: 1.4; }
+      @media (max-width: 768px) { .toast { right: 16px; left: 16px; min-width: auto; } }
+    `;
+    document.head.appendChild(style);
+  }
+
+  if (!document.getElementById('successToast')) {
+    const success = document.createElement('div');
+    success.id = 'successToast';
+    success.className = 'toast success';
+    success.innerHTML = `
+      <div class="toast-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        </svg>
+      </div>
+      <div class="toast-content">
+        <p class="toast-title">Success!</p>
+        <p class="toast-message" id="successMessage">Operation completed successfully!</p>
+      </div>
+    `;
+    document.body.appendChild(success);
+  }
+  if (!document.getElementById('errorToast')) {
+    const error = document.createElement('div');
+    error.id = 'errorToast';
+    error.className = 'toast error';
+    error.innerHTML = `
+      <div class="toast-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        </svg>
+      </div>
+      <div class="toast-content">
+        <p class="toast-title">Error</p>
+        <p class="toast-message" id="errorMessage">An error occurred. Please try again.</p>
+      </div>
+    `;
+    document.body.appendChild(error);
+  }
+}
+
+function showSuccessToast(message) {
+  ensureToastsInDOM();
+  const toast = document.getElementById('successToast');
+  const msg = document.getElementById('successMessage');
+  if (!toast || !msg) return;
+  msg.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function showErrorToast(message) {
+  ensureToastsInDOM();
+  const toast = document.getElementById('errorToast');
+  const msg = document.getElementById('errorMessage');
+  if (!toast || !msg) return;
+  msg.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// Ensure toast containers exist as soon as DOM is ready on every page
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ensureToastsInDOM);
+  } else {
+    try { ensureToastsInDOM(); } catch (e) { /* no-op */ }
   }
 }
 
@@ -3335,44 +3555,39 @@ async function addComponent() {
   const type = document.getElementById('componentTypeSelect').value;
   const score = parseFloat(document.getElementById('componentScoreInput').value);
   const highest = parseFloat(document.getElementById('componentHighestInput').value);
-  
+
   console.log('Form values:', { name, type, score, highest });
-  
+
   if (!name || isNaN(score) || isNaN(highest)) {
-    alert('Please fill in all fields correctly');
+    showErrorToast('Please complete all fields with valid numbers.');
     return;
   }
   if (score < 0 || highest < 0) {
-    alert('Scores cannot be negative');
+    showErrorToast('Scores must be zero or positive.');
     return;
   }
   if (highest === 0) {
-    alert('Highest possible score must be greater than zero');
+    showErrorToast('Highest score must be greater than zero.');
     return;
   }
-  
   if (score > highest) {
-    alert('Score cannot be higher than the highest possible score');
+    showErrorToast('Score cannot be higher than the highest possible score.');
     return;
   }
-  
+
   console.log('Validation passed, attempting to add component...');
   console.log('Current quarter:', appState.currentQuarter);
   console.log('Current subject:', appState.currentSubject);
-  
-  // Check if currentQuarter and currentSubject have id property
+
   if (!appState.currentQuarter || !appState.currentQuarter.id) {
-    console.error('ERROR: Current quarter is missing or has no id!', appState.currentQuarter);
-    alert('Error: No quarter selected. Please go back and select a quarter first.');
+    showErrorToast('Please select a quarter first.');
     return;
   }
-  
   if (!appState.currentSubject || !appState.currentSubject.id) {
-    console.error('ERROR: Current subject is missing or has no id!', appState.currentSubject);
-    alert('Error: No subject selected. Please go back and select a subject first.');
+    showErrorToast('Please select a subject first.');
     return;
   }
-  
+
   try {
     const csrfToken = getCSRFToken();
     const formData = new FormData();
@@ -3411,7 +3626,7 @@ async function addComponent() {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Server error response:', errorText);
-      alert(`Failed to add component: Server returned ${response.status}`);
+      showErrorToast(`Failed to add component: ${response.status}`);
       return;
     }
     
@@ -3427,11 +3642,11 @@ async function addComponent() {
       await showSubjectDetailView(appState.currentSubject);
       await refreshYearProgress();
     } else {
-      alert('Failed to add component: ' + (data.error || 'Unknown error'));
+      showErrorToast(data.error || 'Failed to add component');
     }
   } catch (error) {
-    console.error('Error adding component:', error);
-    alert('Failed to add component: ' + error.message);
+    console.error('Failed to add component:', error);
+    showErrorToast('Failed to add component.');
   }
 }
 
@@ -3573,22 +3788,19 @@ async function updateComponent() {
   const highest = parseFloat(document.getElementById('editComponentHighestInput').value);
 
   if (!name || isNaN(score) || isNaN(highest)) {
-    alert('Please fill in all fields correctly');
+    showErrorToast('Please complete all fields with valid numbers.');
     return;
   }
-
   if (score < 0 || highest < 0) {
-    alert('Scores cannot be negative');
+    showErrorToast('Scores must be zero or positive.');
     return;
   }
-
   if (highest === 0) {
-    alert('Highest possible score must be greater than zero');
+    showErrorToast('Highest score must be greater than zero.');
     return;
   }
-
   if (score > highest) {
-    alert('Score cannot be higher than the highest possible score');
+    showErrorToast('Score cannot be higher than the highest possible score.');
     return;
   }
 
@@ -3622,22 +3834,20 @@ async function updateComponent() {
       await refreshYearProgress();
 
     } else {
-      alert('Failed to update component: ' + (data.error || 'Unknown error'));
+      showErrorToast(data.error || 'Failed to update component');
     }
   } catch (error) {
-    console.error('Error updating component:', error);
-    alert('Failed to update component');
+    console.error('Failed to update component:', error);
+    showErrorToast('Failed to update component.');
   }
 }
 
 
 // Delete Component
 async function deleteComponent(componentId) {
-  if (!confirm('Are you sure you want to delete this component? This action cannot be undone.')) {
-    return;
-  }
-  
-  try {
+  // Use custom confirmation modal consistent with Goals
+  showDeleteConfirmation('this component', async () => {
+    try {
     const csrfToken = getCSRFToken();
     const response = await fetch(`/components/delete/${componentId}/`, {
       method: 'POST',
@@ -3653,13 +3863,15 @@ async function deleteComponent(componentId) {
       // Reload subject view to remove deleted component
       await showSubjectDetailView(appState.currentSubject);
       await refreshYearProgress();
+        showSuccessToast('Component deleted successfully!');
     } else {
-      alert('Failed to delete component: ' + (data.error || 'Unknown error'));
+        showErrorToast(data.error || 'Failed to delete component');
     }
-  } catch (error) {
-    console.error('Error deleting component:', error);
-    alert('Failed to delete component');
-  }
+    } catch (error) {
+      console.error('Error deleting component:', error);
+      showErrorToast('Failed to delete component');
+    }
+  });
 }
 
 // Refresh year progress from backend quarters status and update UI
