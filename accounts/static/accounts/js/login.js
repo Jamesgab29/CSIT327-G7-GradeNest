@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // frontend simulation of a successful login
-    alert("Login Successful!");
+    showSuccessToast('Login Successful!');
     form.reset();
   });
 });

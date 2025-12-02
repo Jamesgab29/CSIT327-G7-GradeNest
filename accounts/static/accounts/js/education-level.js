@@ -125,17 +125,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const schoolYear = schoolYearSelect.value;
 
     if (!selectedLevel) {
-      alert("Please choose Junior or Senior High first.");
+      showErrorToast('Please choose Junior or Senior High first.');
       return;
     }
 
     if (!grade || !schoolYear) {
-      alert("Please fill out all required fields.");
+      showErrorToast('Please fill out all required fields.');
       return;
     }
 
     if (selectedLevel === 'shs' && !strand) {
-      alert("Please select a strand for Senior High School.");
+      showErrorToast('Please select a strand for Senior High School.');
       return;
     }
 
