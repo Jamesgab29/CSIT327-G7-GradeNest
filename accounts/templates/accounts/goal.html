@@ -126,7 +126,7 @@
       </button>
     </div>
     <div class="modal-body">
-      <form id="goalForm">
+      <form id="goalForm" novalidate>
         <input type="hidden" id="goalId" />
         
         <div class="form-group">
@@ -179,7 +179,6 @@
               type="date" 
               id="goalTargetDate" 
               class="form-input"
-              min="{% now 'Y-m-d' %}"
               required
             />
             <span class="form-error" id="dateError"></span>
@@ -188,7 +187,7 @@
 
         <div class="form-actions">
           <button type="button" class="btn-cancel" id="btnCancelGoal">Cancel</button>
-          <button type="submit" class="btn-save" id="btnSaveGoal">
+          <button type="button" class="btn-save" id="btnSaveGoal">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M13.333 4L6 11.333 2.667 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
