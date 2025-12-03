@@ -58,7 +58,7 @@
   </nav>
 
   <div class="sidebar-footer">
-    {% if request.path != goal_url %}
+    {% if not '/settings/' in request.path and not '/goal/' in request.path %}
       <div class="quick-stats">
         <div class="stat-item">
           <span class="stat-value" id="sidebarGwa">
